@@ -56,7 +56,7 @@ const errorBFalse = () => {
 
 const signIn = () => {
 
-  const API_URL = "/api/user/login"
+  const API_URL = "/api/user/login/"
 
   const loginData = {
     email: email.value,
@@ -70,7 +70,7 @@ const signIn = () => {
     localStorage.setItem('loggedIn', "true")
     localStorage.setItem('email', res.data.data.email)
     localStorage.setItem("loggedInBefore", "true")
-    
+
     modalAnimation.value = false
     modalActivation.value = true
     modalMessage.value = "Redirecting to landing page"
@@ -80,10 +80,12 @@ const signIn = () => {
       router.push("/")
     }, 1000);
   }).catch((err) => {
+    modalActivation.value = true
+    modalAnimation.value = false
     if (err.status = 404) {
-      modalActivation.value = true
-      modalAnimation.value = false
       modalMessage.value = "User doesn't exist"
+    } else {
+      modalMessage.value = "problem"
     }
   })
 
@@ -96,7 +98,7 @@ const getAllUsers = () => {
   }).catch((err) => {
     if (err.response.status === 400) {
       axios.post("/api/user/refresh").then((res) => {
-        console.log(`output->res`,res)
+        console.log(`output->res`, res)
         getAllUsers()
       })
     }

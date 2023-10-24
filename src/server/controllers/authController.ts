@@ -14,7 +14,7 @@ const jwtSecret = process.env.SECRET_JWT_CODE;
 export function loginPost(req: any, res: any) {
   if (!req.body.email || !req.body.password) {
     res
-      .status(402)
+      .status(401)
       .json({ success: false, error: "Send needed password or email" });
     return;
   }

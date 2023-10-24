@@ -22,8 +22,8 @@ database.once('connected', () => {
 })
 
 
-ViteExpress.listen(app, 3000, () =>
-    console.log("Server is listening on http://localhost:3000"))
+ViteExpress.listen(app, 2258, () =>
+    console.log("Server is listening on http://localhost:2258"))
 
 mongoose.connect(mongoURI)
 app.use(bodyParser.urlencoded({ extended: true }));
