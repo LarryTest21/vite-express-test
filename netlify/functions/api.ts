@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 
 const serverless = require("serverless-http");
 
-const app = express();
+const api = express();
 const router = Router();
 const mongoURI = process.env.MONGO_URI;
 const database = mongoose.connection;
@@ -21,7 +21,7 @@ database.once("connected", () => {
 });
 ViteExpress.config({ mode: "production" });
 
-ViteExpress.listen(app, 2258, () =>
+ViteExpress.listen(api, 2258, () =>
   console.log("Server is listening on http://localhost:2258")
 );
 
@@ -29,10 +29,10 @@ router.get("/hello", (req, res) => res.send("gdgfd!"));
 router.get("/test2", (req, res) => res.send("fkyou"));
 
 mongoose.connect(mongoURI);
-app.use(bodyParser.urlencoded({ extended: true }));
+api.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(bodyParser.json({ limit: "10mb" }));
-app.use(cookieParser());
-app.use("/api", authRoutes);
+api.use(bodyParser.json({ limit: "10mb" }));
+api.use(cookieParser());
+api.use("/api", router);
 
-module.exports.handler = serverless(app);
+module.exports.handler = serverless(api);
