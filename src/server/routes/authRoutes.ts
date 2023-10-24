@@ -44,8 +44,6 @@ router.post("/user/updateSettings", updateUserSettings)
 router.get("/user/set-cookies", setCookie);
 router.get("/user/read-cookies", readCookie);
 
-router.get("/hello", (req, res) => res.send("gdgfd!"));
-router.get("/test2", (req, res) => res.send("fkyou"));
 
 router.get("/content/blogposts", getAllBlog)
 router.get("/content/blogpost/:id", getBlog)
