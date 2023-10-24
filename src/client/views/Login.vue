@@ -92,9 +92,10 @@ const signIn = () => {
 }
 
 const getAllUsers = () => {
-axios.get("/api/hello").then((res)=> {
+axios.get("/api/user/getAllUsers").then((res)=> {
   console.log(`output->res`,res)
 })
+
 }
 </script>
 
