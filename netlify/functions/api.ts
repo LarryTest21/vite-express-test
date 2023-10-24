@@ -1,13 +1,9 @@
 import express, { Router } from "express";
 import serverless from "serverless-http";
 
-const api = express();
 
-const router = Router();
-router.get("/hello", (req, res) => res.send("Hello World!"));
-router.post("/test2", (req, res) => res.status(202).send("Hello World!"));
 
-api.use("/api/", router);
+
 
 
 import 'dotenv/config'
@@ -16,6 +12,20 @@ import authRoutes from "../../src/server/routes/authRoutes"
 import bodyParser from "body-parser"
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser')
+
+
+
+
+
+
+const api = express();
+
+const router = Router();
+router.get("/hello", (req, res) => res.send("Hello World!"));
+router.post("/test2", (req, res) => res.status(202).send("Hello World!"));
+
+api.use("/api/", router);
+
 
 const app = express();
 
