@@ -56,7 +56,7 @@ const errorBFalse = () => {
 
 const signIn = () => {
 
-  const API_URL = "/api/user/login/"
+  const API_URL = "/api/user/login"
 
   const loginData = {
     email: email.value,

@@ -21,6 +21,7 @@ database.once('connected', () => {
     console.log('Database Connected');
 })
 
+ViteExpress.config({ mode: "production" })
 
 ViteExpress.listen(app, 2258, () =>
     console.log("Server is listening on http://localhost:2258"))
