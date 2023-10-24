@@ -5,8 +5,8 @@ import authRoutes from "../../src/server/routes/authRoutes"
 import bodyParser from "body-parser"
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser')
-const serverless = require('serverless-http');
 
+const serverless = require('serverless-http');
 
 const app = express();
 
