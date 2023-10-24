@@ -92,14 +92,14 @@ const signIn = () => {
 const getAllUsers = () => {
 
 
-  // axios.get("/api/user/getAllUsers").then((res) => {
-  // }).catch((err) => {
-  //   if (err.response.status === 400) {
-  //     axios.post("/api/user/refresh").then(() => {
-  //       getAllUsers()
-  //     })
-  //   }
-  // })
+  axios.get("/api/user/getAllUsers").then((res) => {
+  }).catch((err) => {
+    if (err.response.status === 400) {
+      axios.post("/api/user/refresh").then(() => {
+        getAllUsers()
+      })
+    }
+  })
   console.log(`output->`, userD.data)
 }
 </script>
