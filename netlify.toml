@@ -1,6 +1,6 @@
 [functions]
-  external_node_modules = ["express"]
-  external_node_modules = ["esbuild"]
+  external_node_modules = ["express", "esbuild"]
+  node_bundler = "esbuild"
 [[redirects]]
   force = true
   from = "/api/*"
