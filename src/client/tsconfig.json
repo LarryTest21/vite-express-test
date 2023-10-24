@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "paths": {
+      "@tiptap/core": [
+        "/node_modules/@tiptap/core/src/index"
+      ]
+    }
+  }
+}

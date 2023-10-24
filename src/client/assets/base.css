@@ -1,0 +1,186 @@
+/*-------------
+IMPORT FONTS
+------------*/
+@import url("https://fonts.cdnfonts.com/css/roboto-condensed");
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;0,1000;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900;1,1000&family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;0,1000;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900;1,1000&family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Chango&display=swap");
+@font-face {
+  font-family: DirtyEgo;
+  src: url("fonts/dirtyego/DirtyEgo.woff") format("woff"), url("fonts/dirtyego/DirtyEgo.ttf") format("truetype");
+  font-weight: "normal";
+}
+@font-face {
+  font-family: Gatintas;
+  src: url("fonts/gatintas/fc779a6417a9c7001bdd57ff99fa0d36.eot");
+  src: url("fonts/gatintas/fc779a6417a9c7001bdd57ff99fa0d36.eot?#iefix") format("embedded-opentype"), url("fonts/gatintas/fc779a6417a9c7001bdd57ff99fa0d36.woff2") format("woff2"), url("fonts/gatintas/fc779a6417a9c7001bdd57ff99fa0d36.woff") format("woff"), url("fonts/gatintas/fc779a6417a9c7001bdd57ff99fa0d36.ttf") format("truetype");
+  font-weight: "normal";
+}
+:root {
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  /* Firefox */
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  font-size: 16px;
+}
+
+:root::-webkit-scrollbar {
+  display: none;
+  /* Safari and Chrome */
+}
+
+/* color palette from <https://github.com/vuejs/theme> */
+:root {
+  --vt-c-bg: linear-gradient(
+    150deg,
+    rgba(1, 90, 174, 1) 0%,
+    rgba(0, 54, 107, 1) 41%,
+    rgb(4, 13, 15) 70%,
+    rgb(12, 32, 37) 100%
+  );
+  /* DARK */
+  --vt-c-text-dark: rgb(49, 134, 160);
+  --vt-c-dark-bg: rgb(2, 30, 31);
+  --vt-c-text-alternate-dark: rgb(49, 134, 160);
+  --vt-c-dark-preloader-bg: rgb(14, 36, 39);
+  --vt-c-dark-preloader-txt: rgb(49, 134, 160);
+  --vt-c-nav-dark-bg: rgb(14, 36, 39);
+  --vt-c-nav-dark-darker-bg: rgb(9, 25, 27);
+  --vt-c-nav-dark-lighter-bg: rgb(18, 47, 53);
+  --vt-c-nav-dark-txt: rgb(49, 134, 160);
+  --vt-c-nav-dark-text-bg: rgb(93, 105, 117);
+  --vt-c-nav-dark-txt-hover: rgb(21, 52, 56);
+  --vt-c-nav-user-dark: rgb(21, 52, 56);
+  --vt-c-nav-user-dark-hover: rgb(25, 61, 66);
+  --vt-c-nav-user-dark-txt: rgb(49, 134, 160);
+  --vt-c-nav-dark-txt-darker: rgb(34, 91, 109);
+  --vt-c-nav-dark-txt-lighter: rgb(59, 166, 199);
+  /* LIGHT */
+  --vt-c-text-light: rgb(0, 54, 107, 1);
+  --vt-c-text-alternate-light: rgb(231, 236, 241);
+  --vt-c-light-bg: rgb(231, 236, 241);
+  --vt-c-light-preloader-bg: rgb(0, 54, 107, 1);
+  --vt-c-light-preloader-txt: rgb(248, 248, 248);
+  --vt-c-nav-light-bg: rgb(248, 248, 248);
+  --vt-c-nav-light-darker-bg: rgb(235, 235, 235);
+  --vt-c-nav-light-lighter-bg: rgb(255, 255, 255);
+  --vt-c-nav-light-txt: rgb(2, 71, 141);
+  --vt-c-nav-light-text-bg: rgb(93, 105, 117);
+  --vt-c-nav-light-txt-hover: rgb(248, 248, 248);
+  --vt-c-nav-user-light: rgb(2, 71, 141);
+  --vt-c-nav-user-light-hover: rgb(3, 86, 170);
+  --vt-c-nav-user-light-txt: rgb(248, 248, 248);
+  --vt-c-nav-light-txt-darker: rgb(1, 45, 88);
+  --vt-c-nav-light-txt-lighter: rgb(0, 115, 192);
+}
+
+/* semantic color variables for this project */
+body.theme-dark {
+  --color-background: var(--vt-c-dark-bg);
+  --color-text: var(--vt-c-text-dark);
+  --color-text-alter: (--vt-c-text-alternate-dark);
+  --color-preloader-bg: var(--vt-c-dark-preloader-bg);
+  --color-preloader-txt: var(--vt-c-dark-preloader-txt);
+  --color-nav-bg: var(--vt-c-nav-dark-bg);
+  --color-nav-bg-darker: var(--vt-c-nav-dark-darker-bg);
+  --color-nav-bg-lighter: var(--vt-c-nav-dark-lighter-bg);
+  --color-nav-txt: var(--vt-c-nav-dark-txt);
+  --color-nav-text-bg: var(--vt-c-nav-dark-text-bg);
+  --color-nav-txt-hover: var(--vt-c-nav-dark-txt-hover);
+  --color-nav-txt-darker: var(--vt-c-nav-dark-txt-darker);
+  --color-nav-txt-lighter: var(--vt-c-nav-dark-txt-lighter);
+  --color-nav-user: var(--vt-c-nav-user-dark);
+  --color-nav-user-txt: var(--vt-c-nav-user-dark-txt);
+  --color-nav-user-hover: var(--vt-c-nav-user-dark-hover);
+  animation: gradient2 0.1s ease forwards;
+}
+
+body.theme-light {
+  --color-background: var(--vt-c-light-bg);
+  --color-text: var(--vt-c-text-light);
+  --color-text-alter: (--vt-c-text-alternate-light);
+  --color-preloader-bg: var(--vt-c-light-preloader-bg);
+  --color-preloader-txt: var(--vt-c-light-preloader-txt);
+  --color-nav-bg: var(--vt-c-nav-light-bg);
+  --color-nav-bg-darker: var(--vt-c-nav-light-darker-bg);
+  --color-nav-bg-lighter: var(--vt-c-nav-light-lighter-bg);
+  --color-nav-txt: var(--vt-c-nav-light-txt);
+  --color-nav-text-bg: var(--vt-c-nav-light-text-bg);
+  --color-nav-txt-hover: var(--vt-c-nav-light-txt-hover);
+  --color-nav-txt-darker: var(--vt-c-nav-light-txt-darker);
+  --color-nav-txt-lighter: var(--vt-c-nav-light-txt-lighter);
+  --color-nav-user: var(--vt-c-nav-user-light);
+  --color-nav-user-hover: var(--vt-c-nav-user-light-hover);
+  --color-nav-user-txt: var(--vt-c-nav-user-light-txt);
+  --color-nav-txt-darker: var();
+  animation: gradient 0.1s ease forwards;
+}
+
+:root {
+  -ms-overflow-style: hide;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  background: var(--vt-c-bg);
+  min-height: 100vh;
+  height: 100%;
+  width: 100%;
+  color: var(--color-text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-size: 1rem;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  position: relative;
+  min-height: 100vh;
+}
+
+body.animdark {
+  animation: gradient 0.5s ease forwards;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+@keyframes gradient2 {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+@media (min-width: 0px) {
+  body {
+    background-size: 500% 500%;
+  }
+}
+@media (min-width: 1024px) {
+  body {
+    background-size: 1000% 1000%;
+  }
+}
+@media (min-width: 1920px) {
+  body {
+    background-size: 15000px 15000px;
+  }
+}/*# sourceMappingURL=base.css.map */
