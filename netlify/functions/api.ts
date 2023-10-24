@@ -1,4 +1,4 @@
-import express, { Router } from "express";
+import express from "express";
 import 'dotenv/config'
 import ViteExpress from "vite-express";
 import authRoutes from "../../src/server/routes/authRoutes"
@@ -7,23 +7,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser')
 
 
-
-
-
-
-const api = express();
-
-const router = Router();
-router.get("/hello", (req, res) => res.send("Hello World!"));
-router.post("/test2", (req, res) => res.status(202).send("Hello World!"));
-
-api.use("/api/", router);
-
-
 const app = express();
-
-
-// database connection
 
 const mongoURI = process.env.MONGO_URI;
 const database = mongoose.connection;
@@ -34,7 +18,6 @@ database.on('error', (error: any) => {
 database.once('connected', () => {
     console.log('Database Connected');
 })
-
 
 ViteExpress.listen(app, 2258, () =>
     console.log("Server is listening on http://localhost:2258"))
