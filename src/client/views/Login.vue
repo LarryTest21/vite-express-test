@@ -95,12 +95,12 @@ const getAllUsers = () => {
   axios.get("/api/user/getAllUsers").then((res) => {
   }).catch((err) => {
     if (err.response.status === 400) {
-      axios.post("/api/user/refresh").then(() => {
+      axios.post("/api/user/refresh").then((res) => {
+        console.log(`output->res`,res)
         getAllUsers()
       })
     }
   })
-  console.log(`output->`, userD.data)
 }
 </script>
 
