@@ -185,7 +185,9 @@ onMounted(async () => {
     if (newValue === undefined) {
       themeCheck.value = true
     } else {
-      themeCheck.value = userD.data.userSettings.themeCheck
+      if(userD.data.userSettings != undefined){
+        themeCheck.value = userD.data.userSettings.themeCheck
+      }
     }
   }, { deep: true })
   const weather = getweather();

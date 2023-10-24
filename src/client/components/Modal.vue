@@ -55,7 +55,7 @@ console.log(`output->props.modalAnimation`,props.modalAnimation)
         </transition>
         <transition name="fade" mode="out-in">
 
-          <div class="modal-loading" :key="props.modalButtonMessage?.toString() || 10" >
+          <div class="modal-loading" :key="props.modalButtonMessage?.toString() || 10" v-if="props.modalAnimation" >
             <span class="loader"></span>
 
             <div class="lds-roller" key="lorem3">

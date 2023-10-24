@@ -97,8 +97,9 @@ const register = () => {
         }).then(() => {
             setTimeout(() => {
                 modalActivation.value = true;
-                modalLoadingMessage.value = "Successfull registration, please activate your account with the link in the e-mail"
                 modalAnimation.value = false
+
+                modalLoadingMessage.value = "Successfull registration, please activate your account with the link in the e-mail"
             }, 1000);
         })
 
