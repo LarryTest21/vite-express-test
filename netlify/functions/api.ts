@@ -1,11 +1,4 @@
 import express, { Router } from "express";
-import serverless from "serverless-http";
-
-
-
-
-
-
 import 'dotenv/config'
 import ViteExpress from "vite-express";
 import authRoutes from "../../src/server/routes/authRoutes"
@@ -54,6 +47,3 @@ app.use(cookieParser())
 app.use('/api', authRoutes)
 
 
-
-
-export const handler = serverless(api);
