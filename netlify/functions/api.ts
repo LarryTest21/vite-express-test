@@ -13,6 +13,7 @@ const router = Router();
 const mongoURI = process.env.MONGO_URI;
 const database = mongoose.connection;
 database.on("error", (error: any) => {
+  console.log("error in mongoose connect")
   console.log(error);
 });
 
@@ -21,8 +22,8 @@ database.once("connected", () => {
 });
 ViteExpress.config({ mode: "production" });
 
-ViteExpress.listen(api, 2258, () =>
-  console.log("Server is listening on http://localhost:2258")
+ViteExpress.listen(api, 5173, () =>
+  console.log("Server is listening on http://localhost:5173")
 );
 
 router.get("/hello", (req, res) => res.send("gdgfd!"));
@@ -33,6 +34,6 @@ api.use(bodyParser.urlencoded({ extended: true }));
 
 api.use(bodyParser.json({ limit: "10mb" }));
 api.use(cookieParser());
-api.use("/api", router);
+api.use("/api", authRoutes);
 
 module.exports.handler = serverless(api);

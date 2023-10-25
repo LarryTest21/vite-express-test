@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "nodemon netlify/functions/api.ts -w src/server",
+    "dev": "nodemon netlify/functions/api.ts -w netlify/functions",
     "start": "SET NODE_ENV=production & ts-node netlify/functions/api.ts",
     "build": "vite build"
   },
@@ -48,6 +48,7 @@
     "jose": "^4.15.4",
     "jquery": "^3.7.1",
     "jsonwebtoken": "^9.0.2",
+    "lightningcss": "^1.22.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "mongoose": "^7.6.3",

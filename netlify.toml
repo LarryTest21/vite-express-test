@@ -1,8 +1,9 @@
+[dev]
+command = "npm start"
 [functions]
-  external_node_modules = ["express"]
+  external_node_modules = ["express", "esbuild", "lightningcss"]
   node_bundler = "esbuild"
 [[redirects]]
   force = true
   from = "/api/*"
-  status = 200
   to = "/.netlify/functions/api/:splat"
