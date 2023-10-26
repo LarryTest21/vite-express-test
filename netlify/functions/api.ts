@@ -8,13 +8,9 @@ import bodyParser from "body-parser"
 
 const mongoURI = process.env.MONGO_URI;
 const database = mongoose.connection;
-database.on('error', (error: any) => {
-    console.log(error)
-})
 
-database.once('connected', () => {
-    console.log('Database Connected');
-})
+
+
 
 const app = express();
 
