@@ -1,39 +1,29 @@
-import express, {Router} from "express";
-import "dotenv/config";
-import ViteExpress from "vite-express";
-import authRoutes from "../../src/server/routes/authRoutes";
-import bodyParser from "body-parser";
-const mongoose = require("mongoose");
-const cookieParser = require("cookie-parser");
+import express, { Router } from "express";
+import serverless from "serverless-http";
+import ViteExpress from 'vite-express'
+import AuthRoutes from "../../src/server/routes/authRoutes"
+const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser')
+import bodyParser from "body-parser"
 
-const serverless = require("serverless-http");
-
-const api = express();
-const router = Router();
 const mongoURI = process.env.MONGO_URI;
 const database = mongoose.connection;
-database.on("error", (error: any) => {
-  console.log("error in mongoose connect")
-  console.log(error);
-});
+database.on('error', (error: any) => {
+    console.log(error)
+})
 
-database.once("connected", () => {
-  console.log("Database Connected");
-});
-ViteExpress.config({ mode: "production" });
+database.once('connected', () => {
+    console.log('Database Connected');
+})
 
-ViteExpress.listen(api, 5173, () =>
-  console.log("Server is listening on http://localhost:5173")
-);
+const app = express();
 
-router.get("/hello", (req, res) => res.send("gdgfd!"));
-router.get("/test2", (req, res) => res.send("fkyou"));
+mongoose.connect(mongoURI)
+app.use(bodyParser.urlencoded({ extended: true }));
 
-mongoose.connect(mongoURI);
-api.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(cookieParser())
+app.use('/api', AuthRoutes)
 
-api.use(bodyParser.json({ limit: "10mb" }));
-api.use(cookieParser());
-api.use("/api", authRoutes);
+export const handler = serverless(app);
 
-module.exports.handler = serverless(api);

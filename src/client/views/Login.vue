@@ -92,9 +92,16 @@ const signIn = () => {
 }
 
 const getAllUsers = () => {
-axios.get("/api/user/getAllUsers").then((res)=> {
-  console.log(`output->res`,res)
-})
+  axios.get("/api/user/getAllUsers").then((res) => {
+    console.log(`output->res`, res)
+  })
+
+}
+
+const test2 = () => {
+  axios.get("/api/hello").then((res) => {
+    console.log(`output->res`, res)
+  })
 
 }
 </script>
@@ -129,6 +136,7 @@ axios.get("/api/user/getAllUsers").then((res)=> {
           <input class="register" type="button" value="Register" />
         </RouterLink>
         <input @click="getAllUsers" type="button" value="getAllUsers" />
+        <input @click="test2" type="button" value="test2" />
 
       </div>
     </div>
