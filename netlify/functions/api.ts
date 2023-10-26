@@ -9,9 +9,6 @@ import bodyParser from "body-parser"
 const mongoURI = process.env.MONGO_URI;
 const database = mongoose.connection;
 
-
-
-
 const app = express();
 
 mongoose.connect(mongoURI)
