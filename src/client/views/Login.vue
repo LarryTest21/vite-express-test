@@ -101,6 +101,8 @@ const getAllUsers = () => {
 const hello = () => {
   axios.get("/api/hello").then((res) => {
     console.log(`output->res`, res)
+  }).catch((err) => {
+    console.log(`output->err`,err)
   })
 
 }

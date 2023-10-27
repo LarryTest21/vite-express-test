@@ -139,7 +139,7 @@ const logOut = (e: any) => {
 onMounted(() => {
 
   gsap.from(".links>a", {
-    delay:0.3,
+    delay: 0.3,
     duration: 0.2,
     stagger: 0.05,
     x: -400,
@@ -212,7 +212,7 @@ onMounted(() => {
               <LoginTabMobile v-if="userLoginClick.state && !signedInCheck.state" />
               <userTabMobile v-if="userTabClicked.state" @click.native="mobileIClicked.state = false"
                 :isAdminCheck="isAdminCheck.state" :userData="userData" @logOut="logOut" />
-             <LinksTabMobile />
+              <LinksTabMobile />
             </TransitionGroup>
           </div>
         </ul>
@@ -309,7 +309,7 @@ onMounted(() => {
             display: flex;
             flex-direction: column;
 
-          
+
 
             a.router-link-exact-active {
               background-color: var(--color-nav-txt-darker);
@@ -490,7 +490,7 @@ onMounted(() => {
 .userTab-leave-active {
   opacity: 1;
   transform: translateX(0%);
-  transition: all 0.2s cubic-bezier(.47,-0.5,.39,1.43);
+  transition: all 0.2s cubic-bezier(.47, -0.5, .39, 1.43);
 }
 
 .userTab-enter-from,
