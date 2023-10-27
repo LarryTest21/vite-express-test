@@ -8,8 +8,13 @@ functions = "functions"
 [functions]
   external_node_modules = ["express", "esbuild", "lightningcss"]
   node_bundler = "esbuild"
-  [[redirects]]
+[[redirects]]
   force = true
   from = "/api/*"
   status = 200
   to = "/.netlify/functions/api/:splat"
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
