@@ -1,7 +1,7 @@
 import express, { Router } from "express";
 import serverless from "serverless-http";
 import ViteExpress from 'vite-express'
-import AuthRoutes from "../../src/server/routes/authRoutes"
+import AuthRoutes from "../src/server/routes/authRoutes"
 
 const api = express();
 
