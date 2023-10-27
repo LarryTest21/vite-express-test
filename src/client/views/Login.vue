@@ -98,7 +98,7 @@ const getAllUsers = () => {
 
 }
 
-const test2 = () => {
+const hello = () => {
   axios.get("/api/hello").then((res) => {
     console.log(`output->res`, res)
   })
@@ -136,7 +136,7 @@ const test2 = () => {
           <input class="register" type="button" value="Register" />
         </RouterLink>
         <input @click="getAllUsers" type="button" value="getAllUsers" />
-        <input @click="test2" type="button" value="test2" />
+        <input @click="hello" type="button" value="hello" />
 
       </div>
     </div>
