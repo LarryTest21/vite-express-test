@@ -9,7 +9,7 @@ command = "npm run dev"
 [[redirects]]
   force = true
   from = "/api/*"
-  to = "/netlify/functions/api/:splat"
+  to = "/.netlify/functions/api/:splat"
 [[redirects]]
   from = "/*"
   to = "/index.html"
