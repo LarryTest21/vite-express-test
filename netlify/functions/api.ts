@@ -14,10 +14,6 @@ const cookieParser = require('cookie-parser')
 
 const app = express();
 
-ViteExpress.listen(app, 5173, () =>
-    console.log("Server is listening on http://localhost:5173"))
-
-
 const mongoURI = process.env.MONGO_URI;
 const database = mongoose.connection;
 database.on('error', (error: any) => {
