@@ -3,7 +3,6 @@ command = "npm run dev"
   targetPort = 5173 # The port for your application server, framework or site generator
   port = 8888 # The port that the netlify dev will be accessible on
 [serve]
-functions = "functions"
 [functions]
   external_node_modules = ["express", "esbuild", "lightningcss"]
   node_bundler = "esbuild"
