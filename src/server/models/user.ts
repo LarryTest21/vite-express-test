@@ -17,13 +17,6 @@ const authModel = new mongoose.Schema(
   { collection: "authentication" }
 );
 
-const userSettingsModel = new mongoose.Schema({
-  autoLogin: Boolean,
-  themeCheck: Boolean,
-  themeName: String,
-  readPosts: Boolean,
-});
-
 const userModel = new mongoose.Schema(
   {
     email: {
@@ -45,7 +38,15 @@ const userModel = new mongoose.Schema(
     profilePic: String,
     readBlog: Array,
     token: String,
-    userSettings: userSettingsModel,
+    userSettings: {
+      type: Object,
+      default: {
+        autoLogin: false,
+        themeCheck: true,
+        themeName: "theme-light",
+        readPosts: false,
+      }
+    },
     savedPost: Object,
   },
   { collection: "users" }

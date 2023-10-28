@@ -1,11 +1,9 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-export const  isLoading = defineStore("isLoading", () => {
+export const  isMobile = defineStore("isMobile", () => {
     
     const state = ref(false)
-
-
 
     return { state }
 })

@@ -8,6 +8,7 @@ import emailSVG from "../components/icons/email.vue";
 import passwordSVG from "../components/icons/password.vue";
 import axios from 'axios';
 import emailjs from "@emailjs/browser";
+import { setMapStoreSuffix } from 'pinia';
 
 
 const firstName = ref("");
@@ -73,7 +74,10 @@ const register = () => {
             clearance: 'regular',
             activated: false,
             displayName: firstName.value + " " + lastName.value,
-            profilePic: PFPBase64.value
+            profilePic: PFPBase64.value,
+            userSettings: {
+               
+            }
         }
 
         axios.post(POST_URL, info).then((response) => {
@@ -98,9 +102,14 @@ const register = () => {
             setTimeout(() => {
                 modalActivation.value = true;
                 modalAnimation.value = false
-
                 modalLoadingMessage.value = "Successfull registration, please activate your account with the link in the e-mail"
             }, 1000);
+        }).catch((err) => {
+            setTimeout(() => {
+                modalActivation.value = true;
+                modalAnimation.value = false
+                modalLoadingMessage.value = err.response.data.message
+            }, 500);
         })
 
 
@@ -522,7 +531,7 @@ const closePanel = () => {
             gap: 0;
 
             img {
-               display:none;
+                display: none;
             }
 
             input[type="button"] {
@@ -532,7 +541,7 @@ const closePanel = () => {
             }
 
             .inputs {
-                gap:30px;
+                gap: 30px;
                 font-size: 2rem;
                 height: 100%;
 
@@ -540,7 +549,7 @@ const closePanel = () => {
                     display: none;
                 }
 
-            
+
 
                 .input {
                     width: 80%;
@@ -550,6 +559,7 @@ const closePanel = () => {
                         height: 30px;
                         left: -40px;
                     }
+
                     input {
                         font-size: 1.5rem;
                     }

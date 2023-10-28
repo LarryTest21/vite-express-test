@@ -13,6 +13,9 @@ import { onMountApp } from "./store/onMountApp";
 import { userData } from "./store/userData"
 import { getUser } from "./views/user";
 import "./assets/datepicker.scss"
+import {isMobile} from "./store/isMobile"
+
+
 
 //GETTING USER DATA ON START
 getUser()
@@ -36,17 +39,21 @@ const isLoadingCheck = isLoading();
 const mountApp = onMountApp();
 mountApp.state = false;
 
+const mobile = isMobile()
 
 const onResize = () => {
   windowWidth = document.documentElement.clientWidth;
 
   if (windowWidth > 0 && windowWidth < 767) {
+    mobile.state = true
     mobileNav.value = "mobile";
     mobileNavButton.value = true;
   } else if (windowWidth > 768 && windowWidth < 1199) {
+    mobile.state = false
     mobileNav.value = "medium";
     mobileNavButton.value = true;
   } else if (windowWidth > 1200) {
+    mobile.state = false
     mobileNav.value = "full";
     mobileNavButton.value = false;
   }

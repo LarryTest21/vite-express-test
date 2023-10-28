@@ -225,7 +225,6 @@ router.beforeEach((to, from, next) => {
 
 
 async function guardRouteUser(to: any, from: any, next: any) {
-
     const storeAuth = useStoreAuth()
     await storeAuth.init()
     if (storeAuth.clearance === "admin" || storeAuth.clearance === "regular") {

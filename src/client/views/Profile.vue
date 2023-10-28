@@ -4,11 +4,21 @@ import { userData as userD } from "../store/userData"
 import profUserTab from "../components/profile/profUserTab.vue"
 import profHistoryTab from "../components/profile/profHistoryTab.vue";
 import profSettings from "../components/profile/profSettings.vue";
+import {isMobile} from "../store/isMobile"
 
 
+const mobile = isMobile()
+console.log(`output->mobile`,mobile)
+const readPosts = ref()
 const userData = userD();
-if (userData === undefined) {
+console.log(`output->userData`,userData)
+if (userData == undefined) {
 
+} else {
+  console.log(`output->userData.data.userSettings`,userData.data.userSettings)
+  if (userData.data.userSettings.readPosts == undefined) {
+    readPosts.value = false
+  }
 }
 
 
@@ -17,7 +27,7 @@ userPFP.value = localStorage.getItem("avatar")
 
 
 onMounted(() => {
-
+  console.log(`output->userData.data.userSettings.readPosts`, userData.data.userSettings.readPosts)
 })
 
 
@@ -28,7 +38,7 @@ onMounted(() => {
     <div class="profile-wrapper-inner">
       <profUserTab :userData="userData" />
       <profSettings :userData="userData" />
-      <profHistoryTab :userData="userData" v-if="userData.data.userSettings.readPosts" />
+      <profHistoryTab :userData="userData" v-if="readPosts" />
     </div>
   </div>
 </template>
@@ -117,7 +127,6 @@ onMounted(() => {
       align-items: flex-start;
       justify-content: flex-start;
       gap: 10px;
-
       .userTab {
         transform: translate(100%)
       }

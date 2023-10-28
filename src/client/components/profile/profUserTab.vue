@@ -18,7 +18,7 @@ const { isSwiping, direction } = useSwipe(parent)
 
 const device = ref(document.getElementById("app")!.classList.contains("mobile"))
 
-
+const grabberBoolean = ref(false)
 
 const props = defineProps({
   userData: Object
@@ -155,7 +155,7 @@ onMounted(() => {
 
 <template>
   <div class="userprof-wrapper" ref="parent" :class="[pwOp ? 'active' : '', direction]">
-    <div class="grabber" ref="grabber">U</div>
+    <div class="grabber" ref="grabber" v-if="grabberBoolean">U</div>
 
     <label class="profile-label">Profile</label>
     <transition name="modal">
@@ -736,7 +736,8 @@ input {
   .userprof-wrapper {
     transform: translate(100%);
     width: 100%;
-    border-radius: 10px;
+    height:100px;
+    border-radius: 0px;
     padding-top: 70px;
 
 

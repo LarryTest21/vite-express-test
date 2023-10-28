@@ -40,6 +40,7 @@ const signIn = () => {
   axios.post(API_URL, loginData).then(async (res) => {
     accToken.accessToken = res.data.data.accessToken
     signedInCheck.uid = res.data.data.email
+    console.log(`output->signedInCheck.uid`,signedInCheck.uid)
     if (res.data.data.autoLogin === true) {
       localStorage.setItem('autoLogin', "true")
     }
@@ -51,6 +52,7 @@ const signIn = () => {
     setTimeout(() => {
       signedInCheck.state = true
       userD.data = res.data.data
+      console.log(`output->userD.data`,userD.data)
     }, 100);
   }).catch((err) => {
     modalActivation.value = true

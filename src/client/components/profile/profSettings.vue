@@ -311,6 +311,7 @@ onBeforeUnmount(() => {
                     box-shadow: inset 1px 3px 5px rgb(1, 21, 44);
                     transition: all 0.3s ease-in-out;
                 }
+
                 .toggle__handler {
                     position: absolute;
                     z-index: 1;
@@ -323,6 +324,7 @@ onBeforeUnmount(() => {
                     box-shadow: 0 2px 6px rgba(0, 0, 0, .3);
                     transition: all 400ms cubic-bezier(0.68, -0.1, 0.265, 1.3);
                 }
+
                 .toggle__handler .crater {
                     position: absolute;
                     background-color: #e8cda5;
@@ -330,30 +332,35 @@ onBeforeUnmount(() => {
                     transition: opacity 200ms ease-in-out;
                     border-radius: 100%;
                 }
+
                 .toggle__handler .crater--1 {
                     top: 2px;
                     left: 6px;
                     width: 4px;
                     height: 4px;
                 }
+
                 .toggle__handler .crater--2 {
                     top: 7px;
                     left: 12px;
                     width: 6px;
                     height: 6px;
                 }
+
                 .toggle__handler .crater--3 {
                     top: 12px;
                     left: 5px;
                     width: 8px;
                     height: 8px;
                 }
+
                 .star {
                     position: absolute;
                     background-color: #fff;
                     transition: all 300ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
                     border-radius: 50%;
                 }
+
                 .star--1 {
                     top: 5px;
                     left: 25px;
@@ -361,6 +368,7 @@ onBeforeUnmount(() => {
                     width: 30px;
                     height: 3px;
                 }
+
                 .star--2 {
                     top: 10px;
                     left: 20px;
@@ -368,6 +376,7 @@ onBeforeUnmount(() => {
                     width: 20px;
                     height: 3px;
                 }
+
                 .star--3 {
                     top: 15px;
                     left: 30px;
@@ -375,12 +384,14 @@ onBeforeUnmount(() => {
                     width: 20px;
                     height: 3px;
                 }
+
                 .star--4,
                 .star--5,
                 .star--6 {
                     opacity: 0;
                     transition: all 300ms 0 cubic-bezier(0.445, 0.05, 0.55, 0.95);
                 }
+
                 .star--4 {
                     top: 8px;
                     left: 11px;
@@ -389,6 +400,7 @@ onBeforeUnmount(() => {
                     height: 2px;
                     transform: translate3d(3px, 0, 0);
                 }
+
                 .star--5 {
                     top: 20px;
                     left: 17px;
@@ -397,6 +409,7 @@ onBeforeUnmount(() => {
                     height: 3px;
                     transform: translate3d(3px, 0, 0);
                 }
+
                 .star--6 {
                     top: 22px;
                     left: 28px;
@@ -405,48 +418,60 @@ onBeforeUnmount(() => {
                     height: 2px;
                     transform: translate3d(3px, 0, 0);
                 }
+
                 input:checked+.toggle {
                     background-color: var(--color-nav-txt);
                 }
+
                 input:checked+.toggle:before {
                     color: #749ed7;
                 }
+
                 input:checked+.toggle:after {
                     color: #fff;
                 }
+
                 input:checked+.toggle .toggle__handler {
                     background-color: #ffe5b5;
                     transform: translate3d(30px, 0, 0) rotate(0);
                 }
+
                 input:checked+.toggle .toggle__handler .crater {
                     opacity: 1;
                 }
+
                 input:checked+.toggle .star--1 {
                     width: 2px;
                     height: 2px;
                 }
+
                 input:checked+.toggle .star--2 {
                     width: 4px;
                     height: 4px;
                     transform: translate3d(-5px, 0, 0);
                 }
+
                 input:checked+.toggle .star--3 {
                     width: 2px;
                     height: 2px;
                     transform: translate3d(-7px, 0, 0);
                 }
+
                 input:checked+.toggle .star--4,
                 input:checked+.toggle .star--5,
                 input:checked+.toggle .star--6 {
                     opacity: 1;
                     transform: translate3d(0, 0, 0);
                 }
+
                 input:checked+.toggle .star--4 {
                     transition: all 300ms 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
                 }
+
                 input:checked+.toggle .star--5 {
                     transition: all 300ms 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
                 }
+
                 input:checked+.toggle .star--6 {
                     transition: all 300ms 300ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
                 }
@@ -464,6 +489,7 @@ onBeforeUnmount(() => {
                     align-items: center;
                     color: var(--color-nav-txt);
                 }
+
                 .toggle-checkbox {
                     position: absolute;
                     opacity: 0;
@@ -569,4 +595,9 @@ onBeforeUnmount(() => {
 .modal-leave-to {
     opacity: 0;
 }
-</style>
+
+@media only screen and (max-width: 680px) {
+    .settings-wrapper {
+        height: 60px;
+    }
+}</style>

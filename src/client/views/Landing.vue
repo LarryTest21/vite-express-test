@@ -267,7 +267,7 @@ onUnmounted(() => {
   <div class="landing-wrapper">
     <div id="section1" class="section-landing section1">
       <div class="section-wrapper">
-        <h1>This is section1</h1>
+        <h1>This is section 1</h1>
       </div>
     </div>
 

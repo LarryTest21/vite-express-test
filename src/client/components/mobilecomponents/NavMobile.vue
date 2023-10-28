@@ -135,15 +135,9 @@ const logOut = (e: any) => {
   userTabClicked.state = false
   userData.value = undefined
 }
-
+const userTabTransition = ref()
 onMounted(() => {
-
-  gsap.from(".links>a", {
-    delay: 0.3,
-    duration: 0.2,
-    stagger: 0.05,
-    x: -400,
-  })
+  userTabTransition.value = "userTab"
 
   if (userData.value != undefined) {
     signedInCheck.state = true;
@@ -208,11 +202,11 @@ onMounted(() => {
           </TransitionGroup>
 
           <div class="links-usertab-login">
-            <TransitionGroup name="userTab">
-              <LoginTabMobile v-if="userLoginClick.state && !signedInCheck.state" />
+            <TransitionGroup :name="userTabTransition">
+              <LoginTabMobile v-if="userLoginClick.state && !signedInCheck.state" key="1" />
               <userTabMobile v-if="userTabClicked.state" @click.native="mobileIClicked.state = false"
-                :isAdminCheck="isAdminCheck.state" :userData="userData" @logOut="logOut" />
-              <LinksTabMobile />
+                :isAdminCheck="isAdminCheck.state" :userData="userData" @logOut="logOut" key="2" />
+              <LinksTabMobile v-if="!userLoginClick.state && !signedInCheck.state" key="3" />
             </TransitionGroup>
           </div>
         </ul>
@@ -300,6 +294,7 @@ onMounted(() => {
         }
 
         .links-usertab-login {
+          position: relative;
           height: 100%;
           width: 100%;
           display: flex;
@@ -490,28 +485,22 @@ onMounted(() => {
 .userTab-leave-active {
   opacity: 1;
   transform: translateX(0%);
-  transition: all 0.2s cubic-bezier(.47, -0.5, .39, 1.43);
+  transition: all 0.5s cubic-bezier(.47, -0.5, .39, 1.2);
 }
 
 .userTab-enter-from,
 .userTab-leave-to {
   opacity: 0;
-
   transform: translateX(-100%);
+}
+
+.userTab-leave-active {
+  position: absolute;
 }
 
 .userLinks-enter-active,
 .userLinks-leave-active {
   opacity: 1;
   transition: all 0.3s ease-in-out;
-}
-
-.userLinks-enter-from,
-.userLinks-leave-to {
-  opacity: 0;
-}
-
-.userLinks-leave-active {
-  position: absolute;
 }
 </style>
