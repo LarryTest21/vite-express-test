@@ -28,7 +28,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(cookieParser())
-app.use('/api', authRoutes)
+
+const router = Router();
+router.get("/hello", (req, res) => res.send("Hello World!"));
+
+
+
+app.use('/api', router)
 
 
 export const handler = serverless(app);
