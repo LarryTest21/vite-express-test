@@ -6,7 +6,6 @@ import emailSVG from "../components/icons/email.vue";
 import passwordSVG from "../components/icons/password.vue";
 import firebase from "firebase/compat/app";
 import "firebase/auth";
-import db from "../firebase/firebaseInit";
 import router from "../router";
 import emailjs from '@emailjs/browser';
 import Modal from "../components/Modal.vue"
@@ -94,36 +93,8 @@ const register = async () => {
 
 
     const result = await createUser!;
-    const dataBase = db.collection("users").doc(result.user!.uid);
-    console.log(dataBase);
-    sessionStorage.setItem('regUser', dataBase.toString())
-    displayName.value = firstName.value + " " + lastName.value;
 
-    await dataBase.set({
-      createdAt: new Date(),
-      firstName: firstName.value,
-      lastName: lastName.value,
-      username: user.value,
-      email: email.value,
-      clearance: 'regular',
-      activated: false,
-      displayName: displayName.value,
-    }).then(() => {
-      sendEmail();
-      modalActivation.value = true;
-      modalLoadingMessage.value = 'An e-mail has been sent to you, please activate the account with the link within'
-      setTimeout(() => {
-        router.push({ path: '/landing' })
 
-      }, 3000);
-
-    }).then(() => {
-      Auth.updateCurrentUser(originalUser).then(() => {
-        checkNewUser.state = false;
-
-      })
-
-    });
 
 
 
