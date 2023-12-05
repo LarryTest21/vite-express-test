@@ -2,7 +2,6 @@
 import { ref, watch, computed, toRaw, onUnmounted, onMounted } from "vue";
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
-import db from "../firebase/firebaseInit";
 import { isLoading } from "../store/isloading";
 const differenceBy = require("lodash");
 import $ from "jquery";
@@ -74,7 +73,6 @@ const deletePost = async (postID:any, post:any) => {
     newsPosts.value.splice(post, 1);
   }
 
-  await deleteDoc(doc(db, postKind.value, postID.postID.toString()));
   console.log(postID.postID);
 };
 
