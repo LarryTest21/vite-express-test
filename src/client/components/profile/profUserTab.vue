@@ -68,7 +68,7 @@ if (props.userData!.data != undefined) {
   email.value = props.userData!.data.email
   firstName.value = props.userData!.data.firstName
   lastName.value = props.userData!.data.lastName
-  userName.value = props.userData!.data.userNameF
+  userName.value = props.userData!.data.userName
   userID.value = props.userData!.data._id
   userPFP.value = props.userData!.profilePic
   setTimeout(() => {
@@ -80,7 +80,7 @@ if (props.userData!.data != undefined) {
     email.value = props.userData!.data.email
     firstName.value = props.userData!.data.firstName
     lastName.value = props.userData!.data.lastName
-    userName.value = props.userData!.data.userNameF
+    userName.value = props.userData!.data.userName
     userID.value = props.userData!.data._id
     userPFP.value = props.userData!.profilePic
 
@@ -115,12 +115,18 @@ const saveProfile = async () => {
   modalActivation.value = true;
   modalLoadingMessage.value = "Updating";
   modalAnimation.value = true
+
+
+
 }
 
 
 
 onMounted(() => {
 
+  $(".skeleton").each(function (i: number, el) {
+    $(el).css({ 'animation-delay': (i / 10 * Math.floor(Math.random() * -100)) + "s" });
+  });
 
 
 
@@ -140,9 +146,6 @@ onMounted(() => {
     }
   })
 
-  $(".skeleton").each(function (i: number, el) {
-    $(el).css({ 'animation-delay': (i / 10 * Math.floor(Math.random() * -50)) + "s" });
-  });
 
   watch(() => props.userData!.userPFP, (newPic) => {
     userPFP.value = newPic
@@ -154,10 +157,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="userprof-wrapper" ref="parent" :class="[pwOp ? 'active' : '', direction]">
+  <div class="userprof-wrapper" ref="parent" :class="[editingProfile ? 'editing' : '', direction]">
     <div class="grabber" ref="grabber" v-if="grabberBoolean">U</div>
+    <div class="buttons">
 
-    <label class="profile-label">Profile</label>
+      <label class="profile-label">Profile</label>
+      <input type="button" value="Edit" class="editButton" @click.prevent="editProPicPanel" />
+    </div>
     <transition name="modal">
       <Modal v-if="modalActivation" class="modal" :position="'absolute'" :modalAnimation="modalAnimation"
         :loadingScale="3" :modalLoadingMessage="modalLoadingMessage" :modalButtonMessage="modalButtonMessage"
@@ -169,113 +175,105 @@ onMounted(() => {
     </transition>
 
     <div class="profile-pic">
-      <transition name="fade">
-        <div class="skeleton pic" ref="skeleton" v-if="skeletonLoad"></div>
-      </transition>
 
       <div class="prof-content" :class="noPFP ? 'nopfp' : ''">
-        <img v-bind:src="userPFP" />
-        <div class="no-pfp" v-if="noPFP">no profile pic</div>
-        <input type="button" value="Change" v-if="editingProfile" @click="profPicEnableFn" />
+        <transition-group name="value">
+
+          <div class="skeleton pic" ref="skeleton" v-if="skeletonLoad" key="1" />
+          <img v-bind:src="userPFP" key="2" />
+          <div class="no-pfp" v-if="noPFP" key="3">no profile pic</div>
+          <input type="button" value="Change" v-if="editingProfile" @click="profPicEnableFn" key="4" />
+        </transition-group>
+
       </div>
     </div>
 
     <div class="inputs-wrapper">
 
-      <div class="inputs">
 
-        <div class="field">
-          <transition name="fade">
-            <div class="skeleton" ref="skeleton" v-if="skeletonLoad"></div>
-          </transition>
-          <div class="icon">
-            <emailSVG class="icon" />
-          </div>
-          <div class="label-input">
-            <label class="lastName">Email</label>
-            <transition name="value" mode="out-in">
-              <div class="value" v-if="!editingProfile">
-                {{ email }}
-              </div>
-              <input v-else-if="editingProfile" type="text" v-model="email" key="2" />
-            </transition>
-
-
-          </div>
+      <div class="field">
+        <div class="icon">
+          <emailSVG class="icon" />
         </div>
-        <div class="field">
-          <transition name="fade">
+        <div class="label-input">
+          <label class="lastName" key="1">Email</label>
+          <TransitionGroup tag="ul" name="value" class="container">
             <div class="skeleton" ref="skeleton" v-if="skeletonLoad"></div>
-          </transition>
-
-          <div class="icon">
-            <nameSVG class="icon" />
-          </div>
-          <div class="label-input">
-            <label class="firstName">First Name</label>
-            <transition name="value" mode="out-in">
-              <div class="value" v-if="!editingProfile">
-                {{ firstName }}
-              </div>
-              <input v-else-if="editingProfile" type="text" v-model="firstName" key="2" />
-            </transition>
-
-          </div>
+            <div class="value" v-if="!editingProfile" key="3">{{ email }}</div>
+            <input v-else-if="editingProfile" type="text" v-model="email" key="4" />
+          </TransitionGroup>
         </div>
-
-        <div class="field">
-          <transition name="fade">
-            <div class="skeleton" ref="skeleton" v-if="skeletonLoad"></div>
-          </transition>
-          <div class="icon">
-            <userSVG class="icon" />
-          </div>
-          <div class="label-input">
-            <label class="lastName">Last Name</label>
-            <transition name="value" mode="out-in">
-              <div class="value" v-if="!editingProfile">
-                {{ lastName }}
-              </div>
-              <input v-else-if="editingProfile" type="text" v-model="lastName" key="2" />
-            </transition>
-          </div>
-        </div>
-
-        <div class="field">
-          <transition name="fade">
-            <div class="skeleton" ref="skeleton" v-if="skeletonLoad"></div>
-          </transition>
-          <div class="icon">
-            <userSVG class="icon" />
-          </div>
-          <div class="label-input">
-            <label class="lastName">Username</label>
-            <transition name="value" mode="out-in">
-              <div class="value" v-if="!editingProfile">
-                {{ userName }}
-              </div>
-              <input v-else-if="editingProfile" type="text" v-model="userName" key="2" />
-            </transition>
-          </div>
-        </div>
-        <transition name="value">
-
-          <div class="field" v-show="editingProfile">
-            <div class="icon">
-              <passwordSVG class="icon" />
-            </div>
-            <div class="label-input">
-              <label class="lastName">New Password</label>
-              <input type="password" v-model="newPassword" />
-            </div>
-          </div>
-        </transition>
-
-
       </div>
 
-      <transition name="edit">
-        <div class="save" v-show="editingProfile">
+
+
+      <div class="field">
+        <div class="icon">
+          <nameSVG class="icon" />
+        </div>
+
+        <div class="label-input">
+          <label class="firstName">First Name</label>
+          <TransitionGroup tag="ul" name="value" class="container">
+            <div class="skeleton" ref="skeleton" v-if="skeletonLoad" />
+            <div class="value" v-if="!editingProfile" key="3">{{ firstName }}</div>
+            <input v-else-if="editingProfile" type="text" v-model="firstName" key="4" />
+          </TransitionGroup>
+        </div>
+      </div>
+
+
+      <div class="field">
+        <div class="icon">
+          <userSVG class="icon" />
+        </div>
+
+        <div class="label-input">
+          <label class="lastName">Last Name</label>
+          <TransitionGroup tag="ul" name="value" class="container">
+            <div class="skeleton" ref="skeleton" v-if="skeletonLoad" />
+            <div class="value" v-if="!editingProfile" key="3">{{ lastName }}</div>
+            <input v-else-if="editingProfile" type="text" v-model="lastName" key="4" />
+          </TransitionGroup>
+
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="icon">
+          <userSVG class="icon" />
+        </div>
+        <div class="label-input">
+          <label class="lastName">Username</label>
+
+          <TransitionGroup tag="ul" name="value" class="container">
+            <div class="skeleton" ref="skeleton" v-if="skeletonLoad" />
+            <div class="value" v-if="!editingProfile" key="3">{{ userName }}</div>
+            <input v-else-if="editingProfile" type="text" v-model="userName" key="4" />
+          </TransitionGroup>
+
+        </div>
+      </div>
+
+      <div class="field" v-show="editingProfile">
+        <div class="icon">
+          <userSVG class="icon" />
+        </div>
+        <div class="label-input">
+          <label class="newPassword">New Password</label>
+
+          <TransitionGroup tag="ul" name="value" class="container">
+            <div class="skeleton" ref="skeleton" v-if="skeletonLoad" />
+            <div class="value" v-if="!editingProfile" key="3">{{ newPassword }}</div>
+            <input v-else-if="editingProfile" type="text" v-model="newPassword" key="4" />
+          </TransitionGroup>
+
+        </div>
+      </div>
+
+
+      <transition name="value">
+        <div class="save">
           <div class="field">
 
             <div class="label-input">
@@ -285,33 +283,28 @@ onMounted(() => {
                 </div>
                 <label class="password">Password</label>
               </div>
-
-
-              <div class="input"> <input type="password" v-model="password" @keyup.enter.native="saveProfile" />
-              </div>
+              <input type="password" v-model="password" @keyup.enter.native="saveProfile" />
             </div>
           </div>
           <input type="button" value="Save" @click.prevent="saveProfile" />
         </div>
       </transition>
-    </div>
-
-    <div class="buttons">
-
-      <input type="button" value="Edit" class="editButton" @click.prevent="editProPicPanel" />
-
 
     </div>
+
+
+
+
+
   </div>
 </template>
 
 <style lang="scss" scoped>
 .skeleton {
-  z-index: 10;
-  width: 110%;
-  left: -10px;
-  height: 100%;
   position: absolute;
+  z-index: 10;
+  height: 100%;
+  width: 100%;
   border-radius: 10px;
   background: linear-gradient(100deg,
       rgba(255, 255, 255, 0) 40%,
@@ -319,8 +312,7 @@ onMounted(() => {
       rgba(255, 255, 255, 0) 60%) #c7c7c7;
   background-size: 200% 100%;
   background-position-x: 180%;
-  margin-left: 10px;
-  animation: 0.8s loading ease-in-out infinite;
+  animation: 0.5s loading ease-in-out infinite;
 }
 
 @keyframes loading {
@@ -331,8 +323,8 @@ onMounted(() => {
 
 .skeleton.pic {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  width: 105%;
+  height: 105%;
   border-radius: 50%;
 }
 
@@ -343,7 +335,6 @@ textarea {
 }
 
 input {
-  padding: 5px;
   font-family: Verdana;
   font-weight: 700;
   width: 100%;
@@ -354,14 +345,13 @@ input {
 }
 
 .userprof-wrapper {
-  position: relative;
   font-family: Chango;
+  width: 100%;
   color: var(--color-nav-txt);
-  width: 450px;
-  height: 500px;
-  border-radius: 10px;
-  background-color: var(--color-nav-bg) !important;
-  transition: all 0.3s ease-in-out;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 20px;
 
   .grabber {
     position: absolute;
@@ -380,9 +370,33 @@ input {
     font-size: 3rem;
   }
 
-  .profile-label {
-    font-size: 2rem;
+
+  .buttons {
+    position: relative;
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     padding: 10px;
+    transition: all 0.2s ease-in-out;
+
+    .profile-label {
+      font-size: 2rem;
+
+    }
+
+    input[type="button"] {
+      width: 100px;
+      font-size: 1.8rem;
+      border-radius: 30px;
+      padding: 10px;
+    }
+
+    input[type="button"] {
+      color: var(--color-nav-bg) !important;
+      background-color: var(--color-nav-txt);
+    }
   }
 
 
@@ -390,7 +404,6 @@ input {
     box-shadow: rgba(0, 0, 0, 0.568) 2px 2px 2px 1px;
     font-family: Chango;
     cursor: pointer;
-    padding: 10px;
     color: var(--color-nav-txt) !important;
     border-style: none;
     background-color: var(--color-nav-bg);
@@ -409,17 +422,11 @@ input {
   .profile-pic {
     position: relative;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 90px;
-    width: 90px;
-    top: 10px;
-    margin: 20px;
     z-index: 2;
     transition: all 0.2s ease-in-out;
+    margin-left: 50px;
 
     .prof-content.nopfp {
-
       img {
         opacity: 0.3;
       }
@@ -435,7 +442,6 @@ input {
     }
 
     .prof-content {
-      right: 0;
       position: relative;
       display: flex;
       flex-direction: row;
@@ -443,10 +449,8 @@ input {
       justify-content: center;
 
       input[type="button"] {
-        left: 90px;
         width: 100px;
       }
-
 
       &::after {
         position: absolute;
@@ -476,7 +480,6 @@ input {
         align-items: center;
         justify-content: center;
         font-size: 1rem;
-        padding: 10px;
       }
 
       img {
@@ -488,91 +491,88 @@ input {
   }
 
   .inputs-wrapper {
-    position: relative;
+    transition: all 0.2s ease-in-out;
     width: 100%;
-    padding: 10px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    height: 100%;
+    overflow-y: auto;
 
-    .inputs {
-      position: relative;
+    .field {
+      width: 100%;
+      height: 50px;
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-      transition: all 0.2s ease-in-out;
 
-      .field {
+      .label-input {
         position: relative;
-        display: flex;
+        width: 210px;
 
-        .label-input {
+        .container {
           position: relative;
-          display: flex;
-          flex-direction: column;
-          height: 60px;
-          width: 80%;
+          padding-left: 0;
+        }
 
+        label {
+          position: relative;
+          width: 100%;
+          font-size: 1.3rem;
+        }
 
-          label {
-            position: relative;
-            width: 250px;
-            padding: 0;
-            font-size: 1.5rem;
-          }
+        .value {
+          font-family: Roboto;
+          font-weight: 900;
+          padding: 0 5px;
+        }
 
-          .value {
-            height: 40px;
-            margin-top: 5px;
-            font-family: Roboto;
-            font-weight: 900;
-          }
-
-          input[type="text"] {
-            position: relative;
-            font-size: 0.8rem;
-            font-family: Verdana;
-            font-weight: 900;
-          }
+        input[type="text"] {
+          height: 20px;
+          font-family: Verdana;
+          font-weight: 900;
+          padding: 10px 5px;
         }
       }
-
-
     }
 
+
     .save {
-      align-self: flex-end;
-      position: relative;
+      position: absolute;
+      border-radius: 0 10px 10px 0;
       transition: all 0.2s ease-in-out;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 10px;
+      right: -20px;
+      margin: 0 10px;
+      padding: 20px;
+      z-index: 10;
+      display: none;
 
       .field {
         position: relative;
+        color: red;
 
         .label-input {
           position: relative;
           display: flex;
           flex-direction: column;
-          height: 100%;
-          width: 100%;
           font-size: 1.5rem;
+          gap: 5px;
 
           .icon-pw {
             display: flex;
+            align-items: center;
+
+            .icon {
+              position: absolute;
+              left: -15px;
+              fill: red;
+              width: 30px;
+            }
           }
 
-          .icon {
-            position: relative;
-          }
-
-          .input {
-            height: 100%;
+          input {
             width: 100%;
             position: relative;
+            padding: 10px;
           }
         }
       }
@@ -590,80 +590,18 @@ input {
     }
   }
 
-  .buttons {
-    position: absolute;
-    top: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: all 0.2s ease-in-out;
-    width: 200px;
-    right: 0;
-
-    input[type="button"] {
-      width: 90%;
-      font-size: 1.8rem;
-      border-radius: 30px;
-    }
-
-    input[type="button"] {
-      color: var(--color-nav-bg) !important;
-      background-color: var(--color-nav-txt);
-    }
-
-
-  }
 
   .icon {
     position: relative;
-    height: 40px;
-    width: 40px;
     fill: var(--color-nav-txt);
     z-index: 0;
+    height: 40px;
+    width: 40px;
     pointer-events: none;
-    stroke-width: 3%;
     stroke: var(--vt-c-nav-text-bg-hover);
   }
 }
 
-.userprof-wrapper.active {
-  width: 650px;
-  height: 530px;
-
-
-  .profile-pic {
-    margin-left: 150px;
-
-    img {
-      height: 90px;
-      width: 90px;
-    }
-
-    ;
-  }
-
-  .inputs-field-wrapper {
-    margin-top: 50px;
-  }
-
-  .buttons {
-    right: 20px;
-
-    .save {
-      display: flex;
-      margin-top: 30px;
-    }
-
-    .save.active {
-      opacity: 1;
-    }
-  }
-}
-
-.edit-profile-picture {
-  width: 70%;
-  height: 70%
-}
 
 .modal {
   width: 100%;
@@ -692,7 +630,6 @@ input {
   opacity: 0;
 }
 
-
 .edit-enter-active,
 .edit-leave-active {
   transition: all 0.3s ease-in-out;
@@ -704,8 +641,6 @@ input {
   transform: translateX(200px);
 }
 
-
-
 .fade-enter-active,
 .fade-leave-active {
   transition: all 0.3s ease-in-out;
@@ -716,17 +651,40 @@ input {
   opacity: 0;
 }
 
-
-
+.value-move,
 .value-enter-active,
 .value-leave-active {
-  transition: all 0.15s ease-in-out;
+  opacity: 1;
+  transition: all 0.2s cubic-bezier(0.55, 0, 0.1, 1);
 }
 
+/* 2. declare enter from and leave to state */
 .value-enter-from,
 .value-leave-to {
   opacity: 0;
+  transform: translateY(10px)
 }
+
+.value-leave-active {
+  position: absolute;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  border-radius: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #c5c5c5;
+  border-radius: 5px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-nav-txt);
+  border-radius: 10px;
+}
+
+
 
 @media only screen and (max-width: 680px) {
   .userprof-wrapper.left {
@@ -736,9 +694,8 @@ input {
   .userprof-wrapper {
     transform: translate(100%);
     width: 100%;
-    height:100px;
+    height: 100px;
     border-radius: 0px;
-    padding-top: 70px;
 
 
 
@@ -746,7 +703,6 @@ input {
       margin-left: 10px;
       width: 100%;
       text-align: center;
-      padding: 0;
 
     }
 
@@ -767,10 +723,8 @@ input {
     }
   }
 
-  .userprof-wrapper.active {
-    position: relative;
-    width: 100%;
-    min-height: 100vh;
+  .userprof-wrapper.editing {
+    width: 600px;
     transition: all 0.3s ease-in-out;
 
     .inputs-wrapper {
@@ -778,18 +732,12 @@ input {
       flex-direction: column;
 
       .save {
-        margin-top: 10px;
         width: 100%;
-        left: 0;
 
         .field {
           width: 100%;
 
           .label-input {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
 
             .icon-pw {
               display: flex;

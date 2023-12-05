@@ -3,6 +3,10 @@ import { ref, onMounted, onUnmounted } from "vue";
 import "jquery";
 import $ from "jquery";
 
+import { isMobile } from "../store/isMobile"
+
+const checkMobile = ref(isMobile())
+
 
 const frontImages = ref([] as any);
 const imageStart = ref(false);
@@ -14,7 +18,7 @@ var isScrolling = false;
 
 var isScrolling = false;
 
-const scrollFunction = (event:any) => {
+const scrollFunction = (event: any) => {
   if (isScrolling) {
     //Preventdefault wheel event
     event.preventDefault();
@@ -188,7 +192,7 @@ onMounted(() => {
   window.addEventListener("wheel", scrollFunction, { passive: false });
 
 
-  $(".dots-list > a").on("click", function (event)  {
+  $(".dots-list > a").on("click", function (event) {
     event.preventDefault();
     $(".dots-list > a > li > div").removeClass("dot-active");
 
@@ -243,11 +247,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="page-indicator-wrapper">
+  <div class="page-indicator-wrapper" :class="checkMobile ? 'mobile' : ''">
 
     <ul class="dots-list">
-      <a href="#section1" class="dots-list-link" >
-        <li class="ring ring-1" >
+      <a href="#section1" class="dots-list-link">
+        <li class="ring ring-1">
           <div class="dot 1"></div>
         </li>
       </a>
@@ -264,7 +268,7 @@ onUnmounted(() => {
     </ul>
   </div>
 
-  <div class="landing-wrapper">
+  <div class="landing-wrapper" :class="checkMobile ? 'mobile' : ''">
     <div id="section1" class="section-landing section1">
       <div class="section-wrapper">
         <h1>This is section 1</h1>
@@ -294,12 +298,13 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .page-indicator-wrapper {
+
   position: fixed;
   right: 0;
   width: 100px;
   top: 70px;
   height: calc(100% - 70px);
-  z-index: 10;
+  z-index: 9;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -394,81 +399,86 @@ onUnmounted(() => {
 .landing-wrapper {
   height: 100%;
   width: 100%;
-  overflow: hidden;
-}
 
-.section-landing {
-  height: 100vh;
-  font-size: 70px;
-  -webkit-font-smoothing: antialiased;
+  .section-landing {
+    height: 100vh;
+    font-size: 70px;
+    -webkit-font-smoothing: antialiased;
 
-  .section-wrapper {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    height: calc(100% - 70px);
-    width: 80%;
-    top: 70px;
-    right: 0;
-    margin: 0 auto;
-  }
-}
-
-.section2 {
-  display: flex;
-
-  .section-wrapper {
-    h1 {
+    .section-wrapper {
       display: flex;
-      justify-content: center;
+      flex-direction: row;
       align-items: center;
-      width: 100%;
-      height: 100%;
-    }
-
-    .images-wrapper {
+      justify-content: center;
       position: relative;
-      width: 150%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
+      height: calc(100% - 70px);
+      width: 80%;
+      top: 70px;
+      right: 0;
+      margin: 0 auto;
+    }
+  }
 
-      .image-carousel {
-        transform: translateX(-500px);
-        opacity: 0;
+  .section2 {
+    display: flex;
+
+    .section-wrapper {
+      h1 {
         display: flex;
         justify-content: center;
         align-items: center;
-        position: absolute;
-        border-radius: 100px;
-        width: 40vw;
-        height: 70vh;
-        margin-block-end: 0em;
-        padding-inline-start: 0px;
-        overflow: hidden;
-        transition: all 500ms ease-in-out;
+        width: 100%;
+        height: 100%;
+      }
 
-        img {
-          width: 70vw;
+      .images-wrapper {
+        position: relative;
+        width: 150%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+
+        .image-carousel {
+          transform: translateX(-500px);
+          opacity: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          position: absolute;
+          border-radius: 100px;
+          width: 40vw;
           height: 70vh;
+          margin-block-end: 0em;
+          padding-inline-start: 0px;
+          overflow: hidden;
           transition: all 500ms ease-in-out;
+
+          img {
+            width: 70vw;
+            height: 70vh;
+            transition: all 500ms ease-in-out;
+          }
+        }
+
+        .image-carousel.active {
+          box-shadow: 10px 10px 10px 15px rgba(black, 0.3);
+          transform: translateX(0);
+          opacity: 1;
+        }
+
+        .image-carousel.active:hover>img {
+          scale: 1.1;
         }
       }
-
-      .image-carousel.active {
-        box-shadow: 10px 10px 10px 15px rgba(black, 0.3);
-        transform: translateX(0);
-        opacity: 1;
-      }
-
-      .image-carousel.active:hover>img {
-        scale: 1.1;
-      }
     }
+  }
+}
+
+.landing-wrapper.mobile {
+  .section-landing {
+    font-size: 30px;
   }
 }
 </style>

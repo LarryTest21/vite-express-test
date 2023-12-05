@@ -1,28 +1,33 @@
 <script setup lang="ts">
-import {onMounted} from "vue";
-import { userClickedMobile } from "../../store/userClickMobile";
-import { userLoginClickMobile } from "../../store/userLoginClickMobile";
-import { mobileIconClicked } from "../../store/mobileIconClicked";
+import { onMounted } from "vue";
 import gsap from "gsap";
+import $ from "jquery";
 
-const userTabClicked = userClickedMobile();
+import { mobileIconClicked } from "../../store/mobileIconClicked";
 
-const userLoginClick = userLoginClickMobile();
-const mobileIClicked = mobileIconClicked();
+const clicked = mobileIconClicked();
 
 onMounted(() => {
+
+  $(".links>a").on('click', function () {
+    clicked.state = false
+  });
   gsap.from(".links>a", {
-  duration: 0.6,
-  stagger: 0.05,
-  x: -400,
+    delay: 0.3,
+    duration: 0.2,
+    stagger: 0.09,
+    x: -100,
+    opacity: 0
+  })
 })
 
-})
+
+
 
 </script>
 
 <template>
-  <div class="links" v-if="!userTabClicked.state && !userLoginClick.state" @click.native="mobileIClicked.state = false">
+  <div class="links">
     <RouterLink to="/rulebook">
       <li>Rulebook</li>
     </RouterLink>
@@ -44,10 +49,11 @@ onMounted(() => {
 <style lang="scss" scoped>
 .links {
   position: relative;
-  height: 100%;
+  width: 100%;
   font-size: 3rem;
   list-style: none;
   display: flex;
+  flex-direction: column;
 
   a {
     height: 100%;

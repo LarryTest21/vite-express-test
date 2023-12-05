@@ -2,7 +2,6 @@
 import { ref, onBeforeMount, onMounted } from "vue";
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
-import db from "../firebase/firebaseInit";
 import Modal from "../components/Modal.vue";
 import AdminCounts from "../components/adminpage/AdminPostsCount.vue";
 import AdminUsersTab from "../components/adminpage/AdminUsersTab.vue";

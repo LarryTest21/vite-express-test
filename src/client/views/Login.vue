@@ -9,6 +9,8 @@ import { signedIn } from "../store/signedIn"
 import Modal from "../components/Modal.vue"
 import bcrypt from "bcryptjs"
 import { userData } from "../store/userData"
+import {isAdmin} from "../store/isAdmin"
+
 
 const accToken = storedTokens()
 const email = ref();
@@ -16,6 +18,7 @@ const password = ref();
 const loggedIn = signedIn()
 const userD = userData()
 
+const admin = isAdmin()
 
 const modalActivation = ref(false);
 const modalMessage = ref()
@@ -70,7 +73,7 @@ const signIn = () => {
     localStorage.setItem('loggedIn', "true")
     localStorage.setItem('email', res.data.data.email)
     localStorage.setItem("loggedInBefore", "true")
-
+    admin.state = res.data.clearance
     modalAnimation.value = false
     modalActivation.value = true
     modalMessage.value = "Redirecting to landing page"

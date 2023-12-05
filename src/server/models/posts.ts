@@ -12,7 +12,10 @@ const blogPostModel = new mongoose.Schema(
         postAuthor: {
             type: String,
         },
-        postCategory: {
+        mainCategory: {
+            type: String,
+        },
+        subCategory: {
             type: Array,
         },
         postContent: {
@@ -46,9 +49,7 @@ const newsPostModel = new mongoose.Schema(
         postAuthor: {
             type: String,
         },
-        postCategory: {
-            type: String,
-        },
+ 
         postContent: {
             type: String,
         },
@@ -56,9 +57,6 @@ const newsPostModel = new mongoose.Schema(
             type: String,
         },
         postExcerpt: {
-            type: String,
-        },
-        postSection: {
             type: String,
         },
         postTitle: {

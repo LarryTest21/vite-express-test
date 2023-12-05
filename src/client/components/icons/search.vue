@@ -3,7 +3,7 @@
     xmlns="http://www.w3.org/2000/svg"
     id="Layer_1"
     data-name="Layer 1"
-    viewBox="0 0 185.15 140"
+    viewBox="50 0 140 140"
     class="searchIcon"
     data-v-5bcd4345=""
   >

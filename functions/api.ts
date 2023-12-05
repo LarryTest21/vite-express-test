@@ -18,12 +18,14 @@ database.on('error', (error: any) => {
 database.once('connected', () => {
     console.log('Database Connected');
 })
-
-ViteExpress.listen(app, 5173, () =>
-    console.log("Server is listening on http://localhost:5173"))
-
-
 mongoose.connect(mongoURI)
+
+
+ViteExpress.listen(app, 3333, () =>
+    console.log("Server is listening on http://localhost:3333"))
+
+
+
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(bodyParser.json({ limit: '10mb' }));

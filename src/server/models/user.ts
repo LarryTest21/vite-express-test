@@ -52,6 +52,9 @@ const userModel = new mongoose.Schema(
   { collection: "users" }
 );
 
+
+
+
 const userAuth = mongoose.model("authModel", authModel);
 const User = mongoose.model("User", userModel);
 

@@ -4,7 +4,7 @@ import { modalActive } from "../store/modalActive";
 import { modalButtonActive } from "../store/modalButtonActive";
 
 
-const emit = defineEmits(['emitAnswer', 'emitSaved'])
+const emit = defineEmits(['emitAnswer', 'emitSaved', "closeModal"])
 
 
 const props = defineProps({
@@ -28,8 +28,7 @@ const modalSaved = props.modalSaved
 const scaleMargin = (props.loadingScale! * 20) + "px"
 
 const closeModal = () => {
-  const modalActivation = modalActive();
-  modalActivation.state = false
+  emit("closeModal")
 };
 
 const emitAnswer = (target: any) => {
@@ -40,7 +39,6 @@ const emitSaved = (target: any) => {
   emit("emitSaved", target)
 }
 
-console.log(`output->props.modalAnimation`,props.modalAnimation)
 </script>
 
 <template>
@@ -111,11 +109,9 @@ console.log(`output->props.modalAnimation`,props.modalAnimation)
 <style lang="scss" scoped>
 .modal::before {
   content: "";
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  left: 0;
-  top: 0;
+  height:100%;
+  width:100%;
+  position:absolute;
   background-color: var(--color-nav-bg);
   opacity: 0.9;
   opacity: v-bind(backgroundOpacity);
@@ -150,7 +146,6 @@ button:active {
 
 .modal {
   position: v-bind(position);
-  width: 100%;
   height: 100%;
   justify-content: center;
   align-items: center;
@@ -159,10 +154,8 @@ button:active {
   flex-direction: column;
   z-index: 70;
   font-size: v-bind(fontSize);
-
   .wrapper {
     position: relative;
-    width: 100%;
     height: 100%;
     padding: 30px;
     display: flex;
@@ -176,11 +169,12 @@ button:active {
     display: flex;
     justify-content: center;
     align-items: center;
+    height:100%;
+    color:var(--color-nav-bg);
     color:v-bind(modalLoadingMessageColor);
   }
 
   .modal-content {
-    width: 100%;
     text-align: center;
     display: flex;
     justify-content: center;
@@ -197,7 +191,6 @@ button:active {
     align-items: center;
     margin-top: v-bind(scaleMargin);
     scale: v-bind(loadingScale);
-    width: 100%;
   }
 
   .loader {
@@ -205,6 +198,7 @@ button:active {
     height: 48px;
     border-width: 3px;
     border-style: dashed solid solid dotted;
+    border-color: var(--color-nav-txt) var(--color-nav-txt) transparent var(--color-nav-txt);
     border-color: v-bind(spinnerColor) v-bind(spinnerColor) transparent v-bind(spinnerColor);
     border-radius: 50%;
     box-sizing: border-box;
@@ -249,28 +243,24 @@ button:active {
 
   .modal-button {
     position: absolute;
-    width: 100%;
 
     .modal-content {
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      width: 100%;
       gap: 30px;
 
       p {
         font-family: Chango;
         text-align: center;
         color: var(--color-nav-txt);
-        font-size: 1.4rem;
       }
     }
   }
 
   .modal-question {
     position: absolute;
-    width: 100%;
     height: 100%;
     padding: 5px;
     display: flex;
@@ -288,7 +278,6 @@ button:active {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      width: 100%;
       justify-content: center;
       align-items: center;
     }
@@ -297,10 +286,11 @@ button:active {
 
   .modal-saved-post {
     position: relative;
-    width: 100%;
     font-family: Chango;
     font-size: 2rem;
     display: flex;
+    gap:10px;
+    padding:10px;
     justify-content: space-around;
 
     p {

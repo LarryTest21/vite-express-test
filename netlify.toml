@@ -16,4 +16,3 @@ command = "npm run dev"
   from = "/*"
   to = "/index.html"
   status = 200
-  force = false

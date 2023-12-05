@@ -26,9 +26,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(cookieParser())
 
-const router = Router();
-router.get("/hello", (req, res) => res.send("Hello World!"));
-
 
 app.use('/api', authRoutes)
 

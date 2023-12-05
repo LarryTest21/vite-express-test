@@ -12,9 +12,9 @@ import {
   updateReadBlog,
   updateUserSettings,
   disableAutoLogin,
-  updateSavedPost
+  updateSavedPost,
 } from "../controllers/authController";
-import { getAllBlog, getBlog, getAllNews, getNews } from "../controllers/contentController"
+import { getAllBlog, getBlog, getAllNews, getNews, uploadPost } from "../controllers/contentController"
 import { authenticateLogin, authenticateRoutes, refreshToken } from "../jwt/jwt";
 import { setCookie, readCookie } from "../controllers/cookieController";
 
@@ -33,6 +33,10 @@ router.get("/user/getUser/:id", authenticateRoutes, getUser);
 router.delete("/user/delete/:id", authenticateRoutes, deleteUser);
 router.post("/user/updateUser/:id", authenticateRoutes, updateUser);
 router.post("/user/updateSavedPost/:id", authenticateRoutes, updateSavedPost);
+
+router.post("/uploadPost", authenticateRoutes, uploadPost);
+
+
 
 router.post("/user/disableAutoLogin", authenticateRoutes, disableAutoLogin);
 

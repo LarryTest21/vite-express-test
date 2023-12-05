@@ -21,10 +21,10 @@ export function loginPost(req: any, res: any) {
 
   userAuth.findOne({ email: req.body.email }).then((user) => {
     if (!user) {
-      res.status(401).json({ success: false, error: "User does not exist" });
+      res.status(404).json({ success: false, error: "User does not exist" });
     } else {
       if (!bcrypt.compareSync(req.body.password, user.password)) {
-        res.status(401).json({ success: false, error: "Wrong password" });
+        res.status(403).json({ success: false, error: "Wrong password" });
       } else {
         const accessToken = jwt.sign({ user }, jwtSecret, { expiresIn: 10 });
         const refreshToken = jwt.sign({ user }, jwtSecret, { expiresIn: "1d" });
@@ -79,7 +79,7 @@ export function disableAutoLogin(req: Request, res: Response) {
     { email: req.body.email },
     {
       $set: {
-        'userSettings.autoLogin': false,
+        "userSettings.autoLogin": false,
       },
     },
     { returnOriginal: false }
@@ -323,7 +323,7 @@ export async function updateUser(req: Request, res: Response) {
           profilePic: req.body.profilePic,
           readBlog: req.body.readBlog,
           autoLogin: req.body.autoLogin,
-          savedPost: req.body.savedPost
+          savedPost: req.body.savedPost,
         },
       },
       { returnOriginal: false }
@@ -367,23 +367,20 @@ export async function updateUser(req: Request, res: Response) {
   }
 }
 
-
 export async function updateSavedPost(req: Request, res: Response) {
   const user = { _id: req.params.id };
-  console.log(`output->req.body.savedPost`,req.body.savedPost)
+  console.log(`output->req.body.savedPost`, req.body.savedPost);
   try {
-
     const doc = await User.findOneAndUpdate(
       user,
       {
         $set: {
-          "savedPost": req.body.savedPost
+          savedPost: req.body.savedPost,
         },
       },
       { returnOriginal: false }
     );
     res.status(200).json({ doc });
-
   } catch (err: any) {
     res.status(410).json({ success: false, message: err.message });
   }

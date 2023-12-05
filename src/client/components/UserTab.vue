@@ -181,7 +181,7 @@ const notiTargetfClicked = (s: any) => {
 
 onMounted(() => {
   watch(notifCounter, () => {
-console.log(`output->notifCounter`,notifCounter)
+    console.log(`output->notifCounter`, notifCounter)
   }, { deep: true })
 })
 </script>
@@ -255,14 +255,13 @@ console.log(`output->notifCounter`,notifCounter)
 
 <style lang="scss" scoped>
 .user-tab-wrapper {
+  position:fixed;
   z-index: -1;
-  position: absolute;
   top: 75px;
   left: 5%;
 
 
   .user-tab {
-    position: relative;
     border-radius: 5px;
     font-size: 1.5rem;
     font-family: Chango;
@@ -328,6 +327,7 @@ console.log(`output->notifCounter`,notifCounter)
       display: flex;
       flex-direction: column;
       width: 300px;
+      height: 100%;
       z-index: -1;
       gap: 10px;
 
@@ -340,8 +340,29 @@ console.log(`output->notifCounter`,notifCounter)
         padding-inline-start: 0;
         background-color: var(--color-nav-bg);
         width: 100%;
-        border: 2px solid var(--color-nav-bg-darker);
-        box-shadow: 4px 2px 5px 0px rgba(0, 0, 0, 0.3);
+        box-shadow: 4px 2px 3px 2px rgba(0, 0, 0, 0.534);
+      }
+
+      .notif:hover {
+        background-color: transparent;
+        color: var(--color-nav-bg);
+      }
+
+      .notif::before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        width: 100%;
+        border-radius: 0;
+        left: -150%;
+        height: 100%;
+        background-color: var(--color-nav-txt-lighter);
+        transition: all 0.2s ease-in-out
+      }
+
+      .notif:hover::before {
+        left: 0%;
+        transform: rotate(0deg);
       }
     }
 
@@ -366,7 +387,7 @@ console.log(`output->notifCounter`,notifCounter)
           width: 100%;
           align-items: center;
           justify-content: center;
-          padding: 10px;
+          padding: 0 10px;
 
           .userPFP-img.nopfp {
             opacity: 0.2;
@@ -378,8 +399,9 @@ console.log(`output->notifCounter`,notifCounter)
             font-size: 0.8rem;
             justify-content: center;
             text-align: center;
-            padding-top: 20px;
+            align-items: center;
             height: 100%;
+            width: 100%;
           }
 
           .add-pfp {
@@ -417,20 +439,21 @@ console.log(`output->notifCounter`,notifCounter)
           .img-wr {
             position: relative;
             width: 100%;
-            height: 50%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 10px;
 
             img {
-              height: 70px;
+              height: 100px;
             }
           }
 
           .notif-wr {
             position: relative;
             width: 100%;
-            height: 50%;
+            height: 100%;
             transition: all 0.1s ease-in-out;
             border-radius: 10px;
             display: flex;
@@ -458,7 +481,7 @@ console.log(`output->notifCounter`,notifCounter)
             .notif-counter-icon-wrapper {
               position: relative;
               height: 100%;
-              width: 70%;
+              width: 100%;
               display: flex;
               flex-direction: row;
               justify-content: flex-end;
@@ -535,8 +558,7 @@ console.log(`output->notifCounter`,notifCounter)
           width: 100%;
           display: flex;
           flex-direction: column;
-          gap: 5px;
-          padding: 5px 0 0 10px;
+          padding: 0 0 0 10px;
           margin-bottom: 10px;
 
           .displayName {

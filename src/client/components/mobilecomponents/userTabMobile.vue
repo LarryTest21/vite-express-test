@@ -1,18 +1,24 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
 import { userTabClick } from "../../store/userTabClick";
-import { userClickedMobile } from "../../store/userClickMobile";
 import { useRoute } from "vue-router";
 import { signedIn } from "../../store/signedIn";
 import router from "../../router";
-import { userData } from "../../store/userData"
+import { userData } from "../../store/userData";
 import axios from "axios";
+import "../icons/nopfpbase64";
+import { base64NoPFP } from "../icons/nopfpbase64";
+import gsap from "gsap";
+import { mobileIconClicked } from "../../store/mobileIconClicked";
+import $ from 'jquery';
+import { createGlobalState } from "@vueuse/core";
+const mobileIClicked = mobileIconClicked();
 
 const props = defineProps({
   isAdminCheck: String,
-  userData: Object
-})
-const userClickMobile = userClickedMobile();
+  userData: Object,
+});
+
 const userClick = userTabClick();
 
 const signedInCheck = signedIn();
@@ -23,43 +29,21 @@ const route = useRoute();
 
 const userPFP = ref();
 const userEmail = ref();
-if (props.userData != undefined) {
-  userEmail.value = props.userData.email
-}
 
-const emit = defineEmits(['logOut'])
-
-userPFP.value = localStorage.getItem("avatar");
-
-if (userPFP.value == undefined) {
-  if (userData != undefined) {
-    userPFP.value = props.userData!.profilePic
-    localStorage.setItem("avatar", userPFP.value)
-  } else {
-    watch(() => props.userData, () => {
-      if (userData != undefined) {
-        userPFP.value = props.userData!.profilePic
-        localStorage.setItem("avatar", userPFP.value)
-      } else {
-        userPFP.value = undefined
-      }
-    })
-  }
-}
+const emit = defineEmits(["logOut", "linkClicked"]);
+const userD = userData();
 
 const logOut = () => {
   const signedInCheck = signedIn();
   signedInCheck.state = false;
-  const userD = userData()
-  userD.data = undefined
-  axios.post("/api/user/logout").then((res) => {
-  })
-  userD.data = undefined
+  userD.data = undefined;
+  axios.post("/api/user/logout").then((res) => {});
+  userD.data = undefined;
 
-  signedInCheck.state = false
-  localStorage.removeItem("email")
-  localStorage.removeItem("avatar")
-  localStorage.removeItem("loggedIn")
+  signedInCheck.state = false;
+  localStorage.removeItem("email");
+  localStorage.removeItem("avatar");
+  localStorage.removeItem("loggedIn");
   if (
     route.name === "profile" ||
     route.name === "editposts" ||
@@ -68,8 +52,7 @@ const logOut = () => {
   ) {
     router.push({ name: "landing" });
   }
-  emit("logOut", true)
-
+  emit("logOut", true);
 
   if (
     route.name === "profile" ||
@@ -88,82 +71,175 @@ watch(signedInCheck, (newValue) => {
   }
 });
 
+if (userD != undefined) {
+  userEmail.value = userD.data.email;
+}
 
+
+const showNoPFP = ref(false);
 onMounted(() => {
+  gsap.from(".usertab-top>div", {
+    delay: 0.3,
+    duration: 0.2,
+    stagger: 0.1,
+    x: -100,
+    opacity: 0,
+  });
+
+  gsap.from(".usertab-links-do>a", {
+    delay: 0.5,
+    duration: 0.2,
+    stagger: 0.09,
+    x: -100,
+    opacity: 0,
+  });
+
   loginActivated.value = JSON.parse(localStorage.getItem("loggedIn")!);
+  if (userPFP.value === undefined || userPFP.value === "") {
 
+    if (userData != undefined) {
+      userPFP.value = userD.data.profilePic;
+      localStorage.setItem("avatar", userPFP.value);
+      if (userPFP.value === undefined) {
+        userPFP.value = base64NoPFP;
+        showNoPFP.value = true;
+      }
+    } else {
+      userPFP.value = base64NoPFP;
 
+      watch(
+        () => userD.data,
+        () => {
+          userPFP.value = base64NoPFP;
+          showNoPFP.value = true;
 
+          if (userD.data != undefined) {
+            userPFP.value = userD.data.profilePic;
+            localStorage.setItem("avatar", userPFP.value);
+          } else {
+            userPFP.value = base64NoPFP;
+            showNoPFP.value = true;
+          }
+        }
+      );
+    }
+  }
 });
 </script>
 
 <template>
-  <div class="user-tab" v-if="userClickMobile.state">
+  <div class="user-tab">
     <div class="usertab-top">
       <div class="userPFP">
-        <img class="userPFP-img" v-bind:src="userPFP" />
+        <div class="no-pfp" v-if="showNoPFP">no pfp</div>
+        <img class="userPFP-img"
+             :src="userPFP"
+             :class="showNoPFP ? 'nopfp' : ''"
+        />
       </div>
       <div class="user-text">
         <p class="userEmail">{{ userEmail }}</p>
       </div>
     </div>
-    <div class="usertab-links" ref="userTab">
-      <TransitionGroup name="links">
-
-        <router-link to="/profile" key="profile">Profile</router-link>
-        <router-link to="/createpost/newPost" key="newPost">Create Post</router-link>
-        <router-link to="/editpostslist" v-if="props.isAdminCheck" key="editpostslist">Edit Posts</router-link>
-        <router-link @click.native.prevent="userClick" to="/adminpage" v-if="props.isAdminCheck === 'admin'"
-          key="adminpage">Admin
-          Page</router-link>
-
-        <a @click.stop.prevent="logOut()" key="logout">Logout</a>
-      </TransitionGroup>
+    <div class="usertab-links-do" @click.prevent="mobileIClicked.state =false">
+      <router-link to="/profile">Profile</router-link>
+      <router-link to="/createpost/newPost" key="newPost"
+        >Create Post</router-link
+      >
+      <router-link to="/editpostslist"
+                   v-if="props.isAdminCheck"
+                   key="editpostslist"
+        >Edit Posts</router-link
+      >
+      <router-link @click.native.prevent="userClick"
+                   to="/adminpage"
+                   v-if="props.isAdminCheck === 'admin'"
+                   key="adminpage"
+        >Admin Page</router-link
+      >
+      <a @click.stop.prevent="logOut()" key="logout">Logout</a>
     </div>
-
   </div>
 </template>
 
 <style scoped lang="scss">
 .user-tab {
   width: 100%;
-  position: absolute;
+  height: 100%;
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
 
   .usertab-top {
-    padding: 10px;
-    width: 100%;
+    position: relative;
     display: flex;
     flex-direction: column;
-    margin-bottom: 20px;
-    font-size: 1.2rem;
-    gap: 10px;
+    font-size: 1.5rem;
 
     .userPFP {
+      position: relative;
       height: 100px;
+      margin: 5px;
 
-      img {
+      .no-pfp {
         height: 100%;
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+        width: 100%;
+        text-align: center;
+        font-size: 1.5rem;
+      }
+
+      .userPFP-img {
+        height: 100%;
+
+        &.nopfp {
+          opacity: 0.3;
+        }
+      }
+    }
+
+    .user-text {
+      background-color: var(--color-nav-txt);
+      color: var(--color-nav-bg-darker);
+      display: flex;
+      align-items: center;
+      padding: 2px;
+      border-radius: 0 5px 5px 0;
+
+      .userEmail {
+        width: 100%;
+        padding-left: 5px;
       }
     }
   }
 
-  .usertab-links {
+  .usertab-links-do {
+    position: relative;
+    margin-top: 10px;
+    height: 100%;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    position:relative;
+    justify-content: space-around;
 
     a {
-      position:relative;
-      padding: 10px;
-      text-decoration: none;
-      font-size: 2rem;
-      text-transform: uppercase;
+      height: 100%;
       font-family: Chango;
+      font-weight: 900;
+      text-decoration: none;
+      font-size: 2.3rem;
+      text-transform: uppercase;
       color: var(--color-nav-txt);
+      display: flex;
+      align-items: center;
+
+      padding-left: 5px;
     }
 
     a:hover {
@@ -176,24 +252,5 @@ onMounted(() => {
       box-shadow: none;
     }
   }
-}
-
-
-.links-move, /* apply transition to moving elements */
-.links-enter-active,
-.links-leave-active {
-  transition: all 0.5s ease;
-}
-
-.links-enter-from,
-.links-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-/* ensure leaving items are taken out of layout flow so that moving
-   animations can be calculated correctly. */
-.links-leave-active {
-  position: absolute;
 }
 </style>

@@ -10,52 +10,69 @@ import { modalActive } from "../store/modalActive";
 import { signedIn } from "../store/signedIn";
 import { userTabClick } from "../store/userTabClick";
 import { isAdmin } from "../store/isAdmin";
-import { getweather } from "./Nav/weather"
-import { timeCurrent } from "./Nav/time"
+import { getweather } from "./Nav/weather";
+import { timeCurrent } from "./Nav/time";
 import { userData } from "../store/userData";
+import searchIcon from "../components/icons/search.vue";
+import { useRouter } from "vue-router";
+import { blogSearch } from "../store/blogSearch";
+
+const searchIconActive = ref();
+const router = useRouter();
+const searchActive = ref(blogSearch());
+
+watch(
+  () => router.currentRoute.value.path,
+  (newValue) => {
+    if (newValue.toString() === "/bsl") {
+      searchIconActive.value = true;
+    } else {
+      searchIconActive.value = false;
+    }
+  }
+);
+
+const search = ref(false) as any;
 
 const signedInCheck = signedIn();
 const displayName = ref();
 
-const notificationArray = ref([]) as any
-const notifCounter = ref(0)
-const isActivated = ref()
-const showNotif = ref(false)
+const notificationArray = ref([]) as any;
+const notifCounter = ref(0);
+const isActivated = ref();
+const showNotif = ref(false);
 
 watch(notificationArray.value, (newValue) => {
   if (!isActivated.value) {
-    notifCounter.value = notificationArray.value.length + 1
+    notifCounter.value = notificationArray.value.length + 1;
   } else {
-    notifCounter.value = notificationArray.value.length
+    notifCounter.value = notificationArray.value.length;
   }
-})
+});
 
-const themeCheck = ref(true)
+const themeCheck = ref(true);
 
-const userD = userData()
+const userD = userData();
 
 if (userD.data != undefined) {
-
-  displayName.value = userD.data.firstName[0] + userD.data.lastName[0]
+  displayName.value = userD.data.firstName[0] + userD.data.lastName[0];
   if (userD.data.activated) {
-    notifCounter.value = userD.data.notificationArray.length + 1
+    notifCounter.value = userD.data.notificationArray.length + 1;
   } else {
-    notifCounter.value = userD.data.notificationArray.length
+    notifCounter.value = userD.data.notificationArray.length;
   }
   if (userD.data.userSettings.themeCheck) {
-    themeCheck.value = true
+    themeCheck.value = true;
   } else {
-    themeCheck.value = false
+    themeCheck.value = false;
   }
 }
 
-
-
 watch(signedInCheck, (newValue) => {
   if (userD.data != undefined) {
-    displayName.value = userD.data.firstName[0] + userD.data.lastName[0]
+    displayName.value = userD.data.firstName[0] + userD.data.lastName[0];
   }
-})
+});
 const isAdminCheck = isAdmin();
 
 const langEn = ref(false) as any;
@@ -83,14 +100,15 @@ $.ajax({
 });
 
 const loginActivated = ref(false);
-loginActivated.value = JSON.parse(localStorage.getItem("loggedInBefore")!) || false
+loginActivated.value =
+  JSON.parse(localStorage.getItem("loggedInBefore")!) || false;
 const activateLoginTab = ref(false);
 
 const userTabClicked = userTabClick();
 
 watch(userTabClicked, () => {
-  showNotif.value = false
-})
+  showNotif.value = false;
+});
 const activeLogin = () => {
   if (!activateLoginTab.value) {
     activateLoginTab.value = true;
@@ -113,54 +131,50 @@ const closeProfileTab = () => {
 };
 
 //THEME SCRIPT
-const theme = useTheme()
-
-
-
+const theme = useTheme();
 
 const themeButtonChecked = ref();
 
 if (theme.state === "theme-dark") {
-  themeButtonChecked.value = true
+  themeButtonChecked.value = true;
 } else if (theme.state === "theme-light") {
-  themeButtonChecked.value === false
+  themeButtonChecked.value === false;
 }
 
-watch(() => theme.state, (newvalue) => {
-  console.log(theme.state);
-  if (newvalue === "theme-dark") {
-    themeButtonChecked.value = true
-  } else if (newvalue === "theme-light") {
-    themeButtonChecked.value = false
+watch(
+  () => theme.state,
+  (newvalue) => {
+    if (newvalue === "theme-dark") {
+      themeButtonChecked.value = true;
+    } else if (newvalue === "theme-light") {
+      themeButtonChecked.value = false;
+    }
   }
-})
-
+);
 
 const themechange = () => {
   if (themeButtonChecked.value) {
-    theme.state = "theme-light"
-    localStorage.setItem("theme-color", "theme-light")
+    theme.state = "theme-light";
+    localStorage.setItem("theme-color", "theme-light");
   } else if (!themeButtonChecked.value) {
-    theme.state = "theme-dark"
-    localStorage.setItem("theme-color", "theme-dark")
+    theme.state = "theme-dark";
+    localStorage.setItem("theme-color", "theme-dark");
   }
 };
 
-
 const closeTab = () => {
-  activateLoginTab.value = false
-}
-
+  activateLoginTab.value = false;
+};
 
 //WEATHER
-const city = ref()
-const temp = ref()
+const city = ref();
+const temp = ref();
 
 const weatherHov = ref(false);
 const timeWeatherUp = ref(false);
 
 //TIME CALCULATION
-const time = timeCurrent().time
+const time = timeCurrent().time;
 
 //WEATHER SCRIPT
 
@@ -174,49 +188,56 @@ const weatherUnHovered = () => {
 
 //ACTIVATION LOGIN TAB
 
-
 const navRef = ref();
 const UserTabHeight = ref();
 
 onMounted(async () => {
-
-
-  watch(() => userD.data, (newValue) => {
-    if (newValue === undefined) {
-      themeCheck.value = true
-    } else {
-      if(userD.data.userSettings != undefined){
-        themeCheck.value = userD.data.userSettings.themeCheck
+  watch(
+    () => userD.data,
+    (newValue) => {
+      if (newValue === undefined) {
+        themeCheck.value = true;
+      } else {
+        if (userD.data.userSettings != undefined) {
+          themeCheck.value = userD.data.userSettings.themeCheck;
+        }
       }
-    }
-  }, { deep: true })
+    },
+    { deep: true }
+  );
   const weather = getweather();
 
   setTimeout(() => {
-    city.value = weather.city.value
-    temp.value = weather.temp.value
+    city.value = weather.city.value;
+    temp.value = weather.temp.value;
   }, 1000);
 
+  gsap
+    .from([".nav-links>a, .nav-links>div"], {
+      delay: 0.55,
+      duration: 0.2,
+      stagger: 0.05,
+      y: -100,
+    })
+    .then(() => {
+      if (router.currentRoute.value.path === "/bsl") {
+        searchIconActive.value = true;
+      }
+      showNotif.value = true;
+    });
 
-  gsap.from(".nav-links>a", {
-    delay: 0.55,
-    duration: 0.2,
-    stagger: 0.05,
-    y: -100,
-  }).then(() => {
-    showNotif.value = true
-  });
-
-
-
-
-  gsap.from(".weather-time", { delay: 0.8, opacity: 0 })
+  gsap.from(".weather-time", { delay: 0.8, opacity: 0 });
   if (themeCheck.value) {
-    gsap.from(".theme-changer-wrapper", { delay: 1, opacity: 0 })
+    gsap.from(".theme-changer-wrapper", { delay: 1, opacity: 0 });
   }
 
-
-
+  watch(
+    search,
+    () => {
+      console.log(`output->search.value`, search.value);
+    },
+    { deep: true }
+  );
 
   const intervalId = setInterval(function () {
     timeWeatherUp.value = true;
@@ -226,13 +247,10 @@ onMounted(async () => {
   }, 15000);
 });
 
-const notifClickedRef = ref(false)
+const notifClickedRef = ref(false);
 const notifClicked = (value: any) => {
-  notifClickedRef.value = true
-}
-
-
-
+  notifClickedRef.value = true;
+};
 </script>
 
 <template>
@@ -240,52 +258,81 @@ const notifClicked = (value: any) => {
     <div class="wrapper">
       <nav>
         <ul class="nav-links">
-          <RouterLink to="/">
-            <div class="nav-logo">
-              <img class="logo" :src="Logo" />
+          <TransitionGroup name="hey">
+            <RouterLink to="/" key="1">
+              <div class="nav-logo">
+                <img class="logo" :src="Logo" />
+              </div>
+            </RouterLink>
+            <a class="user-wrapper" key="2">
+              <transition name="notif">
+                <div
+                  class="notif-counter"
+                  v-if="notifCounter != 0 && showNotif"
+                >
+                  {{ notifCounter }}
+                </div>
+              </transition>
+
+              <TransitionGroup name="user">
+                <a
+                  key="1"
+                  v-if="signedInCheck.state"
+                  class="user"
+                  @click.native.prevent="
+                    userTabClicked.state = !userTabClicked.state
+                  "
+                >
+                  {{ displayName }}
+                </a>
+                <a
+                  key="2"
+                  v-if="!signedInCheck.state && loginActivated"
+                  to="/login"
+                  class="login"
+                  @click.stop.prevent="activeLogin()"
+                  :class="activateLoginTab ? 'active' : ''"
+                >
+                  <li>Login</li>
+                </a>
+              </TransitionGroup>
+            </a>
+            <RouterLink to="/rulebook" key="3">
+              <li>Rulebook</li>
+            </RouterLink>
+            <RouterLink to="/news" key="4">
+              <li>News</li>
+            </RouterLink>
+
+            <RouterLink to="/bsl" key="5">
+              <li>BSL</li>
+            </RouterLink>
+            <div class="search" v-if="searchIconActive" key="6">
+              <searchIcon
+                class="searchIcon"
+                @click="searchActive.state = !searchActive.state"
+                key="2"
+              />
             </div>
-          </RouterLink>
-          <a class="user-wrapper">
-            <transition name="notif">
-              <div class="notif-counter" v-if="notifCounter != 0 && showNotif">{{ notifCounter }}</div>
-
-            </transition>
-
-            <TransitionGroup name="user">
-              <a key="1" v-if="signedInCheck.state" class="user"
-                @click.native.prevent="userTabClicked.state = !userTabClicked.state">
-                {{ displayName }}
-              </a>
-              <a key="2" v-if="!signedInCheck.state && loginActivated" to="/login" class="login"
-                @click.stop.prevent="activeLogin()" :class="activateLoginTab ? 'active' : ''">
-                <li>Login</li>
-              </a>
-
-            </TransitionGroup>
-          </a>
-          <RouterLink to="/rulebook">
-            <li>Rulebook</li>
-          </RouterLink>
-          <RouterLink to="/news">
-            <li>News</li>
-          </RouterLink>
-          <RouterLink to="/bsl">
-            <li>BSL</li>
-          </RouterLink>
-          <RouterLink to="/custom-teams">
-            <li>Custom Teams</li>
-          </RouterLink>
-          <RouterLink to="/contact">
-            <li>Contact</li>
-          </RouterLink>
+            <RouterLink to="/custom-teams" key="7">
+              <li>Custom Teams</li>
+            </RouterLink>
+            <RouterLink to="/contact" key="8">
+              <li>Contact</li>
+            </RouterLink>
+          </TransitionGroup>
         </ul>
 
         <div class="wt-wrapper">
-          <div @mouseover="weatherHovered" @mouseleave="weatherUnHovered" :class="[
-            'weather-time',
-            { active: weatherHov },
-            timeWeatherUp ? 'up' : 'down',
-          ]">
+          <div
+            @mouseover="weatherHovered"
+            @mouseleave="weatherUnHovered"
+            :class="[
+              'weather-time',
+              { active: weatherHov },
+              timeWeatherUp ? 'up' : 'down',
+            ]"
+          >
             <div class="time">{{ time }}</div>
             <div class="weather">
               <div class="city">{{ city }}</div>
@@ -297,22 +344,37 @@ const notifClicked = (value: any) => {
         <transition name="fadeLogin">
           <div class="theme-changer-wrapper" v-if="themeCheck">
             <label class="theme-changer">
-              <input v-model="themeButtonChecked" type="checkbox" class="button" @click="themechange()" />
+              <input
+                v-model="themeButtonChecked"
+                type="checkbox"
+                class="button"
+                @click="themechange()"
+              />
               <span class="slider round"></span>
             </label>
           </div>
         </transition>
 
-
         <transition name="fadeLogin">
-          <LoginTab v-if="activateLoginTab && !signedInCheck.state" v-click-away="closeLoginTab"
-            @emitRegister="activateLoginTab = !activateLoginTab" />
+          <LoginTab
+            v-if="activateLoginTab && !signedInCheck.state"
+            v-click-away="closeLoginTab"
+            @emitRegister="activateLoginTab = !activateLoginTab"
+          />
         </transition>
         <transition name="userTab">
-          <UserTab class="usertab" :userData="userData" ref="UserTabHeight"
-            v-if="signedInCheck.state && userTabClicked.state" @notifClicked="notifClicked" v-click-away="closeProfileTab"
-            :isAdminCheck="isAdminCheck.state" :notifCounter="notifCounter" :notificationArray="notificationArray"
-            :closeTab="closeTab" />
+          <UserTab
+            class="usertab"
+            :userData="userData"
+            ref="UserTabHeight"
+            v-if="signedInCheck.state && userTabClicked.state"
+            @notifClicked="notifClicked"
+            v-click-away="closeProfileTab"
+            :isAdminCheck="isAdminCheck.state"
+            :notifCounter="notifCounter"
+            :notificationArray="notificationArray"
+            :closeTab="closeTab"
+          />
         </transition>
       </nav>
     </div>
@@ -320,23 +382,33 @@ const notifClicked = (value: any) => {
 </template>
 
 <style scoped lang="scss">
+.search {
+  position: relative;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  height: 100%;
+  z-index: 1000;
+  padding: 0 30px;
+}
 .fullNav {
   z-index: 100;
   position: fixed;
   width: 100%;
   height: 70px;
-.notif-wrapper{
-  position:absolute;
 
-}
+  .notif-wrapper {
+    position: absolute;
+  }
+
   .wrapper {
     height: 100%;
     width: 100%;
 
     nav {
+      position: relative;
       background-color: var(--color-nav-bg);
-      border-radius: 70px 0 0 70px;
-      box-shadow: 4px 8px 5px 0px rgba(0, 0, 0, 0.3);
+      box-shadow: 4px 8px 5px 0px rgba(0, 0, 0, 0.24);
       gap: 40px;
       height: 100%;
       width: 100vw;
@@ -345,119 +417,119 @@ const notifClicked = (value: any) => {
       align-items: center;
       justify-content: space-between;
       transition: all 0.5s ease-out;
-      overflow: hidden;
 
       .nav-links {
+        position: relative;
         height: 100%;
-        width: 80%;
         display: flex;
         margin-block-start: 0;
         padding-inline-start: 0;
-
-        a {
+        align-items: center;
+        max-width: 100%;
+        width: 90%;
+        .search {
+          height: 100%;
           position: relative;
-          color: var(--color-nav-txt);
-          text-decoration: none;
-          font-size: 1.5rem;
-          text-transform: uppercase;
-          font-family: Chango;
-          transition: font 0.1s, background-color 0.3s;
-          padding: 0 30px;
+          top: 0;
           display: flex;
           justify-content: center;
-          overflow: hidden;
+          .searchIcon {
+            position: relative;
+            width: 40px;
+            height: auto;
+            fill: var(--color-nav-txt-darker);
+            cursor: pointer;
 
+            &:hover {
+              scale: 1.1;
+            }
+            &::after {
+              content: "";
+              height: 100%;
+              width: 100%;
+              position: absolute;
+              box-shadow: #888;
+              box-shadow: 0px 5px 15px 5px var(--color-nav-txt-lighter);
+              left: 0;
+            }
+          }
+        }
+
+        a {
+          color: var(--color-nav-txt);
+          text-decoration: none;
+          font-size: 1.4rem;
+          text-transform: uppercase;
+          font-family: Chango;
+          height: 100%;
+          padding: 0 40px;
+          position: relative;
+          overflow: hidden;
           li {
+            position: relative;
             list-style-type: none;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100%;
             transition: all 0.2s;
-            overflow: hidden;
           }
-
         }
 
         a::after {
           content: "";
-          position: absolute;
           height: 100%;
           width: 100%;
-          top: 0%;
-          left: 20px;
-          box-shadow: 0px 0px 20px 1px var(--color-nav-txt-lighter);
+          position: absolute;
+          box-shadow: #888;
+          box-shadow: 0px 5px 15px 5px var(--color-nav-txt-lighter);
           opacity: 0;
-          transition: opacity 0.2s ease-in-out;
+          left: 0;
+          transition: all 0.2s ease-in-out;
         }
 
         a:hover::after {
           opacity: 1;
         }
-
         a:hover {
-          background-color: var(--color-nav-text);
-          color: var(--vt-c-nav-text-hover);
+          background-color: var(--color-nav-bg);
+          color: var(--vt-c-nav-text);
         }
-
         a:first-child::after {
           display: none;
         }
-
         a:first-child:hover::after {
           display: none;
         }
-
         a:first-child {
           background-color: transparent;
         }
-
         a:first-child {
           padding: 0;
           left: 0;
         }
-
         a:nth-child(2).router-link-exact-active::after {
           height: 0;
           width: 0;
         }
-
+        a:nth-child(2)::after {
+          display: none;
+        }
         a:nth-child(2):hover::after {
           display: none;
         }
-
-        .user-wrapper:hover {
-
-          background: transparent;
-          color: var(--vt-nav-txt);
-
-        }
-
-
         a.router-link-exact-active:first-child {
           background-color: transparent;
         }
-
-        a.router-link-exact-active:first-child:hover {
-          background-color: transparent;
-        }
-
         a.router-link-exact-active {
-          color: var(--vt-c-nav-text-active);
-          background-color: var(--vt-c-nav-text-bg-hover);
+          color: var(--color-nav-txt-darker);
         }
-
-        a.router-link-exact-active::after {
-          content: "";
-          height: 100%;
-          position: absolute;
-          top: 0;
-          transform: translateX(-32px);
-          box-shadow: 0px 0px 5px 2px rgba($color: white, $alpha: 1);
+        a.router-link-exact-active:hover::after {
           opacity: 1;
-          transition: opacity 0.3s ease-in-out;
         }
-
+        a.router-link-exact-active::after {
+          opacity: 1;
+        }
         .user-wrapper {
           display: flex;
           justify-content: center;
@@ -533,6 +605,8 @@ const notifClicked = (value: any) => {
             display: flex;
             width: 100%;
             height: 100%;
+            padding: 20px;
+
             align-items: center;
             justify-content: center;
             color: var(--color-nav-user-txt);
@@ -560,7 +634,6 @@ const notifClicked = (value: any) => {
             padding: 2px;
           }
         }
-
       }
     }
   }
@@ -641,7 +714,6 @@ const notifClicked = (value: any) => {
     align-items: center;
     margin-right: 25px;
 
-
     .theme-changer {
       position: relative;
       width: 60px;
@@ -678,7 +750,7 @@ const notifClicked = (value: any) => {
       transition: 0.4s;
     }
 
-    input:checked+.slider:before {
+    input:checked + .slider:before {
       transform: translateX(26px);
     }
 
@@ -755,6 +827,7 @@ const notifClicked = (value: any) => {
 
 .user-enter-active,
 .user-leave-active {
+  transition: all 0.3s ease-in-out;
   opacity: 1;
 }
 
@@ -797,5 +870,20 @@ const notifClicked = (value: any) => {
 .notif-enter-from,
 .notif-leave-to {
   transform: translateY(-400px);
+}
+
+.hey-move,
+.hey-enter-active,
+.hey-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+.hey-enter-from,
+.hey-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.hey-leave-active {
+  position: absolute !important;
 }
 </style>

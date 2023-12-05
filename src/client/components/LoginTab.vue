@@ -27,6 +27,8 @@ const email = ref();
 const password = ref();
 const signedInCheck = signedIn()
 const userD = userData()
+
+
 const signIn = () => {
   modalActivation.value = false
   modalButtonMessage.value = ""
@@ -46,6 +48,7 @@ const signIn = () => {
     }
     localStorage.setItem('loggedIn', "true")
     localStorage.setItem('email', res.data.data.email)
+    localStorage.setItem("autoLogin", res.data.data.userSettings.autoLogin)
     modalActivation.value = true
     modalAnimation.value = true
     modalButtonMessage.value = ""

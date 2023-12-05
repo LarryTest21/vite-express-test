@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from "vue";
 import Calendar from "primevue/calendar";
-import moment from "moment"
-import axios from "axios"
+import moment from "moment";
+import axios from "axios";
 import { userData } from "../../store/userData";
-import _ from 'lodash';
-import Modal from "../../components/Modal.vue"
+import _ from "lodash";
+import Modal from "../../components/Modal.vue";
 
 const props = defineProps({
   postContent: String,
@@ -14,25 +14,30 @@ const props = defineProps({
   savedPost: Object,
   showSavedPost: Boolean,
   emittedMainCategory: Object,
-  emittedSubCategory: Object
+  emittedSubCategory: Object,
 });
 
 const emit = defineEmits([
   "showPreview",
   "interPost",
   "postSaved",
+  "postNotFullfilled",
 ]);
 
-const mainCategory = computed(() => props.emittedMainCategory)
-const subCategory = computed(() => props.emittedSubCategory)
-
-
+const mainCategory = computed(() => props.emittedMainCategory);
+const subCategory = computed(() => props.emittedSubCategory);
 
 const changedImage = ref(false);
 
-
-const interPost = ref({ postContent: undefined, postTitle: undefined, postExcerpt: undefined, postDate: undefined, coverImage: undefined, mainCategory: undefined, subCategory: undefined }) as any
-
+const interPost = ref({
+  postContent: undefined,
+  postTitle: undefined,
+  postExcerpt: undefined,
+  postDate: undefined,
+  coverImage: undefined,
+  mainCategory: undefined,
+  subCategory: undefined,
+}) as any;
 
 const postDate = ref();
 const autoFill = ref();
@@ -44,14 +49,14 @@ const characterCounter = ref("70 characters left");
 const characterCounterRef = ref() as any;
 const excerptDialogue = ref();
 
-const showCoverPreview = ref()
+const showCoverPreview = ref();
 
-const showSavedButton = ref()
+const showSavedButton = ref();
 const fileUpload = ref() as any;
 const coverFile = ref() as any;
 const rawImg = ref();
 
-const showModalImage = ref()
+const showModalImage = ref();
 
 const btnClose = (e: any) => {
   fileUpload.value = "";
@@ -59,7 +64,6 @@ const btnClose = (e: any) => {
   saveShow.value = true;
   rawImg.value = null;
 };
-
 
 const onFileClick = (e: any) => {
   e.target.value = null;
@@ -162,85 +166,92 @@ const onFileSelect = (file: any) => {
         });
       // END: preview resized
     } else {
-      showModalImage.value = true
+      showModalImage.value = true;
     }
   } else {
-    showModalImage.value = true
-
-
+    showModalImage.value = true;
   }
 };
 
-const userID = ref(props.userID)
-watch(userID, (newvalue) => {
-  console.log(`output->newvalue`, newvalue)
-})
+const userID = ref(props.userID);
 
-const postTitle = computed(() => props.postTitle)
+const postTitle = computed(() => props.postTitle);
 
-const postContent = computed(() => props.postContent)
+const postContent = computed(() => props.postContent);
 
-const showPostDate = ref()
-
+const showPostDate = ref();
 
 watch(postContent, (newvalue) => {
-  if (newvalue === '<p></p>') {
-    interPost.value['postContent'] = undefined
+  if (newvalue === "<p></p>") {
+    interPost.value["postContent"] = undefined;
   } else {
-    interPost.value['postContent'] = newvalue
+    interPost.value["postContent"] = newvalue;
   }
-})
+});
 
 watch(postTitle, (newvalue) => {
-  if (newvalue === '' || newvalue === undefined) {
-    interPost.value['postTitle'] = undefined
+  if (newvalue === "" || newvalue === undefined) {
+    interPost.value["postTitle"] = undefined;
   } else {
-    interPost.value['postTitle'] = newvalue
+    interPost.value["postTitle"] = newvalue;
   }
-})
+});
 
-watch(() => excerpt.value, (newvalue) => {
-  if (newvalue === '' || newvalue === undefined) {
-    interPost.value['postExcerpt'] = undefined
-  } else {
-    interPost.value['postExcerpt'] = excerpt.value
+watch(
+  () => excerpt.value,
+  (newvalue) => {
+    if (newvalue === "" || newvalue === undefined) {
+      interPost.value["postExcerpt"] = undefined;
+    } else {
+      interPost.value["postExcerpt"] = excerpt.value;
+    }
   }
-})
+);
 
 watch(showPostDate, (newvalue) => {
   if (newvalue === null) {
-    interPost.value['postDate'] = undefined
+    interPost.value["postDate"] = undefined;
   } else {
-    interPost.value['postDate'] = newvalue
+    interPost.value["postDate"] = newvalue;
   }
-})
+});
 
-watch(() => rawImg.value, (newvalue) => {
-  if (newvalue === '' || newvalue === undefined || newvalue === null) {
-    interPost.value['coverImage'] = undefined
-  } else {
-    interPost.value['coverImage'] = newvalue
+watch(
+  () => rawImg.value,
+  (newvalue) => {
+    if (newvalue === "" || newvalue === undefined || newvalue === null) {
+      interPost.value["coverImage"] = undefined;
+    } else {
+      interPost.value["coverImage"] = newvalue;
+    }
   }
-})
+);
 
-watch(mainCategory, (newvalue) => {
-  if (newvalue === undefined || newvalue === null) {
-    interPost.value['mainCategory'] = undefined
-  } else {
-    interPost.value['mainCategory'] = newvalue
-  }
-}, { deep: true })
+watch(
+  mainCategory,
+  (newvalue) => {
+    if (newvalue === undefined || newvalue === null) {
+      interPost.value["mainCategory"] = undefined;
+    } else {
+      interPost.value["mainCategory"] = newvalue;
+    }
+  },
+  { deep: true }
+);
 
-watch(subCategory, (newvalue) => {
-  if (newvalue === undefined || newvalue === null) {
-    interPost.value['subCategory'] = undefined
-  } else {
-    interPost.value['subCategory'] = newvalue
-  }
-}, { deep: true })
+watch(
+  subCategory,
+  (newvalue) => {
+    if (newvalue === undefined || newvalue === null) {
+      interPost.value["subCategory"] = undefined;
+    } else {
+      interPost.value["subCategory"] = newvalue;
+    }
+  },
+  { deep: true }
+);
 
 const autoFillLeaveCheck = ref(false);
-
 
 const handler = () => {
   if (excerpt.value !== "") {
@@ -255,7 +266,9 @@ const handler = () => {
     (postTitle.value === undefined &&
       postContent.value === undefined &&
       excerpt.value === "") ||
-    (postTitle.value === "" && postContent.value === undefined && excerpt.value === "")
+    (postTitle.value === "" &&
+      postContent.value === undefined &&
+      excerpt.value === "")
   ) {
     saveShow.value = false;
   }
@@ -283,30 +296,35 @@ const autoFillHover = () => {
     }
   }, 800);
 };
-const savedPost = ref()
-
+const savedPost = ref();
 
 const savePost = () => {
-  savedPost.value = interPost.value
-  savedPost.value['author'] = userData().data.firstName
-  localStorage.setItem("savedPost", JSON.stringify(savedPost.value))
+  savedPost.value = interPost.value;
+  savedPost.value["author"] = userData().data.firstName;
+  localStorage.setItem("savedPost", JSON.stringify(savedPost.value));
 
-  axios.post("/api/user/refresh").then(() => {
-    axios.post("/api/user/updateSavedPost/" + userID.value, { savedPost: savedPost.value }).then((res) => {
-      emit("postSaved", true)
-    }).then(() => {
-      setTimeout(() => {
-        showSavedButton.value = false
-      }, 1400);
+  axios
+    .post("/api/user/refresh")
+    .then(() => {
+      axios
+        .post("/api/user/updateSavedPost/" + userID.value, {
+          savedPost: savedPost.value,
+        })
+        .then((res) => {
+          emit("postSaved", true);
+        })
+        .then(() => {
+          setTimeout(() => {
+            showSavedButton.value = false;
+          }, 1400);
+        });
     })
-  }).catch((err) => {
-    console.log(`output->err`, err)
-  })
-
-}
+    .catch((err) => {
+      console.log(`output->err`, err);
+    });
+};
 
 const excerptCount = (newvalue: any) => {
-
   var maxlength = 70;
 
   if (newvalue !== null) {
@@ -324,88 +342,117 @@ const excerptCount = (newvalue: any) => {
     characterCounterRef.value.style.color = "var(--color-nav-txt)";
   }
   excerptDialogue.value = false;
-}
-watch(() => props.showSavedPost, () => {
+};
+watch(
+  () => props.showSavedPost,
+  () => {
+    if (props.showSavedPost) {
+      interPost.value = userData().data.savedPost;
 
+      if (userData().data.savedPost.postDate != undefined) {
+        showPostDate.value = moment(new Date(interPost.value.postDate)).format(
+          "DD/MM/YYYY HH:MM"
+        );
+        watch(
+          () => showPostDate.value,
+          (newvalue) => {
+            if (newvalue === null) {
+              postDate.value = undefined;
+            } else {
+              postDate.value = newvalue.toISOString();
+            }
+          }
+        );
+      }
 
-  if (props.showSavedPost) {
+      if (
+        userData().data.savedPost.coverImage != undefined ||
+        userData().data.savedPost.coverImage != null
+      ) {
+        rawImg.value = userData().data.savedPost.coverImage;
+        showCoverPreview.value = true;
+      }
+      if (userData().data.savedPost.postExcerpt != undefined) {
+        excerpt.value = userData().data.savedPost.postExcerpt;
 
-
-    interPost.value = userData().data.savedPost
-
-    if (userData().data.savedPost.postDate != undefined) {
-      showPostDate.value = moment(new Date(interPost.value.postDate)).format("DD/MM/YYYY HH:MM")
-      watch(() => showPostDate.value, (newvalue) => {
-        if (newvalue === null) {
-          postDate.value = undefined
-        } else {
-          postDate.value = newvalue.toISOString()
-        }
-      })
-
+        var newvalue = excerpt.value;
+        setTimeout(() => {
+          excerptCount(newvalue);
+        }, 1);
+      }
     }
+  },
+  { immediate: true }
+);
 
-    if (userData().data.savedPost.coverImage != undefined || userData().data.savedPost.coverImage != null) {
-      rawImg.value = userData().data.savedPost.coverImage
-      showCoverPreview.value = true
-
-    }
-    if (userData().data.savedPost.postExcerpt != undefined) {
-      excerpt.value = userData().data.savedPost.postExcerpt
-
-      var newvalue = excerpt.value
-      setTimeout(() => {
-        excerptCount(newvalue)
-      }, 1);
-    }
-
-
+watch(
+  () => excerpt.value,
+  (newvalue) => {
+    excerptCount(newvalue);
   }
-}, { immediate: true })
+);
 
-
-
-watch(() => excerpt.value, (newvalue) => {
-  excerptCount(newvalue)
-});
-
-
-
-
-watch(() => interPost.value, (newvalue) => {
-  console.log(`output->interPost.value`, interPost.value)
-  console.log(`output->props.savedPost`, props.savedPost)
-  if (newvalue.postDate === undefined && newvalue.postContent === undefined && newvalue.postExcerpt === undefined && newvalue.coverImage === undefined && newvalue.postTitle === undefined && newvalue.mainCategory === undefined && newvalue.subCategory === undefined) {
-    showSavedButton.value = false
-  } else {
-    console.log(`output->_.isEqual(interPost.value, props.savedPost`, _.isEqual(interPost.value, props.savedPost))
-    if (_.isEqual(interPost.value, props.savedPost)) {
-      showSavedButton.value = false
+watch(
+  () => interPost.value,
+  (newvalue) => {
+    if (
+      newvalue.postDate === undefined &&
+      newvalue.postContent === undefined &&
+      newvalue.postExcerpt === undefined &&
+      newvalue.coverImage === undefined &&
+      newvalue.postTitle === undefined &&
+      newvalue.mainCategory === undefined &&
+      newvalue.subCategory === undefined
+    ) {
+      showSavedButton.value = false;
     } else {
-      showSavedButton.value = true
+      if (_.isEqual(interPost.value, props.savedPost)) {
+        showSavedButton.value = false;
+      } else {
+        showSavedButton.value = true;
+      }
     }
-
-  }
-
-}, { deep: true })
-
+  },
+  { deep: true }
+);
 
 const test = () => {
-  showModalImage.value = false
-}
+  showModalImage.value = false;
+};
 
 const previewPost = () => {
   emit("showPreview", true);
-  emit("interPost", interPost.value)
-}
+  emit("interPost", interPost.value);
+};
 
-onMounted(() => {
+const uploadPost = () => {
+  console.log(`output->interPost.postTitle`, interPost.value);
+  if (
+    interPost.value["postTitle"] === undefined ||
+    interPost.value["postContent"] === undefined ||
+    interPost.value["postExcerpt"] === undefined ||
+    interPost.value["coverImage"] === undefined ||
+    interPost.value["postDate"] === undefined ||
+    interPost.value["subCategory"] === undefined ||
+    interPost.value["mainCategory"] === undefined
+  ) {
+    console.log(`output->interPost.value`, interPost.value);
+    emit("postNotFullfilled", false);
+  } else {
+    emit("postNotFullfilled", "uploading");
+    axios.post("/api/user/refresh").then((res) => {
+      console.log(`output->res`, res);
+      axios.post("/api/uploadPost", interPost.value).then((res) => {
+        console.log(`output->res`, res);
+        if (res.status === 200) {
+          emit("postNotFullfilled", "complete");
+        }
+      });
+    });
+  }
+};
 
-
-
-
-
-})
+onMounted(() => {});
 </script>
 
 <template>
@@ -414,66 +461,122 @@ onMounted(() => {
       <div class="modal-back" v-if="showModalImage" v-click-away="test"></div>
     </transition>
 
-
     <div class="calendar-wrapper wrapper">
       <label>Post Date</label>
-      <Calendar id="calendar-24h" v-model="showPostDate" showTime hourFormat="24" showButtonBar hideOnDateTimeSelect />
+      <Calendar
+        id="calendar-24h"
+        v-model="showPostDate"
+        showTime
+        hourFormat="24"
+        showButtonBar
+        hideOnDateTimeSelect
+      />
     </div>
 
     <div class="cover-preview-wrapper" value="Preview Cover" key="1">
       <label>Cover Image</label>
       <div class="cover-image-wrapper">
         <transition name="autofill">
-          <Modal v-if="showModalImage" v-click-away="test" class="modal" :modalLoadingMessageColor="'red'"
-            :modalLoadingMessage="'Select an image file (png or jpeg)'" :fontSize="'1rem'" :position="'absolute'"
-            :backgroundOpacity="1" />
+          <Modal
+            v-if="showModalImage"
+            v-click-away="test"
+            class="modal"
+            :modalLoadingMessageColor="'red'"
+            :modalLoadingMessage="'Select an image file (png or jpeg)'"
+            :fontSize="'1rem'"
+            :position="'absolute'"
+            :backgroundOpacity="1"
+          />
         </transition>
         <TransitionGroup name="autofill">
           <img :src="rawImg" alt="" key="2" v-if="showCoverPreview" />
         </TransitionGroup>
-        <div v-if="showCoverPreview" type="button" class="btn-close" @click.prevent="btnClose">
+        <div
+          v-if="showCoverPreview"
+          type="button"
+          class="btn-close"
+          @click.prevent="btnClose"
+        >
           <span class="icon-cross"></span>
           <span class="visually-hidden"></span>
         </div>
       </div>
-      <input type="button" @click="fileUpload.click()" class="custom-file-upload" value="Select Image" />
-      <input type="file" @change="onFileSelect" @click="onFileClick" name="" ref="fileUpload" id="file-upload"
-        style="display: none" />
+      <input
+        type="button"
+        @click="fileUpload.click()"
+        class="custom-file-upload"
+        value="Select Image"
+      />
+      <input
+        type="file"
+        @change="onFileSelect"
+        @click="onFileClick"
+        name=""
+        ref="fileUpload"
+        id="file-upload"
+        style="display: none"
+      />
     </div>
-
 
     <div class="excerpt-wrapper wrapper">
       <label>Excerpt</label>
-      <textarea type="text" class="excerpt-textarea" v-model="excerpt" maxlength="70" ref="excerptText"
-        @input="handler" />
+      <textarea
+        type="text"
+        class="excerpt-textarea"
+        v-model="excerpt"
+        maxlength="70"
+        ref="excerptText"
+        @input="handler"
+      />
       <div class="excerpt-counter">
         <transition name="autofill">
           <div class="autofill-hover" v-if="autoFill">
-            This will make the excerpt filled out with text from the editor to the left
+            This will make the excerpt filled out with text from the editor to
+            the left
           </div>
         </transition>
-        <div ref="characterCounterRef" v-text="characterCounter" class="character-counter" />
-        <input type="button" value="AutoFill" @click="autoFillExcerpt" @mouseover="autoFillHover"
-          @mouseleave="autoFillLeave" />
+        <div
+          ref="characterCounterRef"
+          v-text="characterCounter"
+          class="character-counter"
+        />
+        <input
+          type="button"
+          value="AutoFill"
+          @click="autoFillExcerpt"
+          @mouseover="autoFillHover"
+          @mouseleave="autoFillLeave"
+        />
       </div>
     </div>
 
-
     <div class="buttons wrapper">
-      <TransitionGroup name="savedbutton">
-
+      <transition-group name="savedbutton">
         <div class="button" key="1">
-          <input type="button" class="preview" value="Preview post" @click.prevent="previewPost" />
+          <input
+            type="button"
+            class="preview"
+            value="Preview post"
+            @click.prevent="previewPost"
+          />
         </div>
         <div class="button" v-if="showSavedButton" key="2">
-          <input type="button" class="save" value="Save" @click.prevent="savePost" />
+          <input
+            type="button"
+            class="save"
+            value="Save"
+            @click.prevent="savePost"
+          />
         </div>
-        <div class="button" key="1">
-          <input type="button" class="upload" value="Upload" />
+        <div class="button" key="3">
+          <input
+            type="button"
+            class="upload"
+            value="Upload"
+            @click="uploadPost"
+          />
         </div>
-
-      </TransitionGroup>
-
+      </transition-group>
     </div>
   </div>
 </template>
@@ -501,7 +604,7 @@ onMounted(() => {
   border-radius: 5px;
   overflow: hidden;
   box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.363);
-  z-index: 2
+  z-index: 2;
 }
 
 input[type="button"] {
@@ -533,10 +636,10 @@ input[type="button"]:hover {
   background-color: var(--color-nav-bg);
   padding: 10px;
   flex-direction: column;
-  display: flex;
   overflow: hidden;
   gap: 20px;
-
+  display: flex;
+  justify-content: space-around;
   label {
     font-family: Chango;
     font-size: 1.5rem;
@@ -588,7 +691,6 @@ input[type="button"]:hover {
         &:before,
         &:after {
           background-color: var(--color-nav-bg);
-
         }
       }
 
@@ -636,7 +738,6 @@ input[type="button"]:hover {
     }
   }
 
-
   .excerpt-wrapper {
     display: flex;
     gap: 10px;
@@ -676,7 +777,7 @@ input[type="button"]:hover {
       outline: var(--color-nav-txt);
     }
 
-    textarea>div>div:last-child {
+    textarea > div > div:last-child {
       scroll-snap-align: end;
     }
 
@@ -708,20 +809,13 @@ input[type="button"]:hover {
     }
   }
 
-
-
   .buttons {
     position: relative;
-    gap: 10px;
-    height: 100%;
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
+    height: 100%;
 
     .button {
       width: 100%;
-
       input {
         width: 100%;
         font-size: 2rem;
@@ -729,12 +823,15 @@ input[type="button"]:hover {
       }
 
       input:active {
-        box-shadow: inset 1px 2px 2px 2px rgba(0, 0, 0, 0.322)
+        box-shadow: inset 1px 2px 2px 2px rgba(0, 0, 0, 0.322);
       }
 
       .save {
         background-color: rgb(110, 0, 0);
-        color: var(--color-nav-bg)
+        color: var(--color-nav-bg);
+        top: 0;
+        left: 0;
+        align-self: center;
       }
 
       .save:hover {
@@ -747,7 +844,7 @@ input[type="button"]:hover {
 
       .upload:hover {
         background-color: var(--color-nav-txt-darker);
-        color: var(--color-nav-bg)
+        color: var(--color-nav-bg);
       }
     }
   }
@@ -777,19 +874,18 @@ input[type="button"]:hover {
 .savedbutton-move,
 .savedbutton-enter-active,
 .savedbutton-leave-active {
-  transition: all 0.5s cubic-bezier(.15, .66, .32, 1.25);
+  transition: all 0.5s cubic-bezier(0.15, 0.66, 0.32, 1.25);
 }
 
 .savedbutton-enter-from,
 .savedbutton-leave-to {
   opacity: 0;
-  transform: translate(20%, 0%);
+  transform: translateX(50px);
 }
 
 .savedbutton-leave-active {
   position: absolute;
 }
-
 
 @media (max-height: 824px) {
   .post-side-wrapper {
@@ -805,21 +901,19 @@ input[type="button"]:hover {
       .cover-image-wrapper {
         width: 50%;
 
-        input[type=button] {
-          font-size: 0.5rem
+        input[type="button"] {
+          font-size: 0.5rem;
         }
       }
     }
 
     .excerpt-wrapper {
-
       .excerpt-counter {
         font-size: 0.8rem;
 
         input {
           width: 50px;
           font-size: 0.8rem;
-
         }
       }
     }
@@ -876,7 +970,6 @@ input[type="button"]:hover {
     }
 
     .buttons {
-
       .button {
         input {
           font-size: 1.5rem;
@@ -886,7 +979,6 @@ input[type="button"]:hover {
   }
 }
 
-
 @media (max-height: 684px) {
   .post-side-wrapper {
     display: grid;
@@ -895,9 +987,7 @@ input[type="button"]:hover {
 
     .wrapper {
       width: 100%;
-
     }
   }
-
 }
 </style>

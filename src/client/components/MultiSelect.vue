@@ -1,17 +1,29 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 
-const selectedCategory = ref(['Choose category'])
+const selectedCategory = ref(['Choose category']) as any
 const showSelectsTab = ref(false)
 
 const props = defineProps({
     multiSelectOptions: Array,
     deleteAble: Boolean,
-    fontSize: String
+    fontSize: String,
+    savedValue: Array
 })
 const emit = defineEmits(
     ['mainCategory', 'subCategory']
 )
+
+const savedValue = computed(() => props.savedValue)
+
+watch(savedValue, () => {
+
+    if (savedValue.value != undefined) {
+        console.log(`output->itsok`)
+        selectedCategory.value = savedValue.value
+    }
+})
+
 
 
 const deleteAble = ref(props.deleteAble)
@@ -43,7 +55,7 @@ const clickAway2 = () => {
 
 const showSelectedDeletable = (e: any) => {
     if (deleteAble.value) {
-        selectedCategory.value = selectedCategory.value.filter(item => item !== 'Choose category')
+        selectedCategory.value = selectedCategory.value.filter((item:any) => item !== 'Choose category')
         var value = e.target.innerText
 
         if (!selectedCategory.value.includes(value)) {
@@ -60,21 +72,20 @@ const showSelectedDeletable = (e: any) => {
     }
 }
 
-watch(() => selectedCategory.value, (newvalue: any) => {    
-    
+watch(() => selectedCategory.value, (newvalue: any) => {
+
     if (newvalue.length === 0) {
 
         if (deleteAble.value) {
             selectedCategory.value = ['Choose category']
             emit("subCategory", undefined)
-
-        } 
+        }
 
     } else {
         if (deleteAble.value) {
-            if(newvalue == 'Choose category'){
+            if (newvalue == 'Choose category') {
                 emit("subCategory", undefined)
-            }else{
+            } else {
                 emit("subCategory", newvalue)
             }
         }
@@ -91,8 +102,13 @@ const deleteFn = (e: any) => {
     const index = selectedCategory.value.indexOf(e);
     if (index !== -1) {
         selectedCategory.value.splice(index, 1);
-        multiSelectOptionsFiltered.value!.push(e);
-        multiSelectOptionsFiltered.value!.sort()
+
+        if (multiSelectOptionsFiltered.value?.includes(e)) {
+            multiSelectOptionsFiltered.value!.sort()
+        } else {
+            multiSelectOptionsFiltered.value!.push(e);
+            multiSelectOptionsFiltered.value!.sort()
+        }
     }
 }
 
@@ -114,7 +130,6 @@ const deleteFn = (e: any) => {
             <div class="show-category" v-if="!deleteAble">
                 <div v-if="selectedCategory[0] === 'Choose category'">{{ 'Choose category' }}</div>
                 <div class="category" v-if="selectedCategory[0] != 'Choose category'">{{ selectedCategory[0] }}</div>
-
             </div>
         </div>
         <transition name="tab">

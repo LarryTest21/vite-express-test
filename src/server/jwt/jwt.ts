@@ -44,7 +44,7 @@ export function authenticateLogin(req: Request, res: Response, next: Function) {
 }
 
 export function authenticateRoutes(req: any, res: Response, next: Function) {
-  console.log("authenticating");
+  console.log("authenticating2");
   const accessToken = req.cookies["aT"];
   try {
     const decoded = jwt.verify(accessToken, jwtSecret);
@@ -55,6 +55,7 @@ export function authenticateRoutes(req: any, res: Response, next: Function) {
 }
 
 export function refreshToken(req: Request, res: Response) {
+  console.log(`output->refreshing`);
   const refreshToken = req.cookies["rT"];
   if (!refreshToken) {
     return res.status(401).send("Access Denied. No refresh token provided.");
@@ -77,14 +78,15 @@ export function refreshToken(req: Request, res: Response) {
               httpOnly: true,
               sameSite: "strict",
             })
-            .send({clearance: clearance});
+            .send({ clearance: clearance });
         } catch (error) {
           return res.status(400).send("Invalid refresh token.");
         }
-      }).catch((err)=> {
-        res.send(err)
       })
-      return
+      .catch((err) => {
+        res.send(err);
+      });
+    return;
   }
 
   try {

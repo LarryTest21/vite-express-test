@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterView } from "vue-router";
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, computed } from "vue";
 import PreLoader from "./components/PreLoader.vue";
 import { isLoading } from "./store/isloading";
 import { useTheme } from "./store/theme";
@@ -10,15 +10,13 @@ import MobileNavIcon from "./components/mobilecomponents/NavIconMobile.vue";
 import { useRoute } from "vue-router";
 import { mobileIconClicked } from "./store/mobileIconClicked";
 import { onMountApp } from "./store/onMountApp";
-import { userData } from "./store/userData"
+import { userData } from "./store/userData";
 import { getUser } from "./views/user";
-import "./assets/datepicker.scss"
-import {isMobile} from "./store/isMobile"
-
-
+import "./assets/datepicker.scss";
+import { isMobile } from "./store/isMobile";
 
 //GETTING USER DATA ON START
-getUser()
+getUser();
 
 const mobileNav = ref();
 const mobileNavButton = ref(false);
@@ -27,7 +25,7 @@ var windowWidth = document.documentElement.clientWidth;
 
 const theme = useTheme();
 
-const usrData = userData()
+const usrData = ref(userData());
 
 const mobileNavIconClicked = mobileIconClicked();
 
@@ -39,27 +37,25 @@ const isLoadingCheck = isLoading();
 const mountApp = onMountApp();
 mountApp.state = false;
 
-const mobile = isMobile()
+const mobile = isMobile();
 
 const onResize = () => {
   windowWidth = document.documentElement.clientWidth;
 
   if (windowWidth > 0 && windowWidth < 767) {
-    mobile.state = true
+    mobile.state = true;
     mobileNav.value = "mobile";
     mobileNavButton.value = true;
   } else if (windowWidth > 768 && windowWidth < 1199) {
-    mobile.state = false
+    mobile.state = false;
     mobileNav.value = "medium";
     mobileNavButton.value = true;
   } else if (windowWidth > 1200) {
-    mobile.state = false
+    mobile.state = false;
     mobileNav.value = "full";
     mobileNavButton.value = false;
   }
 };
-
-window.addEventListener("resize", onResize);
 
 const checkRoute = () => {
   navigation.value = true;
@@ -73,104 +69,144 @@ watch(
       window.addEventListener("scroll", moveScrollIndicator);
     } else {
       window.removeEventListener("scroll", moveScrollIndicator);
+      showScroll.value = false;
     }
   }
 );
-const showScroll = ref(false)
 
+const opacity = ref(1);
+const showScroll = ref(false);
+
+const moveScrollIndicator2 = () => {
+  let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  let height =
+    document.documentElement.scrollHeight -
+    document.documentElement.clientHeight;
+  let scrolled = (winScroll / height) * 100;
+  if (scrolled > 0) {
+    opacity.value = 0.5;
+  } else {
+    opacity.value = 1;
+  }
+};
 function moveScrollIndicator(e: any) {
   const scrollIndicator = document.getElementById("scrollIndicator");
 
   let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-  let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  let height =
+    document.documentElement.scrollHeight -
+    document.documentElement.clientHeight;
   let scrolled = (winScroll / height) * 100;
   scrollIndicator!.style.width = scrolled + "%";
   if (scrolled > 0) {
-    showScroll.value = true
+    showScroll.value = true;
   } else {
-    showScroll.value = false
-    scrollIndicator!.style.boxShadow = "0 0 0 0 transparent"
+    showScroll.value = false;
+    scrollIndicator!.style.boxShadow = "0 0 0 0 transparent";
   }
-
 }
 
-const themeLocal = ref(localStorage.getItem("theme-color"))
+const themeLocal = ref(localStorage.getItem("theme-color"));
 
 onMounted(() => {
+  window.addEventListener("scroll", moveScrollIndicator2);
 
   if (themeLocal.value === "theme-dark") {
-    document.body.classList.add("theme-dark")
-    theme.state = "theme-dark"
+    document.body.classList.add("theme-dark");
+    theme.state = "theme-dark";
   } else if (themeLocal.value === "theme-light") {
-    document.body.classList.add("theme-light")
-    theme.state = "theme-light"
+    document.body.classList.add("theme-light");
+    theme.state = "theme-light";
   } else {
-    document.body.classList.add("theme-light")
-    theme.state = "theme-light"
-
+    document.body.classList.add("theme-light");
+    theme.state = "theme-light";
   }
 
-  if (usrData.data != undefined) {
-    theme.state = usrData.data.userSettings.themeName
+  if (usrData.value.data != undefined) {
+    theme.state = usrData.value.data.userSettings.themeName;
 
-    watch(() => usrData.data.userSettings.themeName, (newvalue) => {
-      theme.state = usrData.data.userSettings.themeName
-
-    })
+    watch(
+      () => usrData.value.data.userSettings.themeName,
+      (newvalue) => {
+        theme.state = newvalue;
+      }
+    );
   }
 
-  watch(() => theme.state, (newvalue) => {
-    if (newvalue === "theme-dark") {
-      document.body.classList.remove("theme-light")
-      document.body.classList.add("theme-dark")
-    } else if (newvalue === "theme-light") {
-      document.body.classList.remove("theme-dark")
-      document.body.classList.add("theme-light")
+  watch(
+    () => theme.state,
+    (newvalue) => {
+      if (newvalue === "theme-dark") {
+        document.body.classList.remove("theme-light");
+        document.body.classList.add("theme-dark");
+      } else if (newvalue === "theme-light") {
+        document.body.classList.remove("theme-dark");
+        document.body.classList.add("theme-light");
+      }
     }
-  })
-
-
-
-
-
+  );
 
   if (!isLoadingCheck.state) {
-      setTimeout(() => {
-        showNav.value = true;
-      }, 100);
+    setTimeout(() => {
+      showNav.value = true;
+    }, 100);
+  }
+
+  watch(
+    () => isLoadingCheck.state,
+    (loaded) => {
+      if (!loaded) {
+        setTimeout(() => {
+          showNav.value = true;
+        }, 100);
+      }
     }
+  );
 
-
-  watch(() => isLoadingCheck.state, (loaded) => {
-
-    if (!loaded) {
-      setTimeout(() => {
-        showNav.value = true;
-      }, 100);
-    }
-
-  })
   mountApp.state = true;
+  window.addEventListener("resize", onResize);
   onResize();
 });
-
 </script>
 
 <script lang="ts"></script>
 
 <template>
   <div id="app" v-if="mountApp" :class="[mobileNav]">
+    <MobileNavIcon class="mobilenavicon" v-if="mobileNav === 'mobile'" />
+    <div class="background">
+      <img class="background-image" src="./assets/backgrounds/stylized.jpg" />
+    </div>
+
     <transition name="nav">
-      <Nav v-if="mobileNav === 'full' && showNav || mobileNav === 'medium' && showNav" :userData="usrData.data" :class="mobileNav" />
+      <Nav
+        v-if="
+          (mobileNav === 'full' && showNav) ||
+          (mobileNav === 'medium' && showNav)
+        "
+        :userData="usrData"
+        :class="mobileNav"
+      />
     </transition>
     <transition name="scroll">
-      <div ref="scrollLineTop" class="scrollLineTop" id="scrollIndicator" v-show="showScroll"></div>
+      <div
+        ref="scrollLineTop"
+        class="scrollLineTop"
+        id="scrollIndicator"
+        v-show="showScroll"
+      ></div>
     </transition>
-
+    <div
+      class="mobile-top"
+      v-if="mobileNav === 'mobile'"
+      :class="mobileNavIconClicked.state ? 'active' : ''"
+    ></div>
     <transition name="mobileNav">
-      <MobileNav v-if="mobileNav === 'mobile' && mobileNavIconClicked.state" :userData="usrData.data" />
+      <MobileNav
+        v-if="mobileNav === 'mobile' && mobileNavIconClicked.state"
+        :userData="usrData.data"
+      />
     </transition>
-    <MobileNavIcon class="mobilenav" v-if="mobileNav === 'mobile'" />
 
     <transition name="fadeRoute">
       <PreLoader v-if="isLoadingCheck.state" :class="[theme.state]" />
@@ -179,8 +215,37 @@ onMounted(() => {
   </div>
 </template>
 
+<style scoped lang="scss">
+.mobilenavicon {
+  z-index: 100;
+  position: fixed;
+  width: 100%;
+}
+.background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: block;
 
-<style lang="scss">
+  .background-image {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+    object-fit: cover;
+    opacity: 0.1;
+  }
+
+  &::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    box-shadow: inset 0px 4px 40px 50px rgba(255, 255, 255, 0.075);
+  }
+}
+
 .scrollLineTop {
   background: rgb(0, 217, 255);
   height: 50px;
@@ -196,6 +261,22 @@ onMounted(() => {
   transition: opacity 1s ease-in-out;
 }
 
+.mobile-top {
+  height: 50px;
+  width: 100%;
+  opacity: v-bind(opacity);
+  border-radius: 0 0 10px 10px;
+  position: fixed;
+  z-index: 10;
+  background-color: var(--color-nav-bg);
+  will-change:height;
+  transition: all 0.5s cubic-bezier(0.45, -0.2, 0.39, 1.2);
+
+  &.active {
+    height: 100%;
+    opacity: 1;
+  }
+}
 
 .fadeRoute-enter-active,
 .fadeRoute-leave-active {
@@ -222,19 +303,18 @@ onMounted(() => {
 
 .mobileNav-enter-active {
   opacity: 1;
-  transition: all 0.7s ease-in-out;
+  transition: all 0.4s cubic-bezier(0.47, -0.5, 0.39, 1.2);
 }
 
 .mobileNav-enter-from {
   opacity: 0.5;
-  transform: translateX(-100%);
+  transform: translateY(-100%);
 }
 
 .mobileNav-leave-to {
   opacity: 0;
-  transform: translateX(-100%);
-
-  transition: all 0.3s ease-in-out;
+  transform: translateY(-100%);
+  transition: all 0.5s cubic-bezier(0.47, -0.5, 0.39, 1.5);
 }
 
 .scroll-enter-active,

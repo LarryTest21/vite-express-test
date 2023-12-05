@@ -1,8 +1,7 @@
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, onUpdated } from 'vue'
 import axios from "axios"
-import Modal from "../../components/Modal.vue"
 import { userData } from '../../store/userData';
 import { useTheme } from "../../store/theme";
 
@@ -11,18 +10,22 @@ const theme = useTheme()
 const props = defineProps({
     userData: Object
 })
-
+const savediv = ref()
 const autoLogin = ref(false)
 const themeCheck = ref(false)
 const themeName = ref("theme-dark")
 const themeNameCheck = ref()
 const readPosts = ref(false)
+const overflow = ref('hidden')
 
 const showSaveButton = ref(false)
+watch(showSaveButton, () => {
 
+})
 
-const modalActivation = ref(false)
-const modalMessage = ref()
+const emit = defineEmits(
+    ["settingsSaved"]
+)
 
 
 if (props.userData!.data.userSettings != undefined) {
@@ -98,8 +101,7 @@ watch(() => readPosts.value, (newValue) => {
 })
 
 const saveSettings = () => {
-    modalActivation.value = true
-    modalMessage.value = "Saving..."
+    emit("settingsSaved", true)
 
     if (!autoLogin.value) {
         localStorage.removeItem("autoLogin")
@@ -117,32 +119,39 @@ const saveSettings = () => {
     localStorage.setItem("theme-color", themeName.value)
 
     axios.post("/api/user/updateSettings", { userID, userSettings }).then((res) => {
-        setTimeout(() => {
-            modalMessage.value = "Settings saved"
-        }, 1000);
 
         return userSettings
     }).then((userSettings) => {
-
         const userD = userData()
-
         userD.data.userSettings = userSettings
 
-        setTimeout(() => {
-            modalActivation.value = false
-        }, 4000);
     }).catch((err) => {
-        modalMessage.value = err
-
         console.log(err);
     })
 }
 
+
+watch(savediv, () => {
+    console.log(`output->savediv.value`,savediv.value)
+    if (savediv.value === null) {
+        overflow.value = 'hidden'
+
+    } else {
+        setTimeout(() => {
+            overflow.value = 'auto'
+
+        }, 320);
+    }
+
+
+}, { deep: true })
+
 onMounted(() => {
 
-
-
 })
+
+
+
 
 onBeforeUnmount(() => {
     if (themeName.value != props.userData!.data.userSettings.themeName) {
@@ -154,14 +163,11 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="settings-wrapper">
-        <transition name="modal">
-            <Modal v-if="modalActivation" :position="'absolute'" :modalLoadingMessage="modalMessage"
-                :spinnerColor="'var(--color-nav-txt)'" :fontSize="'3rem'" />
-        </transition>
         <label>Settings</label>
 
         <div class="outer">
-            <div class="settings-wrapper">
+
+            <div class="settings-wrapper" key="1">
                 <div class="theme-wrapper">
                     <div class="autologin wrapper">
                         <label>Show theme button</label>
@@ -217,13 +223,14 @@ onBeforeUnmount(() => {
                     </label>
                 </div>
             </div>
-            <div class="save">
-                <transition name="savediv" mode="out-in">
-                    <input type="button" value="Save" class="save-settings" @click.prevent="saveSettings"
-                        v-show="showSaveButton" />
-                </transition>
 
+            <div class="save">
+                <transition name="savediv">
+                    <input ref="savediv" v-if="showSaveButton" key="2" type="button" value="Save" class="save-settings"
+                        @click.prevent="saveSettings" />
+                </transition>
             </div>
+
         </div>
 
 
@@ -234,46 +241,43 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .settings-wrapper {
     position: relative;
-    width: 700px;
-    height: 500px;
     font-family: Chango;
     color: var(--color-nav-txt);
     font-size: 1.1rem;
     border-radius: 10px;
-    background-color: var(--color-nav-bg) !important;
-    overflow: hidden;
-    transition: all 0.2s ease-in-out;
+    width: 100%;
+    height: 100%;
+    overflow-y: v-bind(overflow);
     display: flex;
     flex-direction: column;
 
     label {
         font-size: 2rem;
-        padding: 10px;
+        margin: 10px;
     }
 
 
     .outer {
         position: relative;
-        height: 100%;
-        width: 100%;
         padding: 20px;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: space-around;
+        height: 100%;
         transition: all 0.2s ease-in-out;
+
+
 
         .settings-wrapper {
             position: relative;
             width: 100%;
             height: 100%;
-            display: flex;
             justify-content: space-around;
             transition: all 0.2s ease-in-out;
 
             .theme-wrapper {
                 position: relative;
                 width: 100%;
-                height: 100%;
                 display: flex;
                 flex-direction: column;
 
@@ -540,8 +544,7 @@ onBeforeUnmount(() => {
     .save {
         position: relative;
         display: flex;
-        height: 120px;
-        width: 100%;
+        height: 100px;
 
         input[type="button"] {
             height: 70px;
@@ -569,35 +572,27 @@ onBeforeUnmount(() => {
             box-shadow: inset rgba(0, 0, 0, 0.568) 2px 2px 2px 1px;
         }
     }
-
 }
 
 
+.savediv-move,
 .savediv-enter-active,
 .savediv-leave-active {
-    transition: all 0.3s ease-out;
     opacity: 1;
+    transition: all 0.3s cubic-bezier(0.55, 0, 0.1, 1);
 }
 
+/* 2. declare enter from and leave to state */
 .savediv-enter-from,
 .savediv-leave-to {
     opacity: 0;
-    transform: translateY(100px);
+    transform: translateY(100px)
 }
 
-.modal-enter-active,
-.modal-leave-active {
-    transition: all 0.3s ease-out;
-    opacity: 1;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-    opacity: 0;
-}
 
 @media only screen and (max-width: 680px) {
     .settings-wrapper {
         height: 60px;
     }
-}</style>
+}
+</style>

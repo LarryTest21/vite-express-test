@@ -1,54 +1,60 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeMount, watch } from "vue";
-import { mobileIconClicked } from "../..//store/mobileIconClicked";
+import { mobileIconClicked } from "../../store/mobileIconClicked";
+import { useSwipe } from "@vueuse/core";
 
 const clicked = mobileIconClicked();
 
-const opacity = ref()
+const iconRef = ref(null);
+
+const { direction } = useSwipe(iconRef);
+
+watch(direction, (newvalue) => {
+  if (newvalue == "down") {
+    console.log("down");
+    clicked.state = true;
+  } 
+});
+
+const opacity = ref();
 
 function moveScrollIndicator(e: any) {
-
   let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-  let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  let height =
+    document.documentElement.scrollHeight -
+    document.documentElement.clientHeight;
   let scrolled = (winScroll / height) * 100;
   if (scrolled > 0) {
-    opacity.value = 0.5
+    opacity.value = 0.5;
   } else {
-    opacity.value = 1
+    opacity.value = 1;
   }
 }
-
-watch(()=>clicked.state, (newvalue) => {
-  if(newvalue){
-
-  } else {
-
-  }
-})
-
 
 onMounted(() => {
   window.addEventListener("scroll", moveScrollIndicator);
-
-})
+});
 
 onBeforeMount(() => {
   window.removeEventListener("scroll", moveScrollIndicator);
-}
-
-)
-
+});
 </script>
 
 <template>
-  <div class="mobileNavIcon-wrapper" @click="clicked.state = !clicked.state" :class="clicked.state ? 'is-active' : ''">
-    <div class="mobileNavIcon" :class="clicked.state ? 'is-active' : ''">
-      <span class="line"></span>
-      <span class="line"></span>
-      <span class="line"></span>
-    </div>
-    <div class="three col">
-      <div class="hamburger"></div>
+  <div
+    ref="iconRef"
+    class="mobileNavIcon-wrapper"
+    @click.prevent="clicked.state = !clicked.state"
+  >
+    <div class="inner">
+      <div class="mobileNavIcon" :class="clicked.state ? 'is-active' : ''">
+        <span class="line"></span>
+        <span class="line"></span>
+        <span class="line"></span>
+      </div>
+      <div class="three col">
+        <div class="hamburger"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -56,30 +62,33 @@ onBeforeMount(() => {
 <style lang="scss" scoped>
 /* TEN */
 .mobileNavIcon-wrapper {
-  margin: 10px;
-  z-index: 100;
   position: fixed;
+  z-index: 100;
+  width: 100%;
+  height: 50px;
   padding: 10px;
-  border-radius: 10px;
-  transition: all 0.3s ease-in-out;
-  background-color: black;
-  background-color: var(--color-nav-txt);
-  box-shadow: 1px 1px 5px 1px rgba(0, 0, 0, 0.3);
-  opacity: v-bind(opacity)
+  .inner {
+    top: 0;
+    position: relative;
+    height: 40px;
+    width: 50px;
+    z-index: 100;
+    transition: all 0.3s ease-in-out;
+    opacity: v-bind(opacity);
+  }
 }
 
 .mobileNavIcon .line {
   width: 40px;
   height: 5px;
-  background-color: var(--color-nav-bg);
+  background-color: var(--color-nav-txt);
   margin: 3px;
   border-radius: 3px;
   transition: all 0.3s 0.2s ease-in-out;
 }
 
-
 .mobileNavIcon.is-active .line {
-  background-color: var(--color-nav-bg);
+  background-color: var(--color-nav-txt);
 }
 
 .mobileNavIcon:hover {

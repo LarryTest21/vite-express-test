@@ -40,7 +40,7 @@ const interPost = (value: any) => {
 
 <template>
     <transition name="preview">
-        <div class="preview-wrapper" v-if="showPostPreview">
+        <div class="preview-wrapper">
             <div class="post">
                 <div class="postTitle">{{ previewPostTitle }}</div>
                 <div class="metadata">

@@ -3,8 +3,6 @@ import { RouterLink } from "vue-router";
 import { ref, watch, onMounted, computed } from "vue";
 import { useTheme } from "../../store/theme";
 import { signedIn } from "../../store/signedIn";
-import { userClickedMobile } from "../../store/userClickMobile";
-import { userLoginClickMobile } from "../../store/userLoginClickMobile";
 import LoginTabMobile from "./LoginTabMobile.vue";
 import userTabMobile from "./userTabMobile.vue";
 import LinksTabMobile from "./LinksTabMobile.vue"
@@ -12,29 +10,30 @@ import { mobileIconClicked } from "../../store/mobileIconClicked";
 import { isAdmin } from "../../store/isAdmin";
 import arrowIcon from "../../components/icons/arrow.vue"
 import { useSwipe } from '@vueuse/core'
-import gsap from "gsap";
+
+
+const props = defineProps({
+  userData: Object,
+})
 
 
 const userWrapper = ref(null)
-const { isSwiping, direction } = useSwipe(userWrapper)
+const { direction } = useSwipe(userWrapper)
 
 watch(direction, (newvalue) => {
-  if (signedInCheck.state) {
-    if (newvalue == "left") {
-      userTabClicked.state = false
-    } else if (newvalue == "right") {
-      userTabClicked.state = true
-    }
+  if (newvalue == "left") {
+    userTopClick.value = false
+  } else if (newvalue == "right") {
+    userTopClick.value = true
   }
 })
 
 
 const isAdminCheck = isAdmin();
 
-const themeWrapper = ref()
-const userTabClicked = userClickedMobile();
+const themeWrapper = ref(true)
 const mobileIClicked = mobileIconClicked();
-const userLoginClick = userLoginClickMobile();
+const userTopClick = ref(false)
 
 const theme_checked = ref();
 var currentTheme = localStorage.getItem("theme-color");
@@ -46,22 +45,30 @@ const activateLoginTab = ref(false);
 const arrowIconRef = ref()
 
 
-const props = defineProps({
-  userData: Object,
-})
-
-const userData = ref(props.userData)
-loginActivated.value = JSON.parse(localStorage.getItem("loggedInBefore")!);
-console.log(`output->loginActivated.value`, loginActivated.value)
-
-
-
 const displayName = ref();
-console.log(`output->userData`, userData)
+
+
+
+const userData = computed(() => props.userData)
+
+
 if (userData.value != undefined) {
-  displayName.value = props.userData!.firstName
-  themeWrapper.value = props.userData!.userSettings.themeCheck
+  displayName.value = userData.value.firstName
+  themeWrapper.value = userData.value.userSettings.themeCheck
+} else {
+  watch(userData, (newvalue) => {
+    if (newvalue != undefined) {
+      displayName.value = userData.value!.firstName
+      themeWrapper.value = userData.value!.userSettings.themeCheck
+    }
+  }, { deep: true })
 }
+
+
+
+
+loginActivated.value = JSON.parse(localStorage.getItem("loggedInBefore")!);
+
 
 const activeLogin = () => {
   if (!activateLoginTab.value) {
@@ -120,7 +127,7 @@ const initialName = ref()
 
 const arrowAnim = ref('')
 
-watch(() => userTabClicked.state, (newvalue) => {
+watch(() => userTopClick.value, (newvalue) => {
   if (newvalue) {
     setTimeout(() => {
       arrowAnim.value = 'back'
@@ -132,14 +139,15 @@ watch(() => userTabClicked.state, (newvalue) => {
 
 
 const logOut = (e: any) => {
-  userTabClicked.state = false
-  userData.value = undefined
+  signedInCheck.state = false
 }
 const userTabTransition = ref()
 onMounted(() => {
+
+
   userTabTransition.value = "userTab"
 
-  if (userData.value != undefined) {
+  if (userData.value! != undefined) {
     signedInCheck.state = true;
     activateLoginTab.value = false;
 
@@ -155,221 +163,164 @@ onMounted(() => {
     };
 
     initialName.value = userData.value!.firstName + " " + userData.value!.lastName;
-    console.log(`output->initialName.value`, initialName.value)
     displayName.value = getInitials(initialName.value);
 
   } else {
     signedInCheck.state = false;
     loginActivated.value = true;
   }
-  watch(userData, (newvalue) => {
-    if (newvalue === undefined) {
-      console.log(`output->loginActivated`, loginActivated)
-      console.log("itsfalse")
-      signedInCheck.state = false
-    }
-  }, { deep: true })
+
 });
 
 
+const loginTabClicked = () => {
+  userTopClick.value = !userTopClick.value
+}
 </script>
 
 <template>
-  <header class="mobileNav" @wheel.prevent @touchmove.prevent @scroll.prevent>
-    <div class="wrapper">
-      <nav :class="currentTheme">
-        <ul class="nav-links" ref="userWrapper">
-          <RouterLink to="/">
-            <div class="nav-logo">
-              <img class="logo" src="/favicon.ico" alt="" @click.native="mobileIClicked.state = false" />
-            </div>
-          </RouterLink>
-          <TransitionGroup name="userLinks">
+  <nav :class="currentTheme" class="mobileNav" ref="userWrapper" @wheel.prevent @touchmove.prevent @scroll.prevent>
+    <div class="outer">
+      <div class="nav-links">
+        <RouterLink to="/">
+          <div class="nav-logo">
+            <img class="logo" src="/favicon.ico" alt="" @click.native="mobileIClicked.state = false" />
+          </div>
+        </RouterLink>
 
-            <a class="login-wrapper" v-if="!signedInCheck.state && loginActivated"
-              @click.native.prevent="userLoginClick.state = !userLoginClick.state" key="1">Login</a>
-            <a class="user-wrapper" v-if="signedInCheck.state" key="2">
-              <a key="1" class="user" @click.native.prevent="
-                userTabClicked.state = !userTabClicked.state
-                ">
-                {{ displayName }}
-              </a>
-              <div class="arrowIcon" ref="arrowIconRef" :class="[{ active: userTabClicked.state }, arrowAnim]">
+        <a class="user-wrapper" @click.native.prevent="loginTabClicked">
+
+          <TransitionGroup name="userLinks">
+            <div class="login" v-if="!signedInCheck.state && loginActivated" key="1">Login</div>
+            <div class="user" v-if="signedInCheck.state" key="2">
+              <div class="name"> {{ displayName }}</div>
+              <div class="arrowIcon" ref="arrowIconRef" :class="[{ active: userTopClick }, arrowAnim]">
                 <arrowIcon class=" arrowIcon-icon" />
               </div>
-            </a>
-
+            </div>
           </TransitionGroup>
 
-          <div class="links-usertab-login">
-            <TransitionGroup :name="userTabTransition">
-              <LoginTabMobile v-if="userLoginClick.state && !signedInCheck.state" key="1" />
-              <userTabMobile v-if="userTabClicked.state" @click.native="mobileIClicked.state = false"
-                :isAdminCheck="isAdminCheck.state" :userData="userData" @logOut="logOut" key="2" />
-              <LinksTabMobile v-if="!userLoginClick.state && !signedInCheck.state" key="3" />
-            </TransitionGroup>
-          </div>
-        </ul>
+        </a>
 
-        <div class="theme-changer-wrapper" v-if="themeWrapper">
-          <label class="theme-changer">
-            <input v-model="theme_checked" type="checkbox" class="button" @click="themechange()" :class="currentTheme" />
-            <span class="slider round"></span>
-          </label>
+        <div class="links-bottom">
+          <TransitionGroup :name="userTabTransition">
+            <LoginTabMobile class="logintab wrapper" v-if="userTopClick && !signedInCheck.state" key="1" />
+            <userTabMobile class="usertab wrapper" v-if="userTopClick && signedInCheck.state"
+              :isAdminCheck="isAdminCheck.state" :userData="userData"
+              @logOut="logOut" key="2" />
+            <LinksTabMobile class="linkstab wrapper" v-if="!userTopClick" key="3" />
+          </TransitionGroup>
         </div>
-      </nav>
+      </div>
+
+      <div class="theme-changer-wrapper" v-if="themeWrapper">
+        <label class="theme-changer">
+          <input v-model="theme_checked" type="checkbox" class="button" @click="themechange()" :class="currentTheme" />
+          <span class="slider round"></span>
+        </label>
+      </div>
     </div>
-  </header>
+  </nav>
 </template>
 
 <style scoped lang="scss">
 .mobileNav {
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   position: fixed;
-  z-index: 100;
+  z-index: 10;
 
-
-  .wrapper {
+  .outer {
     height: 100%;
     width: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: space-around;
     align-items: space-around;
 
-    nav {
+    &::before {
+      opacity: 0.95;
+      position: absolute;
+      height: 100%;
       width: 100%;
-      display: flex;
-      justify-content: flex-start;
-      align-items: flex-start;
-      position: relative;
-      box-shadow: 5px 4px 6px rgba(0, 0, 0, 0.4);
+      content: "";
+    }
 
-      .nav-links {
-        width: 100%;
-        height: 100%;
-        font-family: Chango;
+    .nav-links {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      font-family: Chango;
+      font-size: 2rem;
+      color: var(--color-nav-txt);
+
+      a:hover {
+        cursor: pointer;
+      }
+
+      a::after {
+        box-shadow: none;
+      }
+
+      a {
+        text-decoration: none;
         font-size: 2rem;
-        display: flex;
-        flex-direction: column;
-        padding: 0 0rem;
+        text-transform: uppercase;
+        font-family: Chango;
         color: var(--color-nav-txt);
 
-        a:hover {
-          cursor: pointer;
+        li {
+          list-style-type: none;
+          display: flex;
+          justify-content: flex-start;
+          align-items: center;
+          padding: 10px 10px;
         }
+      }
 
-        a::after {
-          box-shadow: none;
-        }
+      a.router-link-exact-active:first-child {
+        background-color: transparent;
+      }
 
-        a {
-          text-decoration: none;
-          font-size: 2rem;
-          text-transform: uppercase;
-          font-family: Chango;
-          color: var(--color-nav-txt);
+      a.router-link-exact-active:first-child:hover {
+        background-color: transparent;
+      }
 
-          li {
-            list-style-type: none;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            padding: 10px 10px;
-          }
-        }
+      .user-wrapper {
+        position: relative;
+        height: 100px;
+        width: 100%;
+        color: var(--color-nav-bg);
+        background-color: var(--color-nav-txt);
+        display: flex;
+        align-items: center;
+        font-size: 3rem;
+        padding: 10px;
 
-        a.router-link-exact-active:first-child {
-          background-color: transparent;
-        }
 
-        a.router-link-exact-active:first-child:hover {
-          background-color: transparent;
-        }
 
-        .login-wrapper {
-          padding: 10px;
-          color: var(--color-nav-bg);
-          background-color: var(--color-nav-txt);
-        }
-
-        .links-usertab-login {
-          position: relative;
+        .user {
+          display: flex;
+          width: 100%;
           height: 100%;
-          width: 100%;
-          display: flex;
+          justify-content: space-between;
+          align-items: center;
 
-          .links {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-
-
-
-            a.router-link-exact-active {
-              background-color: var(--color-nav-txt-darker);
-              color: var(--color-nav-bg-darker);
-            }
-
-            a.router-link-exact-active:hover {
-              background-color: var(--color-nav-txt);
-              color: var(--color-nav-bg);
-            }
-
-            a:hover {
-              color: var(--color-nav-bg)
-            }
-          }
-        }
-
-        .nav-logo {
-          display: flex;
-          justify-content: center;
-          margin: 10px 0;
-
-          img {
-            height: 100px;
-          }
-        }
-
-        .user-wrapper {
-          position: relative;
-          margin-bottom: 20px;
-          height: 60px;
-          width: 100%;
-          display: flex;
-          background-color: var(--color-nav-txt);
-
-          .login {
-            height: 100%;
-            width: 100%;
-            transition: opacity 0.2s;
-          }
-
-          .user {
+          .name {
             position: relative;
-            display: flex;
-            width: 100%;
-            margin-left: 10px;
-            color: var(--color-nav-bg);
-            display: flex;
-            font-size: 3rem;
-            align-items: center;
+            height: 100%;
           }
 
           .arrowIcon {
-            height: 100%;
+            height: 50px;
             fill: var(--color-nav-bg);
             transition: 0.2s ease-in-out;
-            margin-right: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-left: 10px;
             animation-direction: reverse;
 
             .arrowIcon-icon {
-              height: 80%;
+              height: 100%;
               width: auto;
               transition: all 0.3s ease-in-out
             }
@@ -383,7 +334,7 @@ onMounted(() => {
           }
 
           .arrowIcon.back {
-            transform: rotate(180deg);
+            transform: translateX(-20px) rotate(180deg);
             animation: arrowIcon2;
             animation-fill-mode: forwards;
             animation-duration: 0.3s;
@@ -391,95 +342,138 @@ onMounted(() => {
           }
 
           @keyframes arrowIcon {
+
             100% {
-              transform: rotate(180deg);
+              transform: translateX(-20px) rotate(180deg);
             }
           }
         }
+
+
+        .links {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+
+          a.router-link-exact-active {
+            background-color: var(--color-nav-txt-darker);
+            color: var(--color-nav-bg-darker);
+          }
+
+          a.router-link-exact-active:hover {
+            background-color: var(--color-nav-txt);
+            color: var(--color-nav-bg);
+          }
+
+          a:hover {
+            color: var(--color-nav-bg)
+          }
+        }
+
       }
 
-      .theme-changer-wrapper {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        padding: 10px;
+      .nav-logo {
         display: flex;
-        justify-content: flex-end;
-        align-items: flex-end;
+        justify-content: center;
+        margin: 10px 0;
 
-        .theme-changer {
-          position: relative;
-          width: 60px;
-          height: 34px;
+        img {
+          height: 100px;
         }
+      }
 
-        .button {
-          opacity: 0;
-          width: 0;
-          height: 0;
-        }
+      .links-bottom {
+        position: relative;
+        height: 100%;
 
-        .slider {
-          position: absolute;
-          cursor: pointer;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: rgb(1, 67, 131);
-          -webkit-transition: 0.4s;
-          transition: 0.4s;
-        }
-
-        .slider:before {
-          position: absolute;
-          content: "";
-          height: 26px;
-          width: 26px;
-          left: 4px;
-          bottom: 4px;
-          background-color: rgb(235, 235, 235);
-          -webkit-transition: 0.4s;
-          transition: 0.4s;
-        }
-
-        input:checked+.slider {
-          background-color: rgb(235, 235, 235);
-        }
-
-        input:checked+.slider:before {
-          background-color: rgba(0, 54, 107, 1);
-        }
-
-        input:focus+.slider {
-          box-shadow: 0 0 1px rgb(1, 67, 131);
-        }
-
-        input:checked+.slider:before {
-          transform: translateX(26px);
-        }
-
-        /* Rounded sliders */
-        .slider.round {
-          border-radius: 34px;
-        }
-
-        .slider.round:before {
-          border-radius: 50%;
+        .wrapper {
+          height: 100%;
         }
       }
     }
-  }
 
-  .wrapper::before {
-    opacity: 0.95;
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    content: "";
-    background-color: var(--color-nav-bg);
+    .theme-changer-wrapper {
+      position: absolute;
+      bottom: 0;
+      padding: 10px;
+      display: flex;
+      
+      right: 0;
+      justify-content: flex-end;
+      align-items: flex-end;
+
+  
+      .theme-changer {
+        position: relative;
+        width: 60px;
+        height: 34px;
+      }
+
+      .button {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        &.theme-dark{
+        .slider{
+          background-color: rgb(1, 67, 131);
+        }
+      }
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgb(1, 67, 131);
+        -webkit-transition: 0.4s;
+        transition: 0.4s;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: rgb(235, 235, 235);
+        -webkit-transition: 0.4s;
+        transition: 0.4s;
+      }
+
+      input:checked+.slider {
+        background-color: rgb(235, 235, 235);
+      }
+
+      input:checked+.slider:before {
+        background-color: rgba(0, 54, 107, 1);
+      }
+
+      input:focus+.slider {
+        box-shadow: 0 0 1px rgb(1, 67, 131);
+      }
+
+      input:checked+.slider:before {
+        transform: translateX(26px);
+      }
+
+      /* Rounded sliders */
+      .slider.round {
+        border-radius: 34px;
+      }
+
+      .slider.round:before {
+        border-radius: 50%;
+      }
+    }
   }
 }
+
+
+
 
 .userTab-enter-active,
 .userTab-leave-active {
@@ -501,6 +495,16 @@ onMounted(() => {
 .userLinks-enter-active,
 .userLinks-leave-active {
   opacity: 1;
-  transition: all 0.3s ease-in-out;
+  transition: all 0.8s cubic-bezier(.47, -0.5, .39, 1.2);
+}
+
+.userLinks-enter-from,
+.userLinks-leave-to {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.userLinks-leave-active {
+  position: absolute;
 }
 </style>

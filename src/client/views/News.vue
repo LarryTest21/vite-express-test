@@ -1,37 +1,36 @@
 <script setup lang="ts">
 import axios from "axios";
-import { ref, watch, computed, toRaw, onUnmounted, onMounted } from "vue";
+import { ref, watch, computed, onUnmounted, onMounted } from "vue";
 import moment from "moment";
-import firebase from "firebase/compat/app";
-import "firebase/compat/auth";
-import db from "../firebase/firebaseInit";
 import SonarLoading from "../components/SonarLoading.vue";
 
 const isLoading = ref(true);
 const errorCaught = ref(false);
-const colRef = firebase.firestore().collection("news");
 const newsPosts = ref([]) as any;
 
+const storedPosts = ref()
+
+
 async function getPosts() {
-  colRef
-    .get()
-    .then((querySnapshot) =>
-      querySnapshot.forEach((post) => {
-        const check = post.data();
-        newsPosts.value.push(check);
-      })
-    )
-    .catch((err) => {
-      console.log(err);
-    })
-    .then(() => {
+  isLoading.value = true;
+    newsPosts.value = [];
+    storedPosts.value = [];
+
+    const API_URL = "/api/content/newsposts"
+    axios.get(API_URL).then((res) => {
+      console.log(`output->res`,res)
+      newsPosts.value = storedPosts.value = res.data
       setTimeout(() => {
         isLoading.value = false;
-      }, 500);
-    });
-}
+      }, 600);
+    })
+
+  }
+
 onMounted(async () => {
-  getPosts();
+
+  getPosts()
+  
 });
 </script>
 
@@ -92,7 +91,7 @@ onMounted(async () => {
     top: calc(50% + 35px);
     right: 50%;
     transform: translate(50%, -50%);
-    background-color: rgb(146, 14, 14);
+    background-color: rgba(146, 14, 14, 0.993);
     border-width: 10px;
     padding: 10px;
     display: flex;

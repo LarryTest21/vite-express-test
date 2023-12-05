@@ -1,15 +1,9 @@
 import { isLoading } from "../store/isloading";
-import { ref } from "vue"
 import { createRouter, createWebHistory } from "vue-router";
 import "jquery";
 import { onMountApp } from "../store/onMountApp";
 import { isAdmin } from "../store/isAdmin";
 import { signedIn } from "../store/signedIn"
-import { trackRouter } from "vue-gtag-next";
-import { postLoaded } from "../store/postLoaded";
-import { storeRouterAnalytics } from "../components/myAnalytics";
-import { userData } from "../store/userData"
-import axios from "axios"
 import { useStoreAuth } from "../store/userStoreAuth";
 
 
@@ -50,7 +44,7 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () =>
-        import(/* webpackChunkName: "News" */ "../views/EditPostsList.vue"),
+        import(/* webpackChunkName: "EditPostsList" */ "../views/EditPostsList.vue"),
     },
     {
       path: "/AdminPage",
@@ -60,7 +54,7 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () =>
-        import(/* webpackChunkName: "News" */ "../views/AdminPage.vue"),
+        import(/* webpackChunkName: "AdminPage" */ "../views/AdminPage.vue"),
     },
     {
       path: "/CreatePost/:createSlug",
@@ -69,7 +63,7 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () =>
-        import(/* webpackChunkName: "News" */ "../views/CreatePost.vue"),
+        import(/* webpackChunkName: "CreatePost" */ "../views/Test.vue"),
     },
     {
       path: "/Profile",
@@ -80,7 +74,7 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () =>
-        import(/* webpackChunkName: "News" */ "../views/Profile.vue"),
+        import(/* webpackChunkName: "Profile" */ "../views/Profile.vue"),
       meta: { title: "Home" },
     },
     {
@@ -157,12 +151,6 @@ const router = createRouter({
         import(/* webpackChunkName: "BlogPost" */ "../views/PageNotFound.vue"),
     },
     {
-      path: "/test",
-      name: "test",
-      component: () =>
-        import(/* webpackChunkName: "BlogPost" */ "../views/Test.vue"),
-    },
-    {
       path: "/regactivation/:userID",
       name: "regactivation",
       component: () =>
@@ -180,13 +168,14 @@ const router = createRouter({
       component: () =>
         import(/* webpackChunkName: "BlogPost" */ "../views/LoginTest.vue"),
     },
+    {
+      path: "/transition/",
+      name: "logintest",
+      component: () =>
+        import(/* webpackChunkName: "BlogPost" */ "../views/TransitionTest.vue"),
+    },
   ],
 });
-
-trackRouter(router);
-
-storeRouterAnalytics(router);
-
 
 
 router.afterEach((to, from) => {

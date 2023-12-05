@@ -42,7 +42,6 @@ function remove(item:any) {
 }
 .container {
   display: flex;
-
   top: 170px;
   position: relative;
   padding: 0;
@@ -68,7 +67,6 @@ function remove(item:any) {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: scaleY(0.01) translate(30px, 0);
 }
 
 /* 3. ensure leaving items are taken out of layout flow so that moving
