@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { useTheme } from "../store/theme";
 import $ from "jquery";
 import gsap from "gsap";
@@ -16,10 +16,15 @@ import { userData } from "../store/userData";
 import searchIcon from "../components/icons/search.vue";
 import { useRouter } from "vue-router";
 import { blogSearch } from "../store/blogSearch";
+import { blogSearchIcon } from "../store/blogSearchIcon";
+import "../components/newAnalytics";
+import { log } from "console";
+
+const searchIcon2 = blogSearchIcon();
 
 const searchIconActive = ref();
 const router = useRouter();
-const searchActive = ref(blogSearch());
+const searchActive = blogSearch();
 
 watch(
   () => router.currentRoute.value.path,
@@ -68,11 +73,24 @@ if (userD.data != undefined) {
   }
 }
 
-watch(signedInCheck, (newValue) => {
-  if (userD.data != undefined) {
-    displayName.value = userD.data.firstName[0] + userD.data.lastName[0];
-  }
-});
+watch(
+  signedInCheck,
+  (newValue) => {
+    console.log(signedInCheck.state);
+    setTimeout(() => {
+      if (signedInCheck.state) {
+        showNotif.value = true;
+      } else {
+        showNotif.value = false;
+      }
+    }, 500);
+
+    if (userD.data != undefined) {
+      displayName.value = userD.data.firstName[0] + userD.data.lastName[0];
+    }
+  },
+  { deep: true }
+);
 const isAdminCheck = isAdmin();
 
 const langEn = ref(false) as any;
@@ -106,9 +124,25 @@ const activateLoginTab = ref(false);
 
 const userTabClicked = userTabClick();
 
-watch(userTabClicked, () => {
-  showNotif.value = false;
-});
+watch(
+  showNotif,
+  () => {
+    console.log("showNotif", showNotif.value);
+  },
+  { deep: true }
+);
+
+watch(
+  userTabClicked,
+  () => {
+    if (userTabClicked.state && signedInCheck.state) {
+      showNotif.value = false;
+    } else {
+      showNotif.value = true;
+    }
+  },
+  { deep: true }
+);
 const activeLogin = () => {
   if (!activateLoginTab.value) {
     activateLoginTab.value = true;
@@ -126,7 +160,7 @@ const closeLoginTab = () => {
 
 const closeProfileTab = () => {
   if (userTabClicked) {
-    userTabClicked.state = false;
+    userTabClicked.state = true;
   }
 };
 
@@ -266,36 +300,34 @@ const notifClicked = (value: any) => {
             </RouterLink>
             <a class="user-wrapper" key="2">
               <transition name="notif">
-                <div
-                  class="notif-counter"
-                  v-if="notifCounter != 0 && showNotif"
+                <div class="notif-counter"
+                     v-if="notifCounter != 0 && showNotif"
+                     @click="notifClicked"
                 >
                   {{ notifCounter }}
                 </div>
               </transition>
 
-              <TransitionGroup name="user">
-                <a
-                  key="1"
-                  v-if="signedInCheck.state"
-                  class="user"
-                  @click.native.prevent="
-                    userTabClicked.state = !userTabClicked.state
-                  "
-                >
-                  {{ displayName }}
-                </a>
-                <a
-                  key="2"
-                  v-if="!signedInCheck.state && loginActivated"
-                  to="/login"
-                  class="login"
-                  @click.stop.prevent="activeLogin()"
-                  :class="activateLoginTab ? 'active' : ''"
-                >
-                  <li>Login</li>
-                </a>
-              </TransitionGroup>
+              <div class="login-user-wrapper">
+                <TransitionGroup name="user">
+                  <a key="1"
+                     v-if="signedInCheck.state"
+                     class="user"
+                     @click.native.prevent="userTabClicked.state = !userTabClicked.state"
+                  >
+                    {{ displayName }}
+                  </a>
+                  <a key="2"
+                     v-if="!signedInCheck.state && loginActivated"
+                     to="/login"
+                     class="login"
+                     @click.stop.prevent="activeLogin()"
+                     :class="activateLoginTab ? 'active' : ''"
+                  >
+                    <li>Login</li>
+                  </a>
+                </TransitionGroup>
+              </div>
             </a>
             <RouterLink to="/rulebook" key="3">
               <li>Rulebook</li>
@@ -307,11 +339,10 @@ const notifClicked = (value: any) => {
             <RouterLink to="/bsl" key="5">
               <li>BSL</li>
             </RouterLink>
-            <div class="search" v-if="searchIconActive" key="6">
-              <searchIcon
-                class="searchIcon"
-                @click="searchActive.state = !searchActive.state"
-                key="2"
+            <div class="search" v-if="searchIcon2.state" key="6">
+              <searchIcon class="searchIcon"
+                          @click="searchActive.state = !searchActive.state"
+                          key="2"
               />
             </div>
             <RouterLink to="/custom-teams" key="7">
@@ -324,10 +355,9 @@ const notifClicked = (value: any) => {
         </ul>
 
         <div class="wt-wrapper">
-          <div
-            @mouseover="weatherHovered"
-            @mouseleave="weatherUnHovered"
-            :class="[
+          <div @mouseover="weatherHovered"
+               @mouseleave="weatherUnHovered"
+               :class="[
               'weather-time',
               { active: weatherHov },
               timeWeatherUp ? 'up' : 'down',
@@ -344,11 +374,10 @@ const notifClicked = (value: any) => {
         <transition name="fadeLogin">
           <div class="theme-changer-wrapper" v-if="themeCheck">
             <label class="theme-changer">
-              <input
-                v-model="themeButtonChecked"
-                type="checkbox"
-                class="button"
-                @click="themechange()"
+              <input v-model="themeButtonChecked"
+                     type="checkbox"
+                     class="button"
+                     @click="themechange()"
               />
               <span class="slider round"></span>
             </label>
@@ -356,24 +385,22 @@ const notifClicked = (value: any) => {
         </transition>
 
         <transition name="fadeLogin">
-          <LoginTab
-            v-if="activateLoginTab && !signedInCheck.state"
-            v-click-away="closeLoginTab"
-            @emitRegister="activateLoginTab = !activateLoginTab"
+          <LoginTab v-if="activateLoginTab && !signedInCheck.state"
+                    v-click-away="closeLoginTab"
+                    @emitRegister="activateLoginTab = !activateLoginTab"
           />
         </transition>
         <transition name="userTab">
-          <UserTab
-            class="usertab"
-            :userData="userData"
-            ref="UserTabHeight"
-            v-if="signedInCheck.state && userTabClicked.state"
-            @notifClicked="notifClicked"
-            v-click-away="closeProfileTab"
-            :isAdminCheck="isAdminCheck.state"
-            :notifCounter="notifCounter"
-            :notificationArray="notificationArray"
-            :closeTab="closeTab"
+          <UserTab class="usertab"
+                   :userData="userData"
+                   ref="UserTabHeight"
+                   v-if="signedInCheck.state && userTabClicked.state"
+                   @notifClicked="notifClicked"
+                   v-click-away="closeProfileTab"
+                   :isAdminCheck="isAdminCheck.state"
+                   :notifCounter="notifCounter"
+                   :notificationArray="notificationArray"
+                   :closeTab="closeTab"
           />
         </transition>
       </nav>
@@ -535,15 +562,13 @@ const notifClicked = (value: any) => {
           justify-content: center;
           align-items: center;
           overflow: visible;
-          position: relative;
-          width: 70px;
-          height: 100%;
           padding: 3px;
-          margin: 0 50px;
-
+          margin: 0 40px;
+          width: 100px;
           .notif-counter {
             position: absolute;
             background-color: var(--color-nav-txt-lighter);
+            box-shadow: 1px 1px 3px 1px rgba(32, 32, 32, 0.664);
             color: var(--color-nav-bg);
             font-family: Roboto Condensed;
             font-weight: 700;
@@ -551,14 +576,14 @@ const notifClicked = (value: any) => {
             z-index: 1;
             width: 35px;
             height: 35px;
-            padding: 1px 5px;
-            border-radius: 50%;
+            border-radius: 10%;
             top: 0;
-            right: -25px;
+            right: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
             margin: 3px;
+            cursor: pointer;
             animation: fading 2s ease-in-out infinite;
           }
 
@@ -584,41 +609,45 @@ const notifClicked = (value: any) => {
             cursor: pointer;
             padding: 0;
           }
-
-          .login {
-            height: 100%;
-            width: 120px;
-            transition: opacity 0.2s;
-            overflow: visible;
-          }
-
-          .login:hover {
-            background-color: transparent;
-            color: var(--color-nav-txt);
-          }
-
-          .user {
+          .login-user-wrapper {
             position: relative;
-            transform: translate(0, 0);
-            align-self: center;
-            border-radius: 50%;
-            display: flex;
-            width: 100%;
             height: 100%;
-            padding: 20px;
-
-            align-items: center;
-            justify-content: center;
-            color: var(--color-nav-user-txt);
-            background: var(--color-nav-user);
-            transition: all 0.1s ease-in-out;
-
-            &:hover {
-              background: var(--color-nav-user-hover);
+            width: 100%;
+            .login {
+              height: 100%;
+              width: 100%;
+              transition: opacity 0.2s;
+              overflow: visible;
+              width: 65px;
+              height: 65px;
             }
 
-            a {
-              position: absolute;
+            .login:hover {
+              background-color: transparent;
+              color: var(--color-nav-txt);
+            }
+
+            .user {
+              transform: translate(0, 0);
+              align-self: center;
+              border-radius: 50%;
+              display: flex;
+              width: 65px;
+              height: 65px;
+
+              align-items: center;
+              justify-content: center;
+              color: var(--color-nav-user-txt);
+              background: var(--color-nav-user);
+              transition: all 0.1s ease-in-out;
+
+              &:hover {
+                background: var(--color-nav-user-hover);
+              }
+
+              a {
+                position: absolute;
+              }
             }
           }
         }
@@ -824,16 +853,18 @@ const notifClicked = (value: any) => {
     }
   }
 }
-
+.user-move,
 .user-enter-active,
 .user-leave-active {
   transition: all 0.3s ease-in-out;
-  opacity: 1;
+  opacity: 0;
 }
-
 .user-enter-from,
 .user-leave-to {
   opacity: 0;
+}
+.user-leave-to {
+  position: absolute;
 }
 
 .fadeLogin-enter-active,
@@ -856,7 +887,7 @@ const notifClicked = (value: any) => {
 
 .userTab-enter-from,
 .userTab-leave-to {
-  transform: translateY(-400px);
+  transform: translateY(-120%);
 }
 
 .notif-enter-active,

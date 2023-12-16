@@ -59,6 +59,8 @@ const router = createRouter({
     {
       path: "/CreatePost/:createSlug",
       name: "createpost",
+      beforeEnter: guardRouteUser,
+
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
@@ -106,7 +108,7 @@ const router = createRouter({
     },
     {
       path: "/custom-teams",
-      name: "custom-teams",
+      name: "customteams",
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
@@ -216,6 +218,7 @@ router.beforeEach((to, from, next) => {
 async function guardRouteUser(to: any, from: any, next: any) {
     const storeAuth = useStoreAuth()
     await storeAuth.init()
+    
     if (storeAuth.clearance === "admin" || storeAuth.clearance === "regular") {
       next()
     } else {

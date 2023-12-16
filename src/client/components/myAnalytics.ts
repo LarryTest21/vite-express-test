@@ -1,11 +1,10 @@
 import { ref, watch, onBeforeUnmount, onMounted } from "vue";
-import { collection, doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
-import { getFirestore } from "firebase/firestore";
-import db from "../firebase/firebaseInit";
-import firebase from "firebase/compat/app";
 import { useRoute } from "vue-router";
-import { settings } from "firebase/analytics";
 import moment from "moment";
+import { Console, log } from "console";
+import { createGlobalState } from "@vueuse/core";
+
+
 
 
 
@@ -45,7 +44,10 @@ export async function storeRouterAnalytics(router:any) {
 
     visitor.value = sessionStorage.getItem("userV")
 
-    var recievedData1 = await getDoc(doc(db, "analytics", "visitors"))
+
+    const API_URL = "/api/analytics/visitors";
+
+    var recievedData1 = await axios
     var visitorAnalyticsDate = new Date();
     var year = visitorAnalyticsDate.getFullYear()
     var month = visitorAnalyticsDate.getMonth()

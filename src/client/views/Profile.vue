@@ -1,103 +1,114 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
-import { userData as userD } from "../store/userData"
-import profUserTab from "../components/profile/profUserTab.vue"
+import { userData as userD } from "../store/userData";
+import profUserTab from "../components/profile/profUserTab.vue";
 import profHistoryTab from "../components/profile/profHistoryTab.vue";
 import profSettings from "../components/profile/profSettings.vue";
-import { isMobile } from "../store/isMobile"
-import Modal from "../components/Modal.vue"
+import { isMobile } from "../store/isMobile";
+import Modal from "../components/Modal.vue";
 
-const mobile = isMobile()
-const readPosts = ref()
+const mobile = isMobile();
+const readPosts = ref();
 const userData = userD();
 
-const userName = userData.data.userName
+const userName = userData.data.userName;
 
-const profile = ref()
-const settings = ref()
-const historyEnabled = ref()
-const history = ref()
+const profile = ref();
+const settings = ref();
+const historyEnabled = ref();
+const history = ref();
 
-const overflow = ref('hidden')
+const overflow = ref('hidden');
 
 if (userData == undefined) {
-
 } else {
   if (userData.data.userSettings.readPosts === undefined) {
-    historyEnabled.value = false
+    historyEnabled.value = false;
   } else {
-    historyEnabled.value = userData.data.userSettings.readPosts
+    historyEnabled.value = userData.data.userSettings.readPosts;
   }
 }
 
-watch(userData, () => {
-  historyEnabled.value = userData.data.userSettings.readPosts
-}, { deep: true })
+watch(
+  userData,
+  () => {
+    historyEnabled.value = userData.data.userSettings.readPosts;
+  },
+  { deep: true }
+);
 
 const userPFP = ref();
-userPFP.value = localStorage.getItem("avatar")
+userPFP.value = localStorage.getItem("avatar");
 
-const modalActivation = ref(false)
-const modalMessage = ref()
+const modalActivation = ref(false);
+const modalMessage = ref();
 
 const saved = (e: any) => {
-  console.log(`output->e`, e)
-  modalActivation.value = true
-}
+  console.log(`output->e`, e);
+  modalMessage.value = "Settings Saved";
+  modalActivation.value = true;
+};
 
 const enableTab = (event: any) => {
-  profile.value = false
-  settings.value = false
-  history.value = false
-  overflow.value = "hidden"
+  profile.value = false;
+  settings.value = false;
+  history.value = false;
+  overflow.value = "hidden";
   if (event.target.value === 1) {
-    profile.value = true
+    profile.value = true;
   } else if (event.target.value === 2) {
-    settings.value = true
+    settings.value = true;
   } else if (event.target.value === 3) {
-    history.value = true
+    history.value = true;
   }
   setTimeout(() => {
-    overflow.value = "auto"
+    overflow.value = "auto";
   }, 300);
-}
+};
 
-const tabs = ref()
+const tabs = ref();
 onMounted(() => {
-  profile.value = true
+  profile.value = true;
   setTimeout(() => {
-    tabs.value = 'tabs'
+    tabs.value = 'tabs';
   }, 10);
-
-})
-
+});
 </script>
 
 <template>
   <div class="profile-wrapper">
+    <transition name="modal">
+      <Modal v-if="modalActivation" class="modal-div" :position="'absolute'" :modalLoadingMessage="modalMessage"
+             :spinnerColor="'var(--color-nav-txt)'" :fontSize="'3rem'" @click="modalActivation = false"
+      />
+    </transition>
     <div class="profile-wrapper-inner">
-      <transition>
-        <Modal v-if="modalActivation" :position="'absolute'" :modalLoadingMessage="modalMessage"
-          :spinnerColor="'var(--color-nav-txt)'" :fontSize="'3rem'" />
-      </transition>
       <div class="show">
         <div class="username">{{ userName }}</div>
 
         <div class="cat-tab">
           <TransitionGroup class="categories" tag="ul" name="tabs">
-            <li value="1" :class="profile ? 'active' : ''" @click="enableTab" key="1">Profile</li>
-            <li value="2" :class="settings ? 'active' : ''" @click="enableTab" key="2">Settings</li>
-            <li value="3" :class="history ? 'active' : ''" v-if="historyEnabled" @click="enableTab" key="3">History</li>
+            <li value="1" :class="profile ? 'active' : ''" @click="enableTab" key="1"
+            >
+              Profile
+            </li>
+            <li value="2" :class="settings ? 'active' : ''" @click="enableTab" key="2"
+            >
+              Settings
+            </li>
+            <li value="3" :class="history ? 'active' : ''" v-if="historyEnabled" @click="enableTab" key="3"
+            >
+              History
+            </li>
           </TransitionGroup>
-            <TransitionGroup class="tabcontainer" tag="div" :name="tabs">
-              <profUserTab v-if="profile" :userData="userData" key="1" />
-              <profSettings v-if="settings" :userData="userData" key="2" @setting-saved="saved" />
-              <profHistoryTab v-if="history" :userData="userData" key="3" />
-            </TransitionGroup>
-
+          <TransitionGroup class="tabcontainer" tag="div" :name="tabs">
+            <profUserTab v-if="profile" :userData="userData" key="1" />
+            <profSettings v-if="settings" :userData="userData" key="2" @settingsSaved="saved"
+            />
+            <profHistoryTab v-if="history" :userData="userData" key="3" />
+          </TransitionGroup>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -119,14 +130,9 @@ onMounted(() => {
 }
 
 .profile-wrapper {
-  position: relative;
-  height: calc(100vh - 70px);
-  top: 70px;
+  height: 100vh;
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
+  top: 70px;
   .profile-wrapper-inner {
     width: 100%;
     height: 100%;
@@ -134,7 +140,9 @@ onMounted(() => {
     flex-direction: column;
     align-items: center;
     padding: 50px;
-
+    .modal {
+      position:relative;
+    }
     .show {
       position: relative;
       height: 100%;
@@ -153,10 +161,8 @@ onMounted(() => {
         padding: 10px;
         padding-left: 30px;
         background-color: var(--color-nav-txt);
-        color: var(--color-nav-bg)
+        color: var(--color-nav-bg);
       }
-
-
 
       .cat-tab {
         display: flex;
@@ -249,4 +255,14 @@ onMounted(() => {
   position: absolute;
 }
 
+.modal-enter-active,
+.modal-leave-active {
+  transition: all 0.2s ease-in-out;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  transform: translateY(-200px);
+  opacity: 0;
+}
 </style>

@@ -83,7 +83,8 @@ const noSelected = () => {
       transition: all 0.2s ease-in-out;
       cursor: pointer;
       background-color: var(--color-nav-bg);
-      color: var(--color-nav-txt);
+      color: var(--color-nav-
+      );
     }
   }
 }

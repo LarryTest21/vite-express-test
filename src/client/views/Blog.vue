@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, onBeforeUnmount } from "vue";
 import moment from "moment";
 import SonarLoading from "../components/SonarLoading.vue";
 import BlogSideBar from "../components/BlogSideBar.vue";
@@ -9,24 +9,23 @@ import eyeIcon from "../components/icons/eye.vue";
 import axios from "axios";
 import { isMobile } from "../store/isMobile";
 import { blogSearch } from "../store/blogSearch";
+import {blogSearchIcon} from "../store/blogSearchIcon"
+
 
 const checkMobile = ref(isMobile());
 const searchActive = ref(blogSearch());
+const searchIcon = blogSearchIcon();
 
-watch(searchActive, (newV) => {}, { deep: true });
 
 const isLoading = ref(true);
 const blogPosts = ref([]) as any;
 const sidebar = ref();
 const storedPosts = ref([]) as any;
-const search = ref(false) as any;
 
-const sonarLoading = ref(false);
 const sonarBackground = ref(false);
 var readArray = [] as any;
 
 async function getPosts() {
-  sonarLoading.value = true;
   sonarBackground.value = false;
   isLoading.value = true;
   blogPosts.value = [];
@@ -36,18 +35,19 @@ async function getPosts() {
   axios.get(API_URL).then((res) => {
     blogPosts.value = storedPosts.value = res.data;
     setTimeout(() => {
-      sonarLoading.value = false;
-      sonarBackground.value = false;
       isLoading.value = false;
     }, 600);
-    console.log(`output->blogPosts.value`, blogPosts.value);
-  });
+  }).then(()=> {
+    setTimeout(() => {
+      searchIcon.state = true
+    }, 500);
+  })
 }
 
 const selected = (e: String) => {
   setTimeout(() => {
     if (e != null) {
-      const propsToCheck = ["postCategory"];
+      const propsToCheck = ["subCategory"];
       function filterByValue(array: Array<any>, string: String) {
         return array.filter((o) =>
           propsToCheck.some((k) =>
@@ -70,7 +70,6 @@ const inputFocused = (e: any) => {
     if (e.value === true) {
       isLoading.value = true;
       setTimeout(() => {
-        sonarLoading.value = false;
         sonarBackground.value = true;
       }, 400);
     } else if (e.value === false) {
@@ -82,7 +81,9 @@ const inputFocused = (e: any) => {
 onMounted(async () => {
   getPosts();
 });
-</script>
+onBeforeUnmount(()=> {
+  searchIcon.state = false
+})</script>
 
 <template>
   <TransitionGroup name="search">
@@ -93,7 +94,7 @@ onMounted(async () => {
   <div class="blog-container" :class="checkMobile.state ? 'mobile' : ''" key="1"
   >
     <transition name="fadeLoading">
-      <SonarLoading v-if="sonarLoading" :background="sonarBackground" />
+      <SonarLoading class="sonar" v-if="isLoading" :background="sonarBackground" />
     </transition>
 
     <div class="sidebar">
@@ -187,7 +188,11 @@ onMounted(async () => {
   height: calc(100% - 70px);
   padding-top: 70px;
   display: flex;
-
+.sonar{
+  position:absolute;
+  height:100%;
+  width:100%;
+}
   .sidebar {
     position: relative;
     margin-top: 30px;
@@ -241,7 +246,7 @@ onMounted(async () => {
         transition: all 0.2s ease-in-out;
         color: var(--color-nav-bg);
         background-color: var(--color-nav-txt);
-        box-shadow: rgba(2, 11, 26, 0.534) 2px 1px 4px 1px;
+        box-shadow: rgba(2, 13, 32, 0.53) 2px 1px 4px 1px;
         cursor:pointer;
         bottom:140px;
         right:15px;
@@ -261,7 +266,7 @@ onMounted(async () => {
         height: 100%;
         width: 100%;
         border-radius: 10px;
-        box-shadow: rgba(0, 0, 0, 0.2) 5px 5px 10px 5px;
+        box-shadow: rgba(2, 1, 1, 0.2) 5px 5px 10px 5px;
         overflow: hidden;
 
         @keyframes blinking {
@@ -479,17 +484,18 @@ onMounted(async () => {
   position: absolute;
 }
 
+
 .fadeLoading-enter-active,
 .fadeLoading-leave-active {
-  transform: translateY(0px);
-  opacity: 1;
-  transition: transform 0.3s ease-in-out;
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
 }
 
+/* 2. declare enter from and leave to state */
 .fadeLoading-enter-from,
 .fadeLoading-leave-to {
-  transform: translateY(-100%);
+  opacity: 0;
 }
+
 
 //MOBILE CSS
 

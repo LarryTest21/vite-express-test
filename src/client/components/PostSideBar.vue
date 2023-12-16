@@ -20,10 +20,12 @@ const props = defineProps({
   Posts: Array,
 });
 
-
-watch(() => props.Posts, () => {
-  sideBarPosts.value = props.Posts;
-})
+watch(
+  () => props.Posts,
+  () => {
+    sideBarPosts.value = props.Posts;
+  }
+);
 
 const sideBarPosts = ref(props.Posts) as any;
 
@@ -33,29 +35,23 @@ sideBarPostsFiltered.value = sideBarPosts.value;
 postSlug.value = props.Slug;
 
 sideBarPosts.value = sideBarPosts.value.filter(
-    (item:any) => item.postID !== props.Slug,
-  );
+  (item: any) => item.postID !== props.Slug
+);
 
-  sideBarPosts.value = sideBarPosts.value.slice(0,3)
-onMounted(() => {
-
-})
-
+sideBarPosts.value = sideBarPosts.value.slice(0, 3);
+onMounted(() => {});
 </script>
 
 <template>
   <div class="side-container" ref="sidebar">
     <div class="side-wrapper">
-      <ul
-        class="blog-posts-ul"
-        v-for="latest in sideBarPosts"
-      >
+      <div class="blog-posts"
+           v-for="latest in sideBarPosts">
         <div class="posts-card">
           <a
-            ><router-link
-              :to="latest._id"
-              key="latest.id"
-              class="posts-permalink"
+            ><router-link :to="latest._id"
+                          key="latest.id"
+                          class="posts-permalink"
             >
             </router-link
           ></a>
@@ -69,44 +65,53 @@ onMounted(() => {
                 }}
               </p>
             </div>
-            <div class="posts-author">
-              {{ latest.postAuthor }}
-            </div>
           </div>
         </div>
-      </ul>
+      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .side-container {
+  position: relative;
   top: 0;
   right: 0;
-  .side-wrapper::before {
-    position: absolute;
-    content: "";
-    height: 100%;
-    left: 20px;
-    width: 10px;
-    background-color: var(--color-text);
-    border-radius: 20px;
-  }
+  background-color: var(--color-nav-bg);
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px 2px rgba(0, 0, 0, 0.4);
+
   .side-wrapper {
     position: sticky;
-    .blog-posts-ul {
+    .blog-posts {
       position: relative;
       display: flex;
+      color: var(--color-nav-txt);
+      transition: all 0.1s ease-in-out;
+      &:hover {
+        color: var(--color-nav-bg);
 
+        background-color: var(--color-nav-txt);
+      }
       .posts-card {
         position: relative;
-        height: 100px;
-        width: 280px;
+        height: 100%;
+        width: 100%;
         display: flex;
         flex-direction: row;
         gap: 10px;
-        margin: 15px 0;
-
+        &::after {
+          content: "";
+          position: absolute;
+          bottom: 0;
+          height: 5px;
+          width: 90%;
+          left: 0;
+          right: 0;
+          margin: auto;
+          border-radius: 30px;
+          background-color: var(--color-nav-txt);
+        }
         a {
           position: absolute;
           width: 100%;
@@ -115,19 +120,21 @@ onMounted(() => {
         }
 
         img {
+          padding: 10px;
           position: relative;
           width: 100px;
           height: 100px;
-          border-radius: 10px;
+          border-radius: 15px;
         }
         .posts-text {
+          padding: 20px;
           line-height: 1;
           display: flex;
           flex-direction: column;
           gap: 3px;
-
+          font-family: Roboto Condensed;
           .posts-title {
-            font-size: 1rem;
+            font-size: 1.4rem;
             font-weight: 600;
             display: flex;
           }

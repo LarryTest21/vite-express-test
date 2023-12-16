@@ -10,9 +10,9 @@ const wrapper = ref()
 watch(
   () => props.background,
   () => {
-    if (props.background === true) {
+    if (props.background) {
       wrapper.value.classList.add("background-on")
-    } if (props.background === false)
+    } if (!props.background)
       wrapper.value.classList.remove("background-on")
   }
 );
@@ -35,7 +35,7 @@ watch(
   height: 100%;
   display: flex;
   z-index: 102;
-  overflow: hidden;
+  scale:1.4;
 
   .spinner {
     width: 100%;
@@ -68,8 +68,8 @@ watch(
     }
 
     &:before {
-      width: 300px;
-      height: 300px;
+      width: 400px;
+      height: 400px;
       border-color: var(--color-nav-bg);
       top: 0px;
       left: 0px;

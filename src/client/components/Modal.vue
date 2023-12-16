@@ -3,9 +3,7 @@ import { ref } from "vue";
 import { modalActive } from "../store/modalActive";
 import { modalButtonActive } from "../store/modalButtonActive";
 
-
-const emit = defineEmits(['emitAnswer', 'emitSaved', "closeModal"])
-
+const emit = defineEmits(['emitAnswer', 'emitSaved', "closeModal"]);
 
 const props = defineProps({
   modalAnimation: Boolean,
@@ -23,22 +21,20 @@ const props = defineProps({
   modalSaved: Boolean,
 });
 
-
-const modalSaved = props.modalSaved
-const scaleMargin = (props.loadingScale! * 20) + "px"
+const modalSaved = props.modalSaved;
+const scaleMargin = props.loadingScale! * 20 + "px";
 
 const closeModal = () => {
-  emit("closeModal")
+  emit("closeModal");
 };
 
 const emitAnswer = (target: any) => {
-  emit("emitAnswer", target)
-}
+  emit("emitAnswer", target);
+};
 
 const emitSaved = (target: any) => {
-  emit("emitSaved", target)
-}
-
+  emit("emitSaved", target);
+};
 </script>
 
 <template>
@@ -46,14 +42,14 @@ const emitSaved = (target: any) => {
     <TransitionGroup name="fade">
       <div class="wrapper" key="lorem1" v-if="modalLoadingMessage">
         <transition name="fade" mode="out-in">
-          <p class="modal-message" :key="modalLoadingMessage" v-if="modalLoadingMessage">
+          <p class="modal-message" :key="modalLoadingMessage" v-if="modalLoadingMessage"
+          >
             {{ props.modalLoadingMessage }}
           </p>
-
         </transition>
         <transition name="fade" mode="out-in">
-
-          <div class="modal-loading" :key="props.modalButtonMessage?.toString() || 10" v-if="props.modalAnimation" >
+          <div class="modal-loading" :key="props.modalButtonMessage?.toString() || 10" v-if="props.modalAnimation"
+          >
             <span class="loader"></span>
 
             <div class="lds-roller" key="lorem3">
@@ -68,7 +64,6 @@ const emitSaved = (target: any) => {
             </div>
           </div>
         </transition>
-
       </div>
     </TransitionGroup>
 
@@ -84,11 +79,14 @@ const emitSaved = (target: any) => {
     </transition>
     <transition name="fade">
       <div class="modal-question" v-if="props.modalQuestion != undefined">
-        <div class="question-text"> {{ props.modalQuestion }}
-        </div>
+        <div class="question-text">{{ props.modalQuestion }}</div>
         <div class="buttons">
-          <button class="modalQuestion1" @click.prevent="emitAnswer(1)">{{ props.modalQuestion1 }}</button>
-          <button class="modalQuestion2" @click.prevent="emitAnswer(2)">{{ props.modalQuestion2 }}</button>
+          <button class="modalQuestion1" @click.prevent="emitAnswer(1)">
+            {{ props.modalQuestion1 }}
+          </button>
+          <button class="modalQuestion2" @click.prevent="emitAnswer(2)">
+            {{ props.modalQuestion2 }}
+          </button>
         </div>
       </div>
     </transition>
@@ -96,12 +94,14 @@ const emitSaved = (target: any) => {
       <div class="modal-saved-post" v-if="modalSaved">
         <p>Would you like to load saved post?</p>
         <div class="buttons">
-          <input type="button" value="Yes" class="yes" @click.prevent="emitSaved(1)" />
-          <input type="button" value="No" class="no" @click.prevent="emitSaved(2)" />
-          <input type="button" value="Delete" class="deelete" @click.prevent="emitSaved(3)" />
+          <input type="button" value="Yes" class="yes" @click.prevent="emitSaved(1)"
+          />
+          <input type="button" value="No" class="no" @click.prevent="emitSaved(2)"
+          />
+          <input type="button" value="Delete" class="deelete" @click.prevent="emitSaved(3)"
+          />
         </div>
       </div>
-
     </transition>
   </div>
 </template>
@@ -109,9 +109,9 @@ const emitSaved = (target: any) => {
 <style lang="scss" scoped>
 .modal::before {
   content: "";
-  height:100%;
-  width:100%;
-  position:absolute;
+  height: 100%;
+  width: 100%;
+  position: absolute;
   background-color: var(--color-nav-bg);
   opacity: 0.9;
   opacity: v-bind(backgroundOpacity);
@@ -169,9 +169,9 @@ button:active {
     display: flex;
     justify-content: center;
     align-items: center;
-    height:100%;
-    color:var(--color-nav-bg);
-    color:v-bind(modalLoadingMessageColor);
+    height: 100%;
+    color: var(--color-nav-bg);
+    color: v-bind(modalLoadingMessageColor);
   }
 
   .modal-content {
@@ -198,8 +198,10 @@ button:active {
     height: 48px;
     border-width: 3px;
     border-style: dashed solid solid dotted;
-    border-color: var(--color-nav-txt) var(--color-nav-txt) transparent var(--color-nav-txt);
-    border-color: v-bind(spinnerColor) v-bind(spinnerColor) transparent v-bind(spinnerColor);
+    border-color: var(--color-nav-txt) var(--color-nav-txt) transparent
+      var(--color-nav-txt);
+    border-color: v-bind(spinnerColor) v-bind(spinnerColor) transparent
+      v-bind(spinnerColor);
     border-radius: 50%;
     box-sizing: border-box;
     animation: rotation 1.5s linear infinite;
@@ -240,7 +242,6 @@ button:active {
     }
   }
 
-
   .modal-button {
     position: absolute;
 
@@ -275,6 +276,7 @@ button:active {
 
     .buttons {
       position: relative;
+      width: 100%;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -283,14 +285,13 @@ button:active {
     }
   }
 
-
   .modal-saved-post {
     position: relative;
     font-family: Chango;
     font-size: 2rem;
     display: flex;
-    gap:10px;
-    padding:10px;
+    gap: 10px;
+    padding: 10px;
     justify-content: space-around;
 
     p {

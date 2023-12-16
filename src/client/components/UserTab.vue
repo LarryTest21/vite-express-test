@@ -1,139 +1,146 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
-import { getBlob, getStorage, ref as storageFBRef, getDownloadURL } from "firebase/storage";
+import {
+  getBlob,
+  getStorage,
+  ref as storageFBRef,
+  getDownloadURL,
+} from "firebase/storage";
 import { signedIn } from "../store/signedIn";
-import { isAdmin } from "../store/isAdmin"
+import { isAdmin } from "../store/isAdmin";
 import router from "../router";
 import { useRoute } from "vue-router";
 import { userTabClick } from "../store/userTabClick";
 import Modal from "../components/Modal.vue";
-import { base64NoPFP } from "../components/icons/nopfpbase64"
-import bellIcon from "../components/icons/bell.vue"
-import axios from "axios"
-import { userData } from "../store/userData"
-
+import { base64NoPFP } from "../components/icons/nopfpbase64";
+import bellIcon from "../components/icons/bell.vue";
+import axios from "axios";
+import { userData } from "../store/userData";
 
 const userPFP = ref();
-const noPFP = ref()
+const noPFP = ref();
 const route = useRoute();
 const userEmail = ref();
 const displayName = ref();
 const signedInCheck = signedIn();
-const userActivated = ref(false)
-const notifClicked = ref(false)
-const notifCounter = ref()
-const isAdminCheck = isAdmin()
-
+const userActivated = ref(false);
+const notifClicked = ref(false);
+const notifCounter = ref();
+const isAdminCheck = isAdmin();
 
 const emit = defineEmits(["closeTab"]);
 
-
-userPFP.value = localStorage.getItem("avatar") || undefined
+userPFP.value = localStorage.getItem("avatar") || undefined;
 
 if (localStorage.getItem("avatar") == base64NoPFP) {
-  noPFP.value = true
+  noPFP.value = true;
 }
-const userD = userData().data
+const userD = userData().data;
 
 const notifArray = ref([]) as any;
 
 const checkUserData = () => {
   if (userD != undefined) {
-    displayName.value = userD.firstName + userD.lastName
-    userActivated.value = userD.activated
+    displayName.value = userD.firstName + userD.lastName;
+    userActivated.value = userD.activated;
     userEmail.value = userD.email;
-    notifArray.value.push("asr")
-    notifCounter.value = notifArray.value.length + 1
-    if (userD.clearance === "regular") { isAdminCheck.state = false }
-    else if (userD.clearance === "admin") {
-      isAdminCheck.state = true
+    notifArray.value.push("asr");
+    notifCounter.value = notifArray.value.length + 1;
+    if (userD.clearance === "regular") {
+      isAdminCheck.state = false;
+    } else if (userD.clearance === "admin") {
+      isAdminCheck.state = true;
     }
   }
-}
-checkUserData()
+};
+checkUserData();
 
-
-
-
-if (userPFP.value === 'null' || userPFP.value === '' || userPFP.value === undefined) {
-  userPFP.value = userD.profilePic
+if (
+  userPFP.value === 'null' ||
+  userPFP.value === '' ||
+  userPFP.value === undefined
+) {
+  userPFP.value = userD.profilePic;
   if (userPFP.value === '' || userPFP.value === undefined) {
-    userPFP.value = base64NoPFP
-    localStorage.setItem("avatar", userPFP.value)
-    noPFP.value = true
-
+    userPFP.value = base64NoPFP;
+    localStorage.setItem("avatar", userPFP.value);
+    noPFP.value = true;
   } else {
-    localStorage.setItem("avatar", userPFP.value)
+    localStorage.setItem("avatar", userPFP.value);
   }
 }
-
 
 const modalActivation = ref(false);
 const modalAnimation = ref(true);
-const modalQuestion = ref()
-const modalButtonActive = ref(false)
+const modalQuestion = ref();
+const modalButtonActive = ref(false);
 
-
-const modalActivationLogout = ref(false)
-
-
+const modalActivationLogout = ref(false);
 
 const userClick = () => {
   const userClick = userTabClick();
-  userClick.state = false
+  userClick.state = false;
 };
 const modalAnswer = (t: any) => {
-  signedInCheck.state = false
-  isAdminCheck.state = false
+  signedInCheck.state = false;
+  isAdminCheck.state = false;
 
   localStorage.removeItem("loggedIn");
   localStorage.removeItem("userClearance");
-  localStorage.removeItem("aT_hsh")
+  localStorage.removeItem("aT_hsh");
+  localStorage.removeItem("savedPost");
 
 
   if (t == 1) {
-    axios.post("/api/user/refresh").then((res) => {
-      return res
-    }).then((res) => {
-      console.log(`output->res`, res)
-      var userEmail = { email: localStorage.getItem("email") }
-      console.log(`output->userEmail`, userEmail)
-
-      axios.post("/api/user/disableAutoLogin/",
-        userEmail
-      ).then(() => {
-        localStorage.removeItem("autoLogin")
-        localStorage.removeItem("email")
-        localStorage.removeItem("avatar")
-        localStorage.removeItem("loggedIn")
-
-      }).then(() => {
-        axios.post("/api/user/logout").then((res) => {
-          userData().data = undefined
-
-        }).catch((err) => {
-          console.log(err);
-        })
+    axios
+      .post("/api/user/refresh")
+      .then((res) => {
+        return res;
       })
+      .then((res) => {
+        console.log(`output->res`, res);
+        var userEmail = { email: localStorage.getItem("email") };
+        console.log(`output->userEmail`, userEmail);
 
-        .catch((err) => {
-          console.log(err);
-        })
-    })
+        axios
+          .post("/api/user/disableAutoLogin/", userEmail)
+          .then(() => {
+            localStorage.removeItem("autoLogin");
+            localStorage.removeItem("email");
+            localStorage.removeItem("avatar");
+            localStorage.removeItem("loggedIn");
+            localStorage.removeItem("savedPost");
+          })
+          .then(() => {
+            axios
+              .post("/api/user/logout")
+              .then((res) => {
+                userData().data = undefined;
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+          })
 
+          .catch((err) => {
+            console.log(err);
+          });
+      });
   } else if (t == 2) {
-    signedInCheck.state = false
-    axios.post("/api/user/logout").then((res) => {
-      userData().data = undefined
-
-    }).catch((err) => {
-      console.log(err);
-    }).then(() => {
-      localStorage.removeItem("loggedIn")
-    })
-
+    signedInCheck.state = false;
+    axios
+      .post("/api/user/logout")
+      .then((res) => {
+        userData().data = undefined;
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .then(() => {
+        localStorage.removeItem("loggedIn");
+      });
   }
-  emit('closeTab')
+  emit('closeTab');
   if (
     route.name === "profile" ||
     route.name === "editposts" ||
@@ -142,24 +149,24 @@ const modalAnswer = (t: any) => {
   ) {
     router.push({ name: "landing" });
   }
-}
+};
 
 const logOut = () => {
-  const AL = userD.userSettings.autoLogin
+  const AL = userD.userSettings.autoLogin;
   if (AL) {
-    modalActivationLogout.value = true
-    modalQuestion.value = "Disable Auto-Login?"
-    modalButtonActive.value = true
-
+    modalActivationLogout.value = true;
+    modalQuestion.value = "Disable Auto-Login?";
+    modalButtonActive.value = true;
   } else {
-    axios.post("/api/user/logout").then((res) => {
-    })
-    userD.data = undefined
+    axios.post("/api/user/logout").then((res) => {});
+    userD.data = undefined;
 
-    signedInCheck.state = false
-    localStorage.removeItem("email")
-    localStorage.removeItem("avatar")
-    localStorage.removeItem("loggedIn")
+    signedInCheck.state = false;
+    localStorage.removeItem("email");
+    localStorage.removeItem("avatar");
+    localStorage.removeItem("loggedIn");
+    localStorage.removeItem("savedPost");
+
     if (
       route.name === "profile" ||
       route.name === "editposts" ||
@@ -172,48 +179,52 @@ const logOut = () => {
 };
 
 const closeActivatedNotif = () => {
-  userActivated.value = !userActivated.value
-  notifCounter.value = notifArray.value.length
-}
+  userActivated.value = !userActivated.value;
+  notifCounter.value = notifArray.value.length;
+};
 const notiTargetfClicked = (s: any) => {
   console.log(s);
-}
+};
 
 onMounted(() => {
-  watch(notifCounter, () => {
-    console.log(`output->notifCounter`, notifCounter)
-  }, { deep: true })
-})
+  watch(
+    notifCounter,
+    () => {
+      console.log(`output->notifCounter`, notifCounter);
+    },
+    { deep: true }
+  );
+});
 </script>
 
 <template>
   <div class="user-tab-wrapper">
-
     <div class="user-tab">
       <transition name="modal">
-        <Modal v-if="modalActivationLogout" spinnerColor='var(--color-nav-txt)' :position="'absolute'"
-          :modalAnimation="false" :modalQuestion1="'Yes'" :modalQuestion2="'No'" :backgroundOpacity="0.9"
-          :modalQuestion="modalQuestion" @emitAnswer="modalAnswer" />
+        <Modal class="modal" v-if="modalActivationLogout" spinnerColor="var(--color-nav-txt)" :position="'absolute'"
+               :modalAnimation="false" :modalQuestion1="'Yes'" :modalQuestion2="'No'" :backgroundOpacity="0.9"
+               :modalQuestion="modalQuestion" @emitAnswer="modalAnswer"
+        />
       </transition>
       <div class="usertab-info">
         <div class="usertab-top">
           <div class="userPFP">
-
             <transition name="modal">
-              <Modal v-if="modalActivation" spinnerColor='var(--color-nav-txt)' :position="'absolute'"
-                :modalAnimation="modalAnimation" :backgroundOpacity="1" />
-
+              <Modal v-if="modalActivation" spinnerColor="var(--color-nav-txt)" :position="'absolute'"
+                     :modalAnimation="modalAnimation" :backgroundOpacity="1"
+              />
             </transition>
             <div class="img-wr">
-              <img class="userPFP-img" v-bind:src="userPFP" :class="noPFP ? 'nopfp' : ''" />
+              <img class="userPFP-img" v-bind:src="userPFP" :class="noPFP ? 'nopfp' : ''"
+              />
               <div class="no-pfp" v-if="noPFP">no profile picture</div>
             </div>
-            <div class="notif-wr" v-if="notifCounter != 0" @click="notifClicked = !notifClicked">
+            <div class="notif-wr" v-if="notifCounter != 0" @click="notifClicked = !notifClicked"
+            >
               <div class="notif-counter">
                 {{ notifCounter }}
               </div>
               <div class="notif-counter-icon-wrapper">
-
                 <bellIcon />
               </div>
             </div>
@@ -224,29 +235,36 @@ onMounted(() => {
           </div>
         </div>
         <div class="usertab-links">
-          <router-link @click.native.prevent="userClick" to="/createpost/newPost">Create Post</router-link>
-          <router-link @click.native.prevent="userClick" to="/profile">Profile</router-link>
-          <router-link @click.native.prevent="userClick" to="/editpostslist" v-if="!isAdminCheck.state">Edit
-            Posts</router-link>
-          <router-link @click.native.prevent="userClick" to="/adminpage" v-if="isAdminCheck.state">Admin
-            Page</router-link>
+          <router-link @click.native.prevent="userClick" to="/createpost/newPost"
+            >Create Post</router-link
+          >
+          <router-link @click.native.prevent="userClick" to="/profile"
+            >Profile</router-link
+          >
+          <router-link @click.native.prevent="userClick" to="/editpostslist" v-if="!isAdminCheck.state"
+            >Edit Posts</router-link
+          >
+          <router-link @click.native.prevent="userClick" to="/adminpage" v-if="isAdminCheck.state"
+            >Admin Page</router-link
+          >
           <a @click.stop.prevent="logOut()">Logout</a>
         </div>
       </div>
       <transition name="notif">
-
         <div class="notification-wrapper" v-if="notifClicked">
           <transition name="activated">
-
             <ul v-if="userActivated" class="notifications">
-              <li class="activate notif" @click="closeActivatedNotif">Please activate your account</li>
+              <li class="activate notif" @click="closeActivatedNotif">
+                Please activate your account
+              </li>
             </ul>
           </transition>
 
           <ul class="notifications" v-for="notif in notifArray">
-            <li class="notif" @click="notiTargetfClicked(notif)">{{ notif }}</li>
+            <li class="notif" @click="notiTargetfClicked(notif)">
+              {{ notif }}
+            </li>
           </ul>
-
         </div>
       </transition>
     </div>
@@ -255,11 +273,10 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .user-tab-wrapper {
-  position:fixed;
+  position: fixed;
   z-index: -1;
   top: 75px;
   left: 5%;
-
 
   .user-tab {
     border-radius: 5px;
@@ -268,6 +285,11 @@ onMounted(() => {
     color: var(--color-nav-txt) !important;
     box-shadow: 4px 8px 5px 0px rgba(0, 0, 0, 0.3);
 
+    .modal {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
 
     ul {
       position: relative;
@@ -292,7 +314,6 @@ onMounted(() => {
         height: 100%;
         transition: all 0.1s ease-in-out;
         padding-left: 10px;
-
       }
 
       li::before {
@@ -305,7 +326,7 @@ onMounted(() => {
       }
 
       li:first-child {
-        border-top: transparent
+        border-top: transparent;
       }
 
       li:hover {
@@ -330,7 +351,6 @@ onMounted(() => {
       height: 100%;
       z-index: -1;
       gap: 10px;
-
 
       .notifications {
         position: relative;
@@ -357,7 +377,7 @@ onMounted(() => {
         left: -150%;
         height: 100%;
         background-color: var(--color-nav-txt-lighter);
-        transition: all 0.2s ease-in-out
+        transition: all 0.2s ease-in-out;
       }
 
       .notif:hover::before {
@@ -387,7 +407,6 @@ onMounted(() => {
           width: 100%;
           align-items: center;
           justify-content: center;
-          padding: 0 10px;
 
           .userPFP-img.nopfp {
             opacity: 0.2;
@@ -426,8 +445,6 @@ onMounted(() => {
               border-style: none;
               background-color: var(--color-nav-bg);
               transition: all 0.1s ease-in-out;
-
-
             }
 
             input[type="button"]:hover {
@@ -446,7 +463,8 @@ onMounted(() => {
             padding: 10px;
 
             img {
-              height: 100px;
+              width:100%;
+              height:100%;
             }
           }
 
@@ -458,7 +476,6 @@ onMounted(() => {
             border-radius: 10px;
             display: flex;
             justify-content: flex-end;
-
 
             .notif-counter {
               position: absolute;
@@ -491,23 +508,19 @@ onMounted(() => {
               &:hover {
                 cursor: pointer;
                 background-color: var(--color-nav-txt);
-                ;
-
                 svg {
                   stroke: var(--color-nav-bg);
-
                 }
               }
 
               svg {
                 position: relative;
                 fill: none;
-                height: 20%;
                 stroke: var(--color-nav-txt);
                 stroke-width: 6px;
                 animation: bell 3s ease-in-out infinite;
                 transform-origin: top;
-                transition: all 0.1s ease-in-out
+                transition: all 0.1s ease-in-out;
               }
 
               @keyframes bell {
@@ -521,7 +534,6 @@ onMounted(() => {
 
                 45% {
                   transform: rotate(20deg);
-
                 }
 
                 50% {
@@ -530,27 +542,18 @@ onMounted(() => {
 
                 55% {
                   transform: rotate(20deg);
-
                 }
 
                 60% {
                   transform: rotate(-20deg);
-
                 }
 
                 65% {
                   transform: rotate(0);
-
                 }
-
-
               }
             }
-
-
-
           }
-
         }
 
         .user-text {
@@ -594,7 +597,9 @@ onMounted(() => {
         text-transform: uppercase;
         font-family: Chango;
         padding: 0 1rem;
-        transition: font 0.1s, background-color 0.3s;
+        transition:
+          font 0.1s,
+          background-color 0.3s;
         padding: 10px;
         height: 100%;
         color: var(--color-nav-txt);
@@ -605,19 +610,14 @@ onMounted(() => {
         color: var(--color-nav-txt-hover);
         cursor: pointer;
         border-radius: 0 0 3px 3px;
-        ;
-
       }
 
       a :nth-last-child {
         border-radius: 20px;
-        ;
       }
     }
   }
 }
-
-
 
 .modal-enter-active,
 .modal-leave-active {
@@ -634,25 +634,23 @@ onMounted(() => {
 .notif-leave-active {
   transition: all 0.2s ease-out;
   opacity: 1;
-
 }
 
 .notif-enter-from,
 .notif-leave-to {
   opacity: 0;
-  transform: translatex(-180px)
+  transform: translatex(-180px);
 }
 
 .activated-enter-active,
 .activated-leave-active {
   transition: all 0.2s ease-out;
   opacity: 1;
-
 }
 
 .activated-enter-from,
 .activated-leave-to {
   opacity: 0;
-  transform: translatex(-180px)
+  transform: translatex(-180px);
 }
 </style>

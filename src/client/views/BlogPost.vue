@@ -5,13 +5,11 @@ import moment from "moment";
 import $ from "jquery";
 import "jquery";
 import SideBar from "../components/PostSideBar.vue";
-import { signedIn } from "../store/signedIn"
+import { signedIn } from "../store/signedIn";
 import axios from "axios";
-
-const signedInCheck = signedIn()
-console.log(signedInCheck.state);
-
-
+import writerIcon from "../components/icons/writer.vue";
+import { createGlobalState } from "@vueuse/core";
+const signedInCheck = signedIn();
 
 const route = useRoute();
 const isLoading = ref(true);
@@ -20,40 +18,33 @@ const blogPosts = ref([]) as any;
 const sidebar = ref();
 const postSlug = ref(route.params.blogSlug) as any;
 
-const postTitle = ref();
-const postAuthor = ref();
-const postDate = ref();
 const postContent = ref();
 const coverImage = ref();
 const postCategory = ref([]) as any;
 
+const showSideBar = ref();
 
+const postData = ref() as any;
 
 postSlug.value = route.params.blogSlug;
 
-
 async function fetchPost() {
   isLoading.value = true;
-  const API_URL = ("/api/content/blogpost/" + postSlug.value)
+  const API_URL = "/api/content/blogpost/" + postSlug.value;
 
-  const API_URL2 = ("/api/content/blogposts/")
+  const API_URL2 = "/api/content/blogposts/";
 
   axios.get(API_URL2).then((res) => {
-    blogPosts.value = res.data
-  })
+    blogPosts.value = res.data;
+  });
 
   axios.get(API_URL).then((res) => {
-    const postData = res.data
-    postTitle.value = postData.postTitle
-    postAuthor.value = postData.postAuthor
-    postDate.value = postData.postDate
-    postContent.value = postData.postContent
-    coverImage.value = postData.coverImage
-    postCategory.value = postData.postCategory
-    isLoading.value = false
-  })
-
-
+    postData.value = res.data;
+    postContent.value = postData.postContent;
+    coverImage.value = postData.coverImage;
+    postCategory.value = postData.subCategory;
+    isLoading.value = false;
+  });
 }
 
 watch(
@@ -65,57 +56,61 @@ watch(
   }
 );
 const scrollTopp = ref();
-
+const sideBarTop = ref();
 function logScroll() {
-  const sidebar2 = sidebar.value.sidebar;
   scrollTopp.value = $(window).scrollTop();
   const toBottom =
     window.innerHeight + Math.round(window.scrollY) >=
     document.body.offsetHeight;
 
-  if (!toBottom && scrollTopp.value >= 280) {
-    sidebar2.style.transition = "all 0.3s ease-in-out";
+    if (scrollTopp.value >= 280){
+      showSideBar.value = true;
+      sideBarTop.value = scrollTopp.value + 300 + "px";
+    }
 
-    sidebar2.style.top = scrollTopp.value + 200 + "px";
-  } else if (!toBottom && scrollTopp.value < 400) {
-    sidebar2.style.position = "absolute";
-    sidebar2.style.top = "400px";
-  } else if (toBottom) {
-    sidebar2.style.top = scrollTopp.value + 110 + "px";
-  }
+
+    if (scrollTopp.value <= 280){
+      sideBarTop.value = '250px';
+    }
+    if (toBottom) {
+      sideBarTop.value = scrollTopp.value + 400 + "px";
+    }
+  
 }
 
-
 onMounted(() => {
-
   fetchPost();
   window.addEventListener("scroll", logScroll);
 
   if (signedInCheck.state) {
-    axios.post("/api/user/updateRead", {blogPostID: postSlug.value, userID: signedInCheck.uid}).then((res) => {
-          console.log(res);
-        })
+    axios
+      .post("/api/user/updateRead", {
+        blogPostID: postSlug.value,
+        userID: signedInCheck.uid,
+      })
+      .then((res) => {
+      });
   } else {
     watch(signedInCheck, () => {
       if (signedInCheck.state) {
-        console.log(postSlug.value);
-        console.log(signedInCheck.uid);
-        axios.post("/api/user/updateRead", {blogPostID: postSlug.value, userID: signedInCheck.uid}).then((res) => {
-          console.log(res);
-        })
+        axios
+          .post("/api/user/updateRead", {
+            blogPostID: postSlug.value,
+            userID: signedInCheck.uid,
+          })
+          .then((res) => {
+          });
       }
-    })
-
-
+    });
   }
-
 });
 
-watch(() => route.params.blogSlug, () => {
-  postSlug.value = route.params.id
-
-
-})
+watch(
+  () => route.params.blogSlug,
+  () => {
+    postSlug.value = route.params.id;
+  }
+);
 
 onBeforeUnmount(() => {
   window.removeEventListener("scroll", logScroll);
@@ -126,22 +121,38 @@ onBeforeUnmount(() => {
   <TransitionGroup name="fade">
     <div v-if="!isLoading" class="posts-wrapper">
       <div class="blogpost-wrapper" ref="postWrapper">
-        <div class="post-title">
-          {{ postTitle }}
-          <div class="post-category-wrapper">
-            <div class="post-category" v-for="category in postCategory">
-              {{ category }}
+        <div class="post-data">
+          <div class="data-wrapper">
+            <div class="title">{{ postData.postTitle }}</div>
+            <div class="author-date">
+              <div class="author-wrapper">
+                <writerIcon />
+                <div class="author">{{ postData.postAuthor }}</div>
+              </div>
+
+              <div class="date">
+                {{
+                  moment(new Date(postData.postDate)).format("MMM DD, HH:mm")
+                }}
+              </div>
+              <div class="post-category" v-for="category in postData.subCategory"
+              >
+                {{ category }}
+              </div>
             </div>
           </div>
+          <div class="cover-image">
+            <img :src="postData.coverImage" alt="" />
+          </div>
         </div>
-        <div class="post-date">{{ moment(new Date(postDate)).format(
-          "MMM DD, HH:mm"
-        ) }}</div>
-        <div class="post-author">{{ postAuthor }}</div>
+
         <img :src="coverImage" alt="" />
-        <div class="post-content" v-html="postContent"></div>
+        <div class="post-content" v-html="postData.postContent"></div>
       </div>
-      <SideBar ref="sidebar" class="sidebar" :Posts="blogPosts" :Slug="postSlug" />
+      <transition name="sidebar">
+        <SideBar v-if="showSideBar" ref="sidebar" class="sidebar" :Posts="blogPosts" :Slug="postSlug"
+        />
+      </transition>
     </div>
   </TransitionGroup>
 </template>
@@ -150,61 +161,97 @@ onBeforeUnmount(() => {
 .posts-wrapper {
   position: relative;
   height: calc(100% - 70px);
-  padding-top: 70px;
+  padding: 70px;
   width: 100%;
-  padding-left: 40px;
-
+  display: flex;
   .blogpost-wrapper {
     right: 0;
     left: 0;
-    margin: auto;
-    margin-top: 30px;
-    width: 60%;
+    padding: 20px;
+    padding-left: 200px;
+    width: 100%;
     color: var(--color-nav-bg);
 
-    .post-title {
-      font-family: Roboto Condensed;
+    .post-data {
       display: flex;
-      flex-direction: row;
-      width: 100%;
-      justify-content: space-between;
-      font-size: 5rem;
-      font-weight: 700;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 15px;
-
-      .post-category-wrapper {
-        position: relative;
+      .data-wrapper {
+        font-family: Roboto Condensed;
         display: flex;
-        gap: 10px;
+        width: 100%;
+        font-weight: 700;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 15px;
 
+        .title {
+          font-size: 5rem;
+        }
+        .author-date {
+          position: relative;
+          font-size: 1.2rem;
+          display: grid;
+          grid-template-columns: auto 2fr 1fr;
+          align-items: center;
+          gap: 20px;
+          .author-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--color-nav-bg);
+            border-radius: 5px;
+            color: var(--color-nav-txt);
+            transition: all 0.2s ease-in-out;
+
+            img {
+              position: relative;
+              width: 30px;
+            }
+
+            .author {
+              border-radius: 5px;
+              padding: 5px;
+            }
+            svg {
+              width: 30px;
+              height: auto;
+              fill: var(--color-nav-txt);
+              transition: all 0.2s ease-in-out;
+            }
+            &:hover {
+              cursor: pointer;
+              background-color: var(--color-nav-txt-darker);
+              color: var(--color-nav-bg);
+              svg {
+                fill: var(--color-nav-bg);
+              }
+            }
+          }
+        }
         .post-category {
           font-size: 1.5rem;
           padding: 5px;
           background-color: var(--color-nav-bg);
           color: var(--color-nav-txt);
-          border-radius: 10px;
+          border-radius: 5px;
           display: flex;
           flex-direction: column;
-          transition: all 0.2s ease-in-out
-        }
-
-        .post-category:hover {
-          cursor: pointer;
-          background-color: rgb(0, 87, 128);
-          color: var(--color-nav-bg);
+          transition: all 0.2s ease-in-out;
+          &:hover {
+            cursor: pointer;
+            background-color: var(--color-nav-txt-darker);
+            color: var(--color-nav-bg);
+          }
         }
       }
-
 
       .cover-image {
         width: 100%;
 
         img {
-          margin-left: 200px;
           width: 200px;
+          height: auto;
         }
       }
     }
@@ -306,8 +353,9 @@ onBeforeUnmount(() => {
 
 .sidebar {
   position: absolute;
-  right: 0;
-  top: 400px;
+  right: 40px;
+  transition: all 0.4s ease-in-out;
+  top: v-bind(sideBarTop);
 }
 
 .fade-move,
@@ -321,5 +369,17 @@ onBeforeUnmount(() => {
 .fade-leave-to {
   opacity: 0;
   transform: translateY(20vh);
+}
+
+.sidebar-enter-active,
+.sidebar-leave-active {
+  transition: all 1s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+/* 2. declare enter from and leave to state */
+.sidebar-enter-from,
+.sidebar-leave-to {
+  opacity: 0;
+  transform: translateX(20vh);
 }
 </style>

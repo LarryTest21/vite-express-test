@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterView } from "vue-router";
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, watch, computed, onMounted, onBeforeUnmount } from "vue";
 import PreLoader from "./components/PreLoader.vue";
 import { isLoading } from "./store/isloading";
 import { useTheme } from "./store/theme";
@@ -14,9 +14,14 @@ import { userData } from "./store/userData";
 import { getUser } from "./views/user";
 import "./assets/datepicker.scss";
 import { isMobile } from "./store/isMobile";
+import axios from "axios";
+import { log } from "console";
+import { storeRouterAnalytics } from "./components/newAnalytics";
+
+const router = useRoute();
+const path = computed(() => router.name);
 
 //GETTING USER DATA ON START
-getUser();
 
 const mobileNav = ref();
 const mobileNavButton = ref(false);
@@ -25,7 +30,7 @@ var windowWidth = document.documentElement.clientWidth;
 
 const theme = useTheme();
 
-const usrData = ref(userData());
+const usrData = userData();
 
 const mobileNavIconClicked = mobileIconClicked();
 
@@ -60,19 +65,6 @@ const onResize = () => {
 const checkRoute = () => {
   navigation.value = true;
 };
-
-watch(
-  () => route.name,
-  () => {
-    checkRoute();
-    if (route.name === "blogpost" || route.name === "newspost") {
-      window.addEventListener("scroll", moveScrollIndicator);
-    } else {
-      window.removeEventListener("scroll", moveScrollIndicator);
-      showScroll.value = false;
-    }
-  }
-);
 
 const opacity = ref(1);
 const showScroll = ref(false);
@@ -122,15 +114,10 @@ onMounted(() => {
     theme.state = "theme-light";
   }
 
-  if (usrData.value.data != undefined) {
-    theme.state = usrData.value.data.userSettings.themeName;
+  if (usrData.data != undefined) {
+    console.log(usrData.data);
 
-    watch(
-      () => usrData.value.data.userSettings.themeName,
-      (newvalue) => {
-        theme.state = newvalue;
-      }
-    );
+    theme.state = usrData.data.userSettings.themeName;
   }
 
   watch(
@@ -166,6 +153,52 @@ onMounted(() => {
   mountApp.state = true;
   window.addEventListener("resize", onResize);
   onResize();
+
+  getUser().then(() => {
+    watch(
+      () => route.name,
+      () => {
+        checkRoute();
+        if (route.name === "blogpost" || route.name === "newspost") {
+          window.addEventListener("scroll", moveScrollIndicator);
+        } else {
+          window.removeEventListener("scroll", moveScrollIndicator);
+          showScroll.value = false;
+        }
+        const pageID = ref(route.name);
+        const userID = ref();
+
+        const checkUserAnalytics = new Promise(async (resolve, reject) => {
+          if (userData().data != undefined) {
+            resolve("success");
+          } else {
+            reject("rejected");
+          }
+        });
+
+        checkUserAnalytics
+          .then(() => {
+            userID.value = userData().data._id;
+            console.log(userID.value);
+            if (route.name === "blogpost") {
+              pageID.value = route.params.blogSlug.toString();
+            } else if (route.name === "newspost") {
+              pageID.value = route.params.newsSlug.toString();
+            }
+          })
+          .then(() => {
+            console.log(pageID.value, userID.value);
+            storeRouterAnalytics(pageID.value, userID.value);
+          })
+          .catch(() => {
+            userID.value = "randomUser";
+            console.log(pageID.value, userID.value);
+
+            storeRouterAnalytics(pageID.value, userID.value);
+          });
+      }
+    );
+  });
 });
 </script>
 
@@ -179,32 +212,28 @@ onMounted(() => {
     </div>
 
     <transition name="nav">
-      <Nav
-        v-if="
+      <Nav v-if="
           (mobileNav === 'full' && showNav) ||
           (mobileNav === 'medium' && showNav)
         "
-        :userData="usrData"
-        :class="mobileNav"
+           :userData="usrData"
+           :class="mobileNav"
       />
     </transition>
     <transition name="scroll">
-      <div
-        ref="scrollLineTop"
-        class="scrollLineTop"
-        id="scrollIndicator"
-        v-show="showScroll"
+      <div ref="scrollLineTop"
+           class="scrollLineTop"
+           id="scrollIndicator"
+           v-show="showScroll"
       ></div>
     </transition>
-    <div
-      class="mobile-top"
-      v-if="mobileNav === 'mobile'"
-      :class="mobileNavIconClicked.state ? 'active' : ''"
+    <div class="mobile-top"
+         v-if="mobileNav === 'mobile'"
+         :class="mobileNavIconClicked.state ? 'active' : ''"
     ></div>
     <transition name="mobileNav">
-      <MobileNav
-        v-if="mobileNav === 'mobile' && mobileNavIconClicked.state"
-        :userData="usrData.data"
+      <MobileNav v-if="mobileNav === 'mobile' && mobileNavIconClicked.state"
+                 :userData="usrData.data"
       />
     </transition>
 
@@ -269,7 +298,7 @@ onMounted(() => {
   position: fixed;
   z-index: 10;
   background-color: var(--color-nav-bg);
-  will-change:height;
+  will-change: height;
   transition: all 0.5s cubic-bezier(0.45, -0.2, 0.39, 1.2);
 
   &.active {

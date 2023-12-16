@@ -68,7 +68,7 @@ onMounted(async () => {
               <h1 class="posts-title">{{ post.postTitle }}</h1>
               <p class="posts-date">
                 {{
-                  moment(new Date(post.postDate.toDate())).format(
+                  moment(new Date(post.postDate)).format(
                     "MMM DD, HH:mm"
                   )
                 }}

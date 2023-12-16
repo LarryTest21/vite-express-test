@@ -7,12 +7,11 @@ import router from "./router";
 import VueClickAway from "vue3-click-away";
 import PrimeVue from 'primevue/config';
 
-const app = createApp(App);
 const pinia = createPinia();
+const app = createApp(App);
+app.use(pinia);
 
 app.use(PrimeVue);
-
-app.use(pinia);
 
 app.use(router);
 app.use(VueClickAway);
