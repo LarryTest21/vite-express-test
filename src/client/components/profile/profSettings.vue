@@ -16,7 +16,7 @@ const themeName = ref("theme-dark");
 const themeNameCheck = ref();
 const readPosts = ref(false);
 const overflow = ref('hidden');
-
+const notifSounds = ref()
 const showSaveButton = ref(false);
 watch(showSaveButton, () => {});
 
@@ -27,6 +27,7 @@ if (props.userData!.data.userSettings != undefined) {
   themeCheck.value = props.userData!.data.userSettings.themeCheck;
   readPosts.value = props.userData!.data.userSettings.readPosts;
   themeName.value = props.userData!.data.userSettings.themeName;
+  notifSounds.value = props.userData!.data.userSettings.notifSounds
   if (props.userData!.data.userSettings.themeName === "theme-light") {
     themeNameCheck.value = false;
   } else {
@@ -40,6 +41,7 @@ if (props.userData!.data.userSettings != undefined) {
       themeCheck.value = props.userData!.data.userSettings.themeCheck;
       readPosts.value = props.userData!.data.userSettings.readPosts;
       themeName.value = props.userData!.data.userSettings.themeName;
+      notifSounds.value = props.userData!.data.userSettings.notifSounds
 
       if (props.userData!.data.userSettings.themeName === "theme-light") {
         themeNameCheck.value = false;
@@ -88,6 +90,16 @@ watch(
     }
   }
 );
+watch(
+  () => notifSounds.value,
+  (newValue) => {
+    if (newValue != props.userData!.data.userSettings.notifSounds) {
+      showSaveButton.value = true;
+    } else {
+      showSaveButton.value = false;
+    }
+  }
+);
 
 watch(
   () => readPosts.value,
@@ -118,6 +130,7 @@ const saveSettings = () => {
     themeCheck: themeCheck.value,
     themeName: themeName.value,
     readPosts: readPosts.value,
+    notifSounds: notifSounds.value
   };
 
   localStorage.setItem("theme-color", themeName.value);
@@ -223,6 +236,16 @@ onBeforeUnmount(() => {
             </div>
           </label>
         </div>
+        <div class="theme wrapper">
+          <label>Notification sounds</label>
+          <label>
+            <input class="toggle-checkbox 2" type="checkbox" v-model="notifSounds"
+            />
+            <div class="toggle-slot">
+              <div class="toggle-button"></div>
+            </div>
+          </label>
+        </div>
       </div>
 
       <div class="save">
@@ -237,6 +260,22 @@ onBeforeUnmount(() => {
 </template>
 
 <style lang="scss" scoped>
+
+*::-webkit-scrollbar {
+  width: 10px;
+  border-radius: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #c5c5c5;
+  border-radius: 5px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-nav-txt);
+  border-radius: 10px;
+}
+
 .settings-wrapper {
   position: relative;
   font-family: Chango;
@@ -245,12 +284,12 @@ onBeforeUnmount(() => {
   border-radius: 10px;
   width: 100%;
   height: 100%;
-  overflow-y: v-bind(overflow);
   display: flex;
   flex-direction: column;
+  scrollbar-gutter:stable;
 
   label {
-    font-size: 2rem;
+    font-size: rem;
     margin: 10px;
   }
 
@@ -260,7 +299,7 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    height: 100%;
+    max-height: 90%;
     transition: all 0.2s ease-in-out;
 
     .settings-wrapper {
@@ -269,6 +308,9 @@ onBeforeUnmount(() => {
       height: 100%;
       justify-content: space-around;
       transition: all 0.2s ease-in-out;
+      overflow-y: auto;
+      max-height: 100%;
+
 
       .theme-wrapper {
         position: relative;
@@ -483,7 +525,7 @@ onBeforeUnmount(() => {
         justify-content: space-between;
 
         label {
-          font-size: 1.5rem;
+          font-size: 1.3rem;
           display: flex;
           align-items: center;
           color: var(--color-nav-txt);
@@ -548,14 +590,14 @@ onBeforeUnmount(() => {
   .save {
     position: relative;
     display: flex;
-    height: 100px;
+    max-height: 90%;
 
     input[type="button"] {
-      height: 70px;
       width: 50%;
       margin: auto;
       box-shadow: rgba(0, 0, 0, 0.568) 2px 2px 2px 1px;
       font-family: Chango;
+      margin-top:10px;
       font-size: 2rem;
       cursor: pointer;
       padding: 10px;

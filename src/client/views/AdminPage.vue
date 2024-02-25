@@ -1,11 +1,11 @@
 <script async setup lang="ts">
 import { ref, onBeforeMount, onMounted } from "vue";
 import Modal from "../components/Modal.vue";
-import AdminCounts from "../components/adminpage/AdminPostsCount.vue";
-import AdminUsersTab from "../components/adminpage/AdminUsersTab.vue";
-import AdminAnalytics from "../components/adminpage/AdminAnalytics.vue"
-import TotalViews from "../components/adminpage/TotalViews.vue"
-import TotalVisitors from "../components/adminpage/TotalVisitors.vue"
+// import AdminCounts from "../components/adminpage/AdminPostsCount.vue";
+// import AdminUsersTab from "../components/adminpage/AdminUsersTab.vue";
+// import AdminAnalytics from "../components/adminpage/AdminAnalytics.vue"
+// import TotalViews from "../components/adminpage/TotalViews.vue"
+// import TotalVisitors from "../components/adminpage/TotalVisitors.vue"
 
 
 const usersTab = ref()

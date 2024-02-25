@@ -1,7 +1,7 @@
 <script  setup lang="ts">
 import { ref, watch, onBeforeUnmount, onMounted } from "vue";
 import { collection, doc, setDoc, getDoc, updateDoc, query, where, getDocs } from "firebase/firestore";
-import db from "../../firebase/firebaseInit";
+import db from "../../firebase/firebaserInit";
 import "firebase/compat/auth";
 import firebase from 'firebase/compat/app'
 import 'firebase/firestore'

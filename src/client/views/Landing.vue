@@ -2,168 +2,156 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import "jquery";
 import $ from "jquery";
-
-import { isMobile } from "../store/isMobile"
-
-const checkMobile = ref(isMobile())
-
+import { isMobile } from "../store/isMobile";
+import { stopScroll } from "../store/stopScroll";
+const checkMobile = ref(isMobile());
 
 const frontImages = ref([] as any);
 const imageStart = ref(false);
 var imageGoing = ref(null as any);
 
-
-
 var isScrolling = false;
 
 var isScrolling = false;
+const landing = ref();
 
 const scrollFunction = (event: any) => {
-  if (isScrolling) {
-    //Preventdefault wheel event
-    event.preventDefault();
-  } else {
-    if (
-      // SCROLLING UP
-      event.deltaY < 0
-    ) {
-      console.log("scrolling up");
+  if (!stopScroll().state) {
+    if (isScrolling) {
+      //Preventdefault wheel event
+      event.preventDefault();
+    } else {
+      if (
+        // SCROLLING UP
+        event.deltaY < 0
+      ) {
+        var $target = $(".section-landing.active").prev(".section-landing");
 
-      var $target = $(".section-landing.active").prev(".section-landing");
+        if ($target.length == 0) {
+        } else {
+          isScrolling = true;
 
-      if ($target.length == 0) {
-      } else {
+          $target = $(".section-landing.active").prev(".section-landing");
+          $(".section-landing").removeClass("active");
+          $target.addClass("active");
+
+          $("html, body").animate(
+            {
+              scrollTop: $target?.offset()?.top,
+            },
+            600,
+            function () {
+              isScrolling = false;
+            }
+          );
+        }
+
+        if ($target.hasClass("section2")) {
+          $(".dot").removeClass("up");
+          $(".dot").removeClass("down");
+          $(".ring-3 > div").addClass("up");
+        }
+        if ($target.hasClass("section1")) {
+          $(".dot").removeClass("up");
+          $(".dot").removeClass("down");
+          $(".ring-2 > div").addClass("up");
+        }
+
+        if ($target.hasClass("section1")) {
+          setTimeout(() => {
+            $(".ring > div").removeClass("dot-active");
+            $(".ring-1 > div").addClass("dot-active");
+          }, 600);
+        }
+        if ($target.hasClass("section2")) {
+          setTimeout(() => {
+            $(".ring > div").removeClass("dot-active");
+            $(".ring-2 > div").addClass("dot-active");
+          }, 600);
+        }
+        if ($target.hasClass("section3")) {
+          setTimeout(() => {
+            $(".ring > div").removeClass("dot-active");
+            $(".ring-3 > div").addClass("dot-active");
+          }, 600);
+        }
+        if ($target.length == 0) {
+        }
+      } else if (
+        // SCROLLING DOWN
+        event.deltaY > 0
+      ) {
         isScrolling = true;
 
-        $target = $(".section-landing.active").prev(".section-landing");
-        $(".section-landing").removeClass("active");
-        $target.addClass("active");
+        var $target = $(".section-landing.active").next(".section-landing");
 
-        $("html, body").animate(
-          {
-            scrollTop: $target?.offset()?.top,
-          },
-          600,
-          function () {
-            isScrolling = false;
-          }
-        );
-      }
+        if ($target.length == 0) {
+          $target = $(".section-landing:first");
+          $(".section-landing.active").removeClass("active");
+          $target.addClass("active");
 
-      if ($target.hasClass("section2")) {
-        $(".dot").removeClass("up");
-        $(".dot").removeClass("down");
-        console.log("3rd to second");
-        $(".ring-3 > div").addClass("up");
-      }
-      if ($target.hasClass("section1")) {
-        $(".dot").removeClass("up");
-        $(".dot").removeClass("down");
-        console.log("2nd to first");
-        $(".ring-2 > div").addClass("up");
-      }
+          $("html, body").animate(
+            {
+              scrollTop: $target?.offset()?.top,
+            },
+            800,
+            function () {
+              isScrolling = false;
+            }
+          );
+        } else {
+          $target = $(".section-landing.active").next(".section-landing");
+          $(".section-landing").removeClass("active");
+          $target.addClass("active");
 
-      if ($target.hasClass("section1")) {
-        setTimeout(() => {
-          $(".ring > div").removeClass("dot-active");
-          $(".ring-1 > div").addClass("dot-active");
-        }, 600);
-      }
-      if ($target.hasClass("section2")) {
-        setTimeout(() => {
-          $(".ring > div").removeClass("dot-active");
-          $(".ring-2 > div").addClass("dot-active");
-        }, 600);
-      }
-      if ($target.hasClass("section3")) {
-        setTimeout(() => {
-          $(".ring > div").removeClass("dot-active");
+          $("html, body").animate(
+            {
+              scrollTop: $target?.offset()?.top,
+            },
+            600,
+            function () {
+              isScrolling = false;
+            }
+          );
+        }
 
-          $(".ring-3 > div").addClass("dot-active");
-        }, 600);
-      }
-      if ($target.length == 0) {
-      }
-    } else if (
-      // SCROLLING DOWN
-      event.deltaY > 0
-    ) {
-      isScrolling = true;
+        if ($target.hasClass("section2")) {
+          $(".dot").removeClass("down");
+          $(".dot").removeClass("up");
+          $(".ring-1 > div").addClass("down");
+        }
+        if ($target.hasClass("section3")) {
+          $(".dot").removeClass("down");
+          $(".dot").removeClass("up");
+          $(".ring-2 > div").addClass("down");
+        }
 
-      var $target = $(".section-landing.active").next(".section-landing");
+        if ($target.hasClass("section2")) {
+        }
 
-      console.log("scrolling down");
-
-      if ($target.length == 0) {
-        $target = $(".section-landing:first");
-        $(".section-landing.active").removeClass("active");
-        $target.addClass("active");
-
-        $("html, body").animate(
-          {
-            scrollTop: $target?.offset()?.top,
-          },
-          800,
-          function () {
-            isScrolling = false;
-          }
-        );
-      } else {
-        $target = $(".section-landing.active").next(".section-landing");
-        $(".section-landing").removeClass("active");
-        $target.addClass("active");
-
-        $("html, body").animate(
-          {
-            scrollTop: $target?.offset()?.top,
-          },
-          600,
-          function () {
-            isScrolling = false;
-          }
-        );
-      }
-
-      if ($target.hasClass("section2")) {
-        $(".dot").removeClass("down");
-        $(".dot").removeClass("up");
-
-        console.log("1st to second");
-        $(".ring-1 > div").addClass("down");
-      }
-      if ($target.hasClass("section3")) {
-        $(".dot").removeClass("down");
-        $(".dot").removeClass("up");
-
-        console.log("2nd to third");
-        $(".ring-2 > div").addClass("down");
-      }
-
-      if ($target.hasClass("section2")) {
-      }
-
-      if ($target.hasClass("section1")) {
-        setTimeout(() => {
-          $(".ring > div").removeClass("dot-active");
-          $(".ring-1 > div").addClass("dot-active");
-        }, 600);
-      }
-      if ($target.hasClass("section2")) {
-        setTimeout(() => {
-          $(".ring > div").removeClass("dot-active");
-          $(".ring-2 > div").addClass("dot-active");
-        }, 600);
-      }
-      if ($target.hasClass("section3")) {
-        setTimeout(() => {
-          $(".ring > div").removeClass("dot-active");
-          $(".ring-3 > div").addClass("dot-active");
-        }, 600);
-      }
-      if ($target.length == 0) {
-        setTimeout(() => {
-          $(".ring-3 > div").addClass("dot-active");
-        }, 600);
+        if ($target.hasClass("section1")) {
+          setTimeout(() => {
+            $(".ring > div").removeClass("dot-active");
+            $(".ring-1 > div").addClass("dot-active");
+          }, 600);
+        }
+        if ($target.hasClass("section2")) {
+          setTimeout(() => {
+            $(".ring > div").removeClass("dot-active");
+            $(".ring-2 > div").addClass("dot-active");
+          }, 600);
+        }
+        if ($target.hasClass("section3")) {
+          setTimeout(() => {
+            $(".ring > div").removeClass("dot-active");
+            $(".ring-3 > div").addClass("dot-active");
+          }, 600);
+        }
+        if ($target.length == 0) {
+          setTimeout(() => {
+            $(".ring-3 > div").addClass("dot-active");
+          }, 600);
+        }
       }
     }
   }
@@ -191,7 +179,6 @@ onMounted(() => {
   $(".section-landing:first").addClass("active");
   window.addEventListener("wheel", scrollFunction, { passive: false });
 
-
   $(".dots-list > a").on("click", function (event) {
     event.preventDefault();
     $(".dots-list > a > li > div").removeClass("dot-active");
@@ -203,7 +190,6 @@ onMounted(() => {
     $(".dots-list > a > li > div").removeClass("down");
 
     $(".landing-wrapper > div").removeClass("active");
-
 
     if ($(".dot-active").hasClass("1")) {
       $(".section1").addClass("active");
@@ -228,27 +214,17 @@ onMounted(() => {
   });
 });
 
-
-
-
 onUnmounted(() => {
   window.removeEventListener("wheel", scrollFunction);
-
-
 });
 
-
-
 onUnmounted(() => {
   window.removeEventListener("wheel", scrollFunction);
-
-
 });
 </script>
 
 <template>
   <div class="page-indicator-wrapper" :class="checkMobile ? 'mobile' : ''">
-
     <ul class="dots-list">
       <a href="#section1" class="dots-list-link">
         <li class="ring ring-1">
@@ -268,7 +244,8 @@ onUnmounted(() => {
     </ul>
   </div>
 
-  <div class="landing-wrapper" :class="checkMobile ? 'mobile' : ''">
+  <div class="landing-wrapper" :class="checkMobile ? 'mobile' : ''" ref="landing"
+  >
     <div id="section1" class="section-landing section1">
       <div class="section-wrapper">
         <h1>This is section 1</h1>
@@ -280,9 +257,11 @@ onUnmounted(() => {
         <h1>This is section2</h1>
         <div class="images-wrapper">
           <transition-group name="carousel">
-            <ul class="image-carousel" v-for="(image, index) in frontImages" :key="index">
+            <ul class="image-carousel" v-for="(image, index) in frontImages" :key="index"
+            >
               <img @mouseover="hoveredImage" @mouseleave="unHoveredImage" class="image" :src="image.imgix_url"
-                :alt="image" :key="index" />
+                   :alt="image" :key="index"
+              />
             </ul>
           </transition-group>
         </div>
@@ -298,7 +277,6 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .page-indicator-wrapper {
-
   position: fixed;
   right: 0;
   width: 100px;
@@ -327,7 +305,6 @@ onUnmounted(() => {
       display: flex;
       justify-content: center;
       align-items: center;
-
     }
 
     .ring-2 {
@@ -346,8 +323,11 @@ onUnmounted(() => {
       height: 18px;
       width: 18px;
       border-radius: 50%;
-      transition: height 0.2s ease-in-out, width 0.2s ease-in-out,
-        border-radius 0.2s ease-in-out, translate 0.2s ease-in-out;
+      transition:
+        height 0.2s ease-in-out,
+        width 0.2s ease-in-out,
+        border-radius 0.2s ease-in-out,
+        translate 0.2s ease-in-out;
     }
 
     .dot.dot-active {
@@ -364,11 +344,14 @@ onUnmounted(() => {
   }
 
   @keyframes down {
-    0% {}
+    0% {
+    }
 
-    50% {}
+    50% {
+    }
 
-    80% {}
+    80% {
+    }
 
     100% {
       transform: translate(0, 51px);
@@ -376,13 +359,15 @@ onUnmounted(() => {
   }
 
   @keyframes up {
-    0% {}
+    0% {
+    }
 
     50% {
       border-radius: 20px;
     }
 
-    80% {}
+    80% {
+    }
 
     100% {
       transform: translate(0, -51.1px);
@@ -468,7 +453,7 @@ onUnmounted(() => {
           opacity: 1;
         }
 
-        .image-carousel.active:hover>img {
+        .image-carousel.active:hover > img {
           scale: 1.1;
         }
       }

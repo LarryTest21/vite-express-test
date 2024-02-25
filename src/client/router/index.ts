@@ -14,7 +14,7 @@ const router = createRouter({
       path: "/",
       name: "landing",
       component: () =>
-        import(/* webpackChunkName: "Landing" */ "../views/Landing.vue"),
+        import(/* webpackChunkName: "Landing" */ "../views/LandingNew.vue"),
     },
     {
       path: "/login",
@@ -65,8 +65,20 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () =>
-        import(/* webpackChunkName: "CreatePost" */ "../views/Test.vue"),
+        import(/* webpackChunkName: "CreatePost" */ "../views/CreatePostNew.vue"),
     },
+{
+    path: "/CreateEvent/:createEvent",
+    name: "createevent",
+    beforeEnter: guardRouteUser,
+
+    // route level code-splitting
+    // this generates a separate chunk (About.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () =>
+      import(/* webpackChunkName: "CreateEvent" */ "../views/CreatePostNew.vue"),
+  },
+
     {
       path: "/Profile",
       name: "profile",

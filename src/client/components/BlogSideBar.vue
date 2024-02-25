@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { isMobile } from "../store/isMobile"
+import { ref, watch, onMounted } from "vue";
+import { isMobile } from "../store/isMobile";
+import gsap from "gsap";
 
-const checkMobile = ref(isMobile())
+const checkMobile = ref(isMobile());
 
 const selected = ref();
 
 const emit = defineEmits(["selected", "search"]);
-
 
 const clickBlog = (e: any) => {
   var text = e.target.textContent;
@@ -22,11 +22,30 @@ const noSelected = () => {
   }
 };
 
+onMounted(() => {
 
+  const categories = document.querySelectorAll('.categories>li');
+  categories.forEach((box:any) => {
+  // box.style.opacity = 0;
+  // box.style.transform = 'translateX(-100%)';
+
+});
+
+gsap.to('.categories>li', {
+  delay: 1,
+  opacity:1,
+  transform: 'translateX(0%)',
+  duration: 0.3,
+  stagger: 0.1
+})
+
+
+});
 </script>
 
 <template>
-  <div class="sidebar-wrapper" :class="checkMobile.state ? 'mobile' : ''" v-click-away="noSelected">
+  <div class="sidebar-wrapper" :class="checkMobile.state ? 'mobile' : ''" v-click-away="noSelected"
+  >
     <ul class="categories">
       <span>Categories</span>
       <li @click="clickBlog" tabindex="0">Blog</li>
@@ -52,6 +71,7 @@ const noSelected = () => {
   }
 
   .categories {
+
     list-style: none;
     display: flex;
     list-style-type: none;
@@ -71,10 +91,12 @@ const noSelected = () => {
     }
 
     li {
+      opacity:0;
+      transform: translateX(-100%);
       text-decoration: none !important;
       padding: 10px;
       border-radius: 0 10px 10px 0;
-      color: var(--color-nav-bg)
+      color: var(--color-nav-bg);
     }
 
     li:hover,
@@ -83,8 +105,7 @@ const noSelected = () => {
       transition: all 0.2s ease-in-out;
       cursor: pointer;
       background-color: var(--color-nav-bg);
-      color: var(--color-nav-
-      );
+      color: var(--color-nav-);
     }
   }
 }
@@ -104,8 +125,9 @@ const noSelected = () => {
     }
 
     li {
-      margin:0 10px;
+      margin: 0 10px;
       border-radius: 10px;
     }
   }
-}</style>
+}
+</style>

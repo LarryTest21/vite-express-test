@@ -39,9 +39,7 @@ export async function storeRouterAnalytics(router: any, user: any) {
       }
     }
   } else {
-    axios.post("api/analytics/visitorCounting", { userID, pageID, countVisitor }).then((res) => {
-
-    });
+    
 
 
 

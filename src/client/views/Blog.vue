@@ -9,13 +9,11 @@ import eyeIcon from "../components/icons/eye.vue";
 import axios from "axios";
 import { isMobile } from "../store/isMobile";
 import { blogSearch } from "../store/blogSearch";
-import {blogSearchIcon} from "../store/blogSearchIcon"
-
+import { blogSearchIcon } from "../store/blogSearchIcon";
 
 const checkMobile = ref(isMobile());
 const searchActive = ref(blogSearch());
 const searchIcon = blogSearchIcon();
-
 
 const isLoading = ref(true);
 const blogPosts = ref([]) as any;
@@ -23,6 +21,10 @@ const sidebar = ref();
 const storedPosts = ref([]) as any;
 
 const sonarBackground = ref(false);
+
+const sideBarShow = ref(false)
+
+
 var readArray = [] as any;
 
 async function getPosts() {
@@ -32,16 +34,19 @@ async function getPosts() {
   storedPosts.value = [];
 
   const API_URL = "/api/content/blogposts";
-  axios.get(API_URL).then((res) => {
-    blogPosts.value = storedPosts.value = res.data;
-    setTimeout(() => {
-      isLoading.value = false;
-    }, 600);
-  }).then(()=> {
-    setTimeout(() => {
-      searchIcon.state = true
-    }, 500);
-  })
+  axios
+    .get(API_URL)
+    .then((res) => {
+      blogPosts.value = storedPosts.value = res.data;
+      setTimeout(() => {
+        isLoading.value = false;
+      }, 600);
+    })
+    .then(() => {
+      setTimeout(() => {
+        searchIcon.state = true;
+      }, 500);
+    });
 }
 
 const selected = (e: String) => {
@@ -80,10 +85,12 @@ const inputFocused = (e: any) => {
 
 onMounted(async () => {
   getPosts();
+  sideBarShow.value = true
 });
-onBeforeUnmount(()=> {
-  searchIcon.state = false
-})</script>
+onBeforeUnmount(() => {
+  searchIcon.state = false;
+});
+</script>
 
 <template>
   <TransitionGroup name="search">
@@ -94,13 +101,13 @@ onBeforeUnmount(()=> {
   <div class="blog-container" :class="checkMobile.state ? 'mobile' : ''" key="1"
   >
     <transition name="fadeLoading">
-      <SonarLoading class="sonar" v-if="isLoading" :background="sonarBackground" />
-    </transition>
-
-    <div class="sidebar">
-      <BlogSideBar @selected="selected" @search="inputFocused" class="sidebar" ref="sidebar"
+      <SonarLoading class="sonar" v-if="isLoading" :background="sonarBackground"
       />
-    </div>
+    </transition>
+      <div class="sidebar" v-if="sideBarShow">
+        <BlogSideBar @selected="selected" @search="inputFocused" class="sidebar" ref="sidebar"
+        />
+      </div>
 
     <div class="wrapper" key="1">
       <TransitionGroup name="fade">
@@ -188,11 +195,11 @@ onBeforeUnmount(()=> {
   height: calc(100% - 70px);
   padding-top: 70px;
   display: flex;
-.sonar{
-  position:absolute;
-  height:100%;
-  width:100%;
-}
+  .sonar {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+  }
   .sidebar {
     position: relative;
     margin-top: 30px;
@@ -247,14 +254,14 @@ onBeforeUnmount(()=> {
         color: var(--color-nav-bg);
         background-color: var(--color-nav-txt);
         box-shadow: rgba(2, 13, 32, 0.53) 2px 1px 4px 1px;
-        cursor:pointer;
-        bottom:140px;
-        right:15px;
+        cursor: pointer;
+        bottom: 140px;
+        right: 15px;
 
         a {
           position: relative;
         }
-        &:hover{
+        &:hover {
           background-color: var(--color-nav-txt-darker);
         }
         &:active {
@@ -484,7 +491,6 @@ onBeforeUnmount(()=> {
   position: absolute;
 }
 
-
 .fadeLoading-enter-active,
 .fadeLoading-leave-active {
   transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
@@ -495,7 +501,6 @@ onBeforeUnmount(()=> {
 .fadeLoading-leave-to {
   opacity: 0;
 }
-
 
 //MOBILE CSS
 

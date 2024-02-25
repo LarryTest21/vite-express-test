@@ -38,6 +38,9 @@ const userModel = new mongoose.Schema(
     profilePic: String,
     readBlog: Array,
     token: String,
+    notificationArray:{
+      type: Array
+    },
     userSettings: {
       type: Object,
       default: {
@@ -45,8 +48,18 @@ const userModel = new mongoose.Schema(
         themeCheck: true,
         themeName: "theme-light",
         readPosts: false,
+        notifSounds: true,
+       
       }
     },
+    chatFriendColor: {
+      type:Object
+    },
+    friendsActions: {
+      type: Object
+    },
+   
+   
     savedPost: Object,
   },
   { collection: "users" }

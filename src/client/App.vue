@@ -15,8 +15,9 @@ import { getUser } from "./views/user";
 import "./assets/datepicker.scss";
 import { isMobile } from "./store/isMobile";
 import axios from "axios";
-import { log } from "console";
 import { storeRouterAnalytics } from "./components/newAnalytics";
+import { signedIn } from "./store/signedIn";
+
 
 const router = useRoute();
 const path = computed(() => router.name);
@@ -134,18 +135,14 @@ onMounted(() => {
   );
 
   if (!isLoadingCheck.state) {
-    setTimeout(() => {
       showNav.value = true;
-    }, 100);
   }
 
   watch(
     () => isLoadingCheck.state,
     (loaded) => {
       if (!loaded) {
-        setTimeout(() => {
           showNav.value = true;
-        }, 100);
       }
     }
   );
@@ -154,51 +151,50 @@ onMounted(() => {
   window.addEventListener("resize", onResize);
   onResize();
 
-  getUser().then(() => {
-    watch(
-      () => route.name,
-      () => {
-        checkRoute();
-        if (route.name === "blogpost" || route.name === "newspost") {
-          window.addEventListener("scroll", moveScrollIndicator);
-        } else {
-          window.removeEventListener("scroll", moveScrollIndicator);
-          showScroll.value = false;
-        }
-        const pageID = ref(route.name);
-        const userID = ref();
-
-        const checkUserAnalytics = new Promise(async (resolve, reject) => {
-          if (userData().data != undefined) {
-            resolve("success");
+    getUser().then(() => {
+      watch(
+        () => route.name,
+        () => {
+          checkRoute();
+          if (route.name === "blogpost" || route.name === "newspost") {
+            window.addEventListener("scroll", moveScrollIndicator);
           } else {
-            reject("rejected");
+            window.removeEventListener("scroll", moveScrollIndicator);
+            showScroll.value = false;
           }
-        });
+          const pageID = ref(route.name);
+          const userID = ref();
 
-        checkUserAnalytics
-          .then(() => {
-            userID.value = userData().data._id;
-            console.log(userID.value);
-            if (route.name === "blogpost") {
-              pageID.value = route.params.blogSlug.toString();
-            } else if (route.name === "newspost") {
-              pageID.value = route.params.newsSlug.toString();
+          const checkUserAnalytics = new Promise(async (resolve, reject) => {
+            if (userData().data != undefined) {
+              resolve("success");
+
+            } else {
+              reject("rejected");
+
             }
-          })
-          .then(() => {
-            console.log(pageID.value, userID.value);
-            storeRouterAnalytics(pageID.value, userID.value);
-          })
-          .catch(() => {
-            userID.value = "randomUser";
-            console.log(pageID.value, userID.value);
-
-            storeRouterAnalytics(pageID.value, userID.value);
           });
-      }
-    );
-  });
+
+          checkUserAnalytics
+            .then(() => {
+              userID.value = userData().data._id;
+              if (route.name === "blogpost") {
+                pageID.value = route.params.blogSlug.toString();
+              } else if (route.name === "newspost") {
+                pageID.value = route.params.newsSlug.toString();
+              }
+            })
+            .then(() => {
+              storeRouterAnalytics(pageID.value, userID.value);
+            })
+            .catch(() => {
+              userID.value = "randomUser";
+
+              storeRouterAnalytics(pageID.value, userID.value);
+            });
+        }
+      );
+    });
 });
 </script>
 
@@ -208,7 +204,6 @@ onMounted(() => {
   <div id="app" v-if="mountApp" :class="[mobileNav]">
     <MobileNavIcon class="mobilenavicon" v-if="mobileNav === 'mobile'" />
     <div class="background">
-      <img class="background-image" src="./assets/backgrounds/stylized.jpg" />
     </div>
 
     <transition name="nav">
@@ -216,7 +211,6 @@ onMounted(() => {
           (mobileNav === 'full' && showNav) ||
           (mobileNav === 'medium' && showNav)
         "
-           :userData="usrData"
            :class="mobileNav"
       />
     </transition>
@@ -266,12 +260,6 @@ onMounted(() => {
   }
 
   &::after {
-    content: "";
-    display: block;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    box-shadow: inset 0px 4px 40px 50px rgba(255, 255, 255, 0.075);
   }
 }
 
@@ -371,5 +359,10 @@ onMounted(() => {
   text-align: center;
   font-size: 2rem;
   color: red;
+}
+
+
+#app.mobile{
+  width:100vw;
 }
 </style>

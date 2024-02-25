@@ -8,8 +8,7 @@ const searchInput = ref();
 const props = defineProps({
   storedPosts: Array,
 });
-const searchArray = ref(props.storedPosts!)
-
+const searchArray = ref(props.storedPosts!);
 
 const showResults = ref(false);
 const results = ref([]) as any;
@@ -35,6 +34,7 @@ const inputNotFocused = () => {
 };
 
 watch(searchValue, (newValue) => {
+  console.log(results.value)
   results.value.forEach((post: any) => {
     delete post.whereFound1;
     delete post.whereFound2;
@@ -52,13 +52,22 @@ watch(searchValue, (newValue) => {
       resulstCheck.value = true;
 
       resultsTitle.value = searchArray.value.filter(
-        (item: any) => item.postTitle.toLowerCase().indexOf(searchValue.value.toLowerCase()) !== -1
+        (item: any) =>
+          item.postTitle
+            .toLowerCase()
+            .indexOf(searchValue.value.toLowerCase()) !== -1
       );
       resultsContent.value = searchArray.value.filter(
-        (item: any) => item.postContent.toLowerCase().indexOf(searchValue.value.toLowerCase()) !== -1
+        (item: any) =>
+          item.postContent
+            .toLowerCase()
+            .indexOf(searchValue.value.toLowerCase()) !== -1
       );
       resultsAuthor.value = searchArray.value.filter(
-        (item: any) => item.postAuthor.toLowerCase().indexOf(searchValue.value.toLowerCase()) !== -1
+        (item: any) =>
+          item.postAuthor
+            .toLowerCase()
+            .indexOf(searchValue.value.toLowerCase()) !== -1
       );
 
       resultsTitle.value.forEach((post: any) => {
@@ -87,7 +96,6 @@ onMounted(() => {
   setTimeout(() => {
     searchInput.value.focus();
   }, 100);
-
 });
 </script>
 
@@ -96,33 +104,36 @@ onMounted(() => {
     <div class="input">
       <div class="search-results-outer-wrapper">
         <input ref="searchInput" type="text" class="search-input" v-model="searchValue" @focus="inputFocused"
-          @blur="inputNotFocused" />
+               @blur="inputNotFocused"
+        />
         <div class="results-tab-wrapper">
           <Transition name="resultsTab">
             <div class="results-tab" v-if="resulstCheck">
               <TransitionGroup name="results">
                 <div class="results" v-for="result in results" :key="1">
-                  <router-link :to="/blog/ + result.postID" key="result.id" class="posts-permalink">
+                  <router-link :to="/blog/ + result._id" key="result.id" class="posts-permalink"
+                  >
                   </router-link>
 
                   <div class="title">{{ result.postTitle }}</div>
                   <div class="where-found-wrapper">
                     <div class="label">Found in</div>
-                    <div class="search-place" v-if="result.whereFound1 !== undefined">
+                    <div class="search-place" v-if="result.whereFound1 !== undefined"
+                    >
                       "{{ result.whereFound1 }}"
                     </div>
-                    <div class="search-place" v-if="result.whereFound2 !== undefined">
+                    <div class="search-place" v-if="result.whereFound2 !== undefined"
+                    >
                       "{{ result.whereFound2 }}"
                     </div>
-                    <div class="search-place" v-if="result.whereFound3 !== undefined">
+                    <div class="search-place" v-if="result.whereFound3 !== undefined"
+                    >
                       "{{ result.whereFound3 }}"
                     </div>
                   </div>
                   <div class="post-date">
                     {{
-                      moment(new Date(result.postDate)).format(
-                        "MMM DD, HH:mm"
-                      )
+                      moment(new Date(result.postDate)).format("MMM DD, HH:mm")
                     }}
                   </div>
                 </div>
@@ -194,7 +205,6 @@ onMounted(() => {
         outline: none;
         width: 100%;
       }
-
     }
   }
 
@@ -280,7 +290,7 @@ onMounted(() => {
           width: 2px;
           border-radius: 5px;
           background-color: var(--color-nav-txt);
-          z-index: 0
+          z-index: 0;
         }
 
         .where-found-wrapper {

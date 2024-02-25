@@ -43,7 +43,9 @@ const signIn = () => {
     console.log(`output->res`,res)
     accToken.accessToken = res.data.data.accessToken
     signedInCheck.uid = res.data.data.email
-    if (res.data.data.autoLogin === true) {
+
+    console.log(res.data.data)
+    if (res.data.data.userSettings.autoLogin === true) {
       localStorage.setItem('autoLogin', "true")
     }
     localStorage.setItem('loggedIn', "true")

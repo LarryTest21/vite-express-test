@@ -1,11 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
-import {
-  getBlob,
-  getStorage,
-  ref as storageFBRef,
-  getDownloadURL,
-} from "firebase/storage";
 import { signedIn } from "../store/signedIn";
 import { isAdmin } from "../store/isAdmin";
 import router from "../router";
@@ -16,6 +10,7 @@ import { base64NoPFP } from "../components/icons/nopfpbase64";
 import bellIcon from "../components/icons/bell.vue";
 import axios from "axios";
 import { userData } from "../store/userData";
+
 
 const userPFP = ref();
 const noPFP = ref();
@@ -88,6 +83,7 @@ const modalAnswer = (t: any) => {
   localStorage.removeItem("loggedIn");
   localStorage.removeItem("userClearance");
   localStorage.removeItem("aT_hsh");
+  localStorage.removeItem("savedEvent");
   localStorage.removeItem("savedPost");
 
 
@@ -109,7 +105,9 @@ const modalAnswer = (t: any) => {
             localStorage.removeItem("email");
             localStorage.removeItem("avatar");
             localStorage.removeItem("loggedIn");
+            localStorage.removeItem("savedEvent");
             localStorage.removeItem("savedPost");
+
           })
           .then(() => {
             axios
@@ -165,7 +163,9 @@ const logOut = () => {
     localStorage.removeItem("email");
     localStorage.removeItem("avatar");
     localStorage.removeItem("loggedIn");
+    localStorage.removeItem("savedEvent");
     localStorage.removeItem("savedPost");
+
 
     if (
       route.name === "profile" ||
@@ -235,11 +235,14 @@ onMounted(() => {
           </div>
         </div>
         <div class="usertab-links">
+          <router-link @click.native.prevent="userClick" to="/profile"
+            >Profile</router-link
+          >
           <router-link @click.native.prevent="userClick" to="/createpost/newPost"
             >Create Post</router-link
           >
-          <router-link @click.native.prevent="userClick" to="/profile"
-            >Profile</router-link
+          <router-link @click.native.prevent="userClick" to="/createevent/newEvent"
+            >Create Event</router-link
           >
           <router-link @click.native.prevent="userClick" to="/editpostslist" v-if="!isAdminCheck.state"
             >Edit Posts</router-link
@@ -351,7 +354,6 @@ onMounted(() => {
       height: 100%;
       z-index: -1;
       gap: 10px;
-
       .notifications {
         position: relative;
         display: flex;
@@ -463,8 +465,8 @@ onMounted(() => {
             padding: 10px;
 
             img {
-              width:100%;
-              height:100%;
+              width: 100%;
+              height: 100%;
             }
           }
 
@@ -476,6 +478,7 @@ onMounted(() => {
             border-radius: 10px;
             display: flex;
             justify-content: flex-end;
+            padding: 10px;
 
             .notif-counter {
               position: absolute;
@@ -485,7 +488,7 @@ onMounted(() => {
               font-weight: 700;
               font-size: 1.2rem;
               z-index: 1;
-              right: 0;
+              right: 10px;
               width: 28px;
               height: 28px;
               border-radius: 50%;

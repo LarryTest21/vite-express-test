@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import { User, userAuth } from "../models/user";
+import { messagesChild, messagesParent } from "../models/message";
 import { ObjectId } from "bson";
 import { request } from "http";
+import { send } from "@emailjs/browser";
 const express = require("express");
 
 const bcrypt = require("bcryptjs");
@@ -386,4 +388,285 @@ export async function updateSavedPost(req: Request, res: Response) {
   }
 }
 
+export async function addUserChat(req: Request, res: Response) {
+  const user = { _id: req.params.id };
+  const addOtherUserID = req.body.id;
+
+  const findAdded = await User.findOne(user).then(async (result: any) => {
+    const addedUser = result.friendsActions.addedUsers;
+    const isObjectPresent = addedUser.find((o: any) => o === addOtherUserID);
+    if (isObjectPresent) {
+      res
+        .status(410)
+        .json({ data: "User already added", userId: addOtherUserID });
+    } else {
+      try {
+        const doc = await User.updateOne(
+          user,
+          {
+            $push: {
+              "friendsActions.addedUsers": req.body.id,
+            },
+          },
+          { returnOriginal: false }
+        ).then(async () => {
+          const requestUser = { _id: req.body.id };
+
+          const doc = await User.updateOne(
+            requestUser,
+            {
+              $push: {
+                "friendsActions.requestUsers": req.params.id,
+              },
+            },
+            { returnOriginal: false }
+          );
+          res.status(200).json({ data: doc });
+        });
+      } catch (err: any) {
+        res.status(410).json({ success: false, message: err.message });
+      }
+    }
+  });
+}
+
+export async function denyUserRequest(req: Request, res: Response) {
+  const user = { _id: req.params.id };
+  const denyOtherUserID = req.body.id;
+
+  const findRequestedUser = await User.updateOne(user, {
+    $pull: {
+      "friendsActions.requestUsers": denyOtherUserID,
+    },
+  })
+    .then(async () => {
+      const findRequestedUser = await User.updateOne(
+        { _id: req.body.id },
+        {
+          $pull: {
+            "friendsActions.addedUsers": req.params.id,
+          },
+        }
+      ).then(() => {
+        res
+          .status(200)
+          .json({ success: true, message: "User denied as friend" });
+      });
+    })
+    .catch((err) => {
+      res.status(400).json({ success: false, message: err.message });
+    });
+}
+
+export async function acceptUserRequest(req: Request, res: Response) {
+  const userData = { _id: req.params.id };
+  const user = req.params.id;
+
+  const acceptedUserData = { _id: req.body.id };
+  const acceptUser = req.body.id;
+
+  try {
+    const doc = await User.findOne(userData)
+      .then((result) => {
+        console.log(result!.friendsActions);
+        const friendsActions = result!.friendsActions;
+
+        friendsActions.acceptedUsers.push(acceptUser);
+        friendsActions.requestUsers.splice(
+          friendsActions.requestUsers.indexOf(acceptUser),
+          1
+        );
+
+        return friendsActions;
+      })
+      .then(async (friendsActions) => {
+        const doc = await User.findOneAndUpdate(userData, {
+          $set: {
+            friendsActions: friendsActions,
+          },
+        });
+      })
+      .then(async () => {
+        const doc = await User.findOne(acceptedUserData)
+          .then((result) => {
+            const friendsActions = result!.friendsActions;
+
+            friendsActions.acceptedUsers.push(user);
+            friendsActions.addedUsers.splice(
+              friendsActions.addedUsers.indexOf(user),
+              1
+            );
+
+            return friendsActions;
+          })
+          .then(async (friendsActions) => {
+            const doc = await User.findOneAndUpdate(acceptedUserData, {
+              $set: {
+                friendsActions: friendsActions,
+              },
+            });
+          })
+          .then(() => {
+            res.status(200).json({ success: true });
+          });
+      });
+  } catch (err: any) {
+    res.status(410).json({ success: false, message: err.message });
+  }
+
+  // const findRequestedUser = await User.updateOne(
+  //   { _id: req.params.id },
+  //   {
+  //     $push: {
+  //       "friendsActions.acceptedUsers": req.body.id,
+  //       "friendsActions.requestUsers": req.body.id,
+  //     },
+  //   }
+  // )
+  //   .then(async () => {
+  //     const findRequestedUser = await User.updateOne(
+  //       { _id: req.body.id },
+  //       {
+  //         $push: {
+  //           "friendsActions.acceptedUsers": req.params.id,
+  //           "friendsActions.addedUsers": req.params.id,
+  //         },
+  //       }
+  //     ).then(() => {
+  //       res
+  //         .status(200)
+  //         .json({ success: true, message: "User accepted as friend" });
+  //     });
+  //   })
+  //   .catch((err) => {
+  //     res.status(400).json({ success: false, message: err.message });
+  //   });
+}
+
+export async function privateMessage(req: Request, res: Response) {
+  const senderID = req.body.senderID;
+  const sendTo = req.body.sendTo;
+  const message = req.body.message;
+  const date = req.body.date;
+
+  const messageData = {
+    senderID: senderID,
+    sendTo: sendTo,
+    date: date,
+    message: message,
+  };
+  console.log(messageData);
+
+  try {
+    messagesParent
+      .findOne({ convParticipants: { $all: [senderID, sendTo] } })
+      .then((result) => {
+        if (result === null) {
+          messagesParent.create(messageData);
+          res.status(200).json({ success: true });
+        } else {
+          messagesParent
+            .findOneAndUpdate(
+              { convParticipants: { $all: [senderID, sendTo] } },
+              { $push: { messages: messageData } }
+            )
+            .then((result) => {
+              res.status(200).json({ succesfull: true });
+            });
+        }
+      });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err });
+  }
+}
+
+export async function getPrivateMessage(req: Request, res: Response) {
+  const senderID = req.body.senderID;
+  const getFrom = req.body.getFrom;
+
+  try {
+    messagesParent
+      .findOne({ convParticipants: { $all: [senderID, getFrom] } })
+      .then((result) => {
+        res.status(200).json(result);
+      });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err });
+  }
+}
+export async function saveRead(req: Request, res: Response) {
+  const messageIndex = req.body.messageIndex;
+  const senderID = req.body.senderID;
+  const getFrom = req.body.sendTo;
+
+  console.log(senderID);
+  if (messageIndex != undefined) {
+    try {
+      messagesParent
+        .findOneAndUpdate(
+          { convParticipants: { $all: [senderID, getFrom] } },
+          { $set: { [`messages.${messageIndex}.read`]: true } }
+        )
+        .then((result) => {
+          console.log(result);
+
+          res.status(200).json({ succesfull: true });
+        });
+    } catch (err: any) {
+      res.status(400).json({ success: false, error: err });
+    }
+  } else {
+    res.status(400).json({ success: false });
+  }
+}
+
+export async function changeFriendColorChat(req: Request, res: Response) {
+  const selfID = req.body.selfID;
+  const friendID = req.body.friendID;
+  const color = req.body.color;
+
+  const newColor = {
+    [friendID]: color,
+  };
+
+  User.find({ _id: selfID }).then((result) => {
+    const chatFriendColorArray = result[0].chatFriendColor;
+
+    const userColor = chatFriendColorArray.find(
+      (user: any) => user[friendID] != undefined
+    );
+
+    if (userColor != undefined) {
+      userColor[friendID] = color;
+
+      try {
+        User.findOneAndUpdate(
+          { _id: selfID },
+          {
+            $set: { chatFriendColor: chatFriendColorArray },
+          },
+          { returnOriginal: false }
+        ).then((result) => {
+          res.status(200).json({ succesfull: true, result: result });
+        });
+      } catch (err: any) {
+        res.status(400).json({ success: false, error: err });
+      }
+    } else {
+      try {
+        User.findOneAndUpdate(
+          { _id: selfID },
+          {
+            $push: { chatFriendColor: newColor },
+          },
+          { returnOriginal: false }
+        ).then((result) => {
+          res.status(200).json({ succesfull: true, result: result });
+        });
+      } catch (err: any) {
+        res.status(400).json({ success: false, error: err });
+      }
+    }
+  });
+}
 

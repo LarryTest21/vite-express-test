@@ -8,7 +8,6 @@ import Side from "../components/createpost/CreatePostSide.vue";
 import Preview from "../components/createpost/CreatePostPreview.vue";
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
-import db from "../firebase/firebaseInit";
 import Dialogue from "../components/createpost/SavedPostDialogue.vue";
 import { useRoute } from "vue-router";
 import Multiselect from "vue-multiselect";
@@ -18,6 +17,7 @@ import "../assets/multiselect.scss";
 
 
 
+const currentRouteName = ref(route.name);
 
 
 const postContent = ref();

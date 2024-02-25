@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { modalActive } from "../store/modalActive";
 import { modalButtonActive } from "../store/modalButtonActive";
 
@@ -19,8 +19,12 @@ const props = defineProps({
   modalQuestion1: String,
   modalQuestion2: String,
   modalSaved: Boolean,
+  socketAction: String,
+  userInfo: Object,
 });
 
+const spinnerColor=ref(props.spinnerColor || 'var(--color-nav-txt)')
+const modalLoadingMessageColor = ref(props.modalLoadingMessageColor||'var(--color-nav-txt)')
 const modalSaved = props.modalSaved;
 const scaleMargin = props.loadingScale! * 20 + "px";
 
@@ -39,6 +43,16 @@ const emitSaved = (target: any) => {
 
 <template>
   <div class="modal" @click="closeModal" v-click-away="closeModal">
+    <div class="user-connected" v-if="props.socketAction != undefined">
+      <div class="text" v-if="props.socketAction === 'userConnected'">Connected</div>
+      <div class="text" v-if="props.socketAction === 'userDenied'">Denied Friend Request</div>
+      <div class="text" v-if="props.socketAction === 'userRequested'">Friend Request</div>
+      <div class="text" v-if="props.socketAction === 'userAccepted'">Friend Request Accepted</div>
+      <div class="user">
+        <img :src="props.userInfo!.profilePic" />
+        <div class="user-name">{{ props.userInfo!.firstName }}</div>
+      </div>
+    </div>
     <TransitionGroup name="fade">
       <div class="wrapper" key="lorem1" v-if="modalLoadingMessage">
         <transition name="fade" mode="out-in">
@@ -47,6 +61,7 @@ const emitSaved = (target: any) => {
             {{ props.modalLoadingMessage }}
           </p>
         </transition>
+
         <transition name="fade" mode="out-in">
           <div class="modal-loading" :key="props.modalButtonMessage?.toString() || 10" v-if="props.modalAnimation"
           >
@@ -146,7 +161,6 @@ button:active {
 
 .modal {
   position: v-bind(position);
-  height: 100%;
   justify-content: center;
   align-items: center;
   color: var(--color-nav-txt) !important;
@@ -154,6 +168,30 @@ button:active {
   flex-direction: column;
   z-index: 70;
   font-size: v-bind(fontSize);
+  .user-connected {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    font-weight: 900;
+    .text {
+      text-align: center;
+      font-family: Chango;
+      font-size: 1.2rem;
+    }
+    .user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      img {
+        width: 40px;
+      }
+    }
+  }
   .wrapper {
     position: relative;
     height: 100%;
@@ -198,8 +236,6 @@ button:active {
     height: 48px;
     border-width: 3px;
     border-style: dashed solid solid dotted;
-    border-color: var(--color-nav-txt) var(--color-nav-txt) transparent
-      var(--color-nav-txt);
     border-color: v-bind(spinnerColor) v-bind(spinnerColor) transparent
       v-bind(spinnerColor);
     border-radius: 50%;

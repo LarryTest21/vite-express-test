@@ -130,9 +130,10 @@ onMounted(() => {
 }
 
 .profile-wrapper {
-  height: 100vh;
+  height: calc(100vh - 70px);
   width: 100%;
-  top: 70px;
+  padding-top: 70px;
+  
   .profile-wrapper-inner {
     width: 100%;
     height: 100%;
@@ -140,6 +141,8 @@ onMounted(() => {
     flex-direction: column;
     align-items: center;
     padding: 50px;
+    overflow: hidden;
+
     .modal {
       position:relative;
     }
@@ -152,6 +155,7 @@ onMounted(() => {
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      box-shadow:  1px 3px 5px 4px rgb(2, 60, 114);
 
       .username {
         position: relative;
@@ -228,6 +232,7 @@ onMounted(() => {
           width: 100%;
           height: 100%;
           overflow: hidden;
+
         }
       }
     }

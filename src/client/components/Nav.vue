@@ -1,11 +1,17 @@
 <script setup lang="ts">
+//BASIC
 import { RouterLink } from "vue-router";
-import { ref, watch, onMounted, onBeforeUnmount } from "vue";
-import { useTheme } from "../store/theme";
+import { ref, watch, computed, onMounted, onBeforeUnmount } from "vue";
 import $ from "jquery";
 import gsap from "gsap";
+import axios from "axios";
+//MODULES
 import LoginTab from "../components/LoginTab.vue";
 import UserTab from "../components/UserTab.vue";
+import Messages from "../components/messages/Messages.vue";
+import Modal from "../components/Modal.vue";
+//STORES
+import { useTheme } from "../store/theme";
 import { modalActive } from "../store/modalActive";
 import { signedIn } from "../store/signedIn";
 import { userTabClick } from "../store/userTabClick";
@@ -13,29 +19,198 @@ import { isAdmin } from "../store/isAdmin";
 import { getweather } from "./Nav/weather";
 import { timeCurrent } from "./Nav/time";
 import { userData } from "../store/userData";
-import searchIcon from "../components/icons/search.vue";
 import { useRouter } from "vue-router";
 import { blogSearch } from "../store/blogSearch";
 import { blogSearchIcon } from "../store/blogSearchIcon";
+import { socketUsers } from "../store/socketUsers";
+//ICONS
+import searchIcon from "../components/icons/search.vue";
+import messageIcon from "../components/icons/message.vue";
+//NOTIFICATION SOUNDS
+import notifSound from "./messages/notificationSounds/signedIn.mp3";
+//SCRIPTS
 import "../components/newAnalytics";
-import { log } from "console";
+import { io } from 'socket.io-client';
 
 const searchIcon2 = blogSearchIcon();
-
-const searchIconActive = ref();
+const searchIconActive = ref(false);
 const router = useRouter();
 const searchActive = blogSearch();
+const messageNotifCount = ref();
 
-watch(
-  () => router.currentRoute.value.path,
-  (newValue) => {
-    if (newValue.toString() === "/bsl") {
-      searchIconActive.value = true;
-    } else {
-      searchIconActive.value = false;
+const userD = ref(userData());
+
+const userConnectedInfo = ref() as any;
+const userSocketNotif = ref();
+const socketAction = ref();
+const socket = ref();
+
+const userIsInChat = ref();
+
+const messageTabOpened = (value: boolean) => {
+  userIsInChat.value = value;
+};
+const sendToUser = ref();
+const seledctedUser = (user: any) => {
+  sendToUser.value = user.value;
+};
+
+const userIsTyping = ref();
+
+const messageGottenNotifCount = ref(0);
+
+const socketIoFn = () => {
+  socket.value = io();
+
+  socket.value.on("userDisconnected", function (value: any) {
+    var isPresent = socketUsers().socketUsers.some(function (user: any) {
+      return user.socketID === value;
+    });
+    if (isPresent) {
+      socketUsers().socketUsers = socketUsers().socketUsers.filter(
+        (e: any) => e.socketID !== value
+      );
     }
+  });
+
+  socket.value.on("privateMessage", function (message: any) {
+    messageGottenNotifCount.value = ++messageGottenNotifCount.value;
+  });
+
+  const audio = ref();
+  const notifConnected = new Audio("f");
+
+  socket.value!.emit("userListRequest", "");
+
+  socket.value!.on("userListRequest", function () {
+    socket.value!.emit("userListInitial", {
+      socketID: socket.value!.id,
+      userID: userData().data._id,
+      userInfo: userData().data,
+    });
+  });
+
+  socket.value!.on("userDenied", function (deniedBy: any) {
+    console.log(deniedBy.deniedUserInfo);
+    userConnectedInfo.value = deniedBy.deniedUserInfo;
+
+    socketAction.value = "userDenied";
+    userSocketNotif.value = true;
+
+    setTimeout(() => {
+      userSocketNotif.value = false;
+    }, 4000);
+
+    userData().data.friendsActions.addedUsers =
+      userData().data.friendsActions.addedUsers.filter(
+        (user: any) => user != deniedBy.deniedBy
+      );
+  });
+  socket.value!.on("userAccepted", function (acceptedBy: any) {
+    userConnectedInfo.value = acceptedBy.acceptedUserInfo;
+
+    socketAction.value = "userAccepted";
+    userSocketNotif.value = true;
+
+    setTimeout(() => {
+      userSocketNotif.value = false;
+    }, 2000);
+
+    userData().data.friendsActions.acceptedUsers.push(acceptedBy);
+    userData().data.friendsActions.requestUsers.push(acceptedBy);
+  });
+  socket.value!.on("userRequested", function (requestedBy: any) {
+    userConnectedInfo.value = requestedBy.requestedUserInfo;
+    socketAction.value = "userRequested";
+    userData().data.friendsActions.requestUsers.push(requestedBy.requestedBy);
+
+    userSocketNotif.value = true;
+    setTimeout(() => {
+      userSocketNotif.value = false;
+    }, 2000);
+  });
+
+  socket.value!.on("userListInitial", function (value: any) {
+    if (socketUsers().socketUsers != undefined) {
+      var isPresent = socketUsers().socketUsers.some(function (user: any) {
+        return user.userID === value.userID;
+      });
+      if (isPresent) {
+        socketUsers().socketUsers = socketUsers().socketUsers.filter(
+          (e: any) => e.userID !== value.userID
+        );
+
+        socketUsers().socketUsers.push(value);
+      } else {
+        socketUsers().socketUsers.push(value);
+      }
+    } else {
+      socketUsers().socketUsers.push(value);
+    }
+  });
+
+  socket.value.on("userListUpdate", async function (value: any) {
+    socketAction.value = "userConnected";
+    userConnectedInfo.value = value.userInfo;
+    userSocketNotif.value = true;
+
+    if (userData().data.userSettings.notifSounds) {
+      setTimeout(() => {
+        const audio = new Audio(notifSound);
+        audio.play();
+      }, 10);
+    }
+
+    setTimeout(() => {
+      userSocketNotif.value = false;
+    }, 2000);
+
+    if (socketUsers().socketUsers != undefined) {
+      var isPresent = socketUsers().socketUsers.some(function (user: any) {
+        return user.userID === value.userID;
+      });
+      if (isPresent) {
+        socketUsers().socketUsers = socketUsers().socketUsers.filter(
+          (e: any) => e.userID !== value.userID
+        );
+
+        socketUsers().socketUsers.push(value);
+      } else {
+        socketUsers().socketUsers.push(value);
+      }
+    } else {
+      socketUsers().socketUsers.push(value);
+    }
+  });
+
+  if (userD.value.data != undefined) {
+    socket.value.on('connect', function () {
+      socket.value.emit("userConnected", {
+        socketID: socket.value.id,
+        userID: userData().data._id,
+        userInfo: userData().data,
+      });
+    });
+  } else {
+    watch(
+      () => userD.value.data,
+      () => {
+        console.log(userD.value.data);
+
+        if (userD.value.data != undefined) {
+          socket.value.on('connect', function () {
+            socket.value.emit("userConnected", {
+              socketID: socket.value.id,
+              userID: userData().data._id,
+              userInfo: userData().data,
+            });
+          });
+        }
+      },
+      { deep: true }
+    );
   }
-);
+};
 
 const search = ref(false) as any;
 
@@ -57,26 +232,52 @@ watch(notificationArray.value, (newValue) => {
 
 const themeCheck = ref(true);
 
-const userD = userData();
-
-if (userD.data != undefined) {
-  displayName.value = userD.data.firstName[0] + userD.data.lastName[0];
-  if (userD.data.activated) {
-    notifCounter.value = userD.data.notificationArray.length + 1;
-  } else {
-    notifCounter.value = userD.data.notificationArray.length;
+if (userD.value.data != undefined) {
+  if (userData().data.friendsActions.requestUsers.length != 0) {
+    messageNotifCount.value =
+      userData().data.friendsActions.requestUsers.length;
   }
-  if (userD.data.userSettings.themeCheck) {
+
+  displayName.value =
+    userD.value.data.firstName[0] + userD.value.data.lastName[0];
+  if (userD.value.data.activated) {
+    notifCounter.value = userD.value.data.notificationArray.length + 1;
+  } else {
+    notifCounter.value = userD.value.data.notificationArray.length;
+  }
+  if (userD.value.data.userSettings.themeCheck) {
     themeCheck.value = true;
   } else {
     themeCheck.value = false;
   }
+} else {
+  watch(
+    () => userD.value.data,
+    (newValue) => {
+      if (userData().data.friendsActions.requestUsers.length != 0) {
+        messageNotifCount.value =
+          userData().data.friendsActions.requestUsers.length;
+      }
+
+      if (newValue === undefined) {
+        themeCheck.value = true;
+      } else {
+        if (userD.value.data.userSettings != undefined) {
+          themeCheck.value = userD.value.data.userSettings.themeCheck;
+        }
+      }
+    },
+    { deep: true }
+  );
 }
 
 watch(
   signedInCheck,
   (newValue) => {
-    console.log(signedInCheck.state);
+    if (newValue.state) {
+      socketIoFn();
+    }
+
     setTimeout(() => {
       if (signedInCheck.state) {
         showNotif.value = true;
@@ -85,8 +286,28 @@ watch(
       }
     }, 500);
 
-    if (userD.data != undefined) {
-      displayName.value = userD.data.firstName[0] + userD.data.lastName[0];
+    if (userData().data != undefined) {
+      displayName.value =
+        userD.value.data.firstName[0] + userD.value.data.lastName[0];
+      if (userD.value.data.activated) {
+        notifCounter.value = userD.value.data.notificationArray.length + 1;
+      } else {
+        notifCounter.value = userD.value.data.notificationArray.length;
+      }
+    } else {
+      watch(
+        userData(),
+        () => {
+          displayName.value =
+            userD.value.data.firstName[0] + userD.value.data.lastName[0];
+          if (userD.value.data.activated) {
+            notifCounter.value = userD.value.data.notificationArray.length + 1;
+          } else {
+            notifCounter.value = userD.value.data.notificationArray.length;
+          }
+        },
+        { deep: true }
+      );
     }
   },
   { deep: true }
@@ -123,14 +344,6 @@ loginActivated.value =
 const activateLoginTab = ref(false);
 
 const userTabClicked = userTabClick();
-
-watch(
-  showNotif,
-  () => {
-    console.log("showNotif", showNotif.value);
-  },
-  { deep: true }
-);
 
 watch(
   userTabClicked,
@@ -225,20 +438,22 @@ const weatherUnHovered = () => {
 const navRef = ref();
 const UserTabHeight = ref();
 
+const showMessagesTab = ref();
+
 onMounted(async () => {
-  watch(
-    () => userD.data,
-    (newValue) => {
-      if (newValue === undefined) {
-        themeCheck.value = true;
-      } else {
-        if (userD.data.userSettings != undefined) {
-          themeCheck.value = userD.data.userSettings.themeCheck;
+  setTimeout(() => {
+    watch(
+      () => router.currentRoute.value.path,
+      (newValue) => {
+        if (newValue.toString() === "/bsl") {
+          searchIconActive.value = true;
+        } else {
+          searchIconActive.value = false;
         }
       }
-    },
-    { deep: true }
-  );
+    );
+  }, 100);
+
   const weather = getweather();
 
   setTimeout(() => {
@@ -255,6 +470,7 @@ onMounted(async () => {
     })
     .then(() => {
       if (router.currentRoute.value.path === "/bsl") {
+        setTimeout(() => {}, 800);
         searchIconActive.value = true;
       }
       showNotif.value = true;
@@ -265,20 +481,18 @@ onMounted(async () => {
     gsap.from(".theme-changer-wrapper", { delay: 1, opacity: 0 });
   }
 
-  watch(
-    search,
-    () => {
-      console.log(`output->search.value`, search.value);
-    },
-    { deep: true }
-  );
-
   const intervalId = setInterval(function () {
     timeWeatherUp.value = true;
     setTimeout(function () {
       timeWeatherUp.value = false;
     }, 2000);
   }, 15000);
+
+  axios.post("/api/user/refresh").then((result) => {
+    if (result.data === 'success') {
+      axios.post("/api/user/getPrivateMessage").then((result) => {});
+    }
+  });
 });
 
 const notifClickedRef = ref(false);
@@ -290,6 +504,10 @@ const notifClicked = (value: any) => {
 <template>
   <header class="fullNav" ref="navRef">
     <div class="wrapper">
+      <transition name="modal">
+        <Modal v-if="userSocketNotif" class="modal" :socketAction="socketAction" :userInfo="userConnectedInfo" :position="'absolute'"
+        />
+      </transition>
       <nav>
         <ul class="nav-links">
           <TransitionGroup name="hey">
@@ -298,37 +516,40 @@ const notifClicked = (value: any) => {
                 <img class="logo" :src="Logo" />
               </div>
             </RouterLink>
-            <a class="user-wrapper" key="2">
-              <transition name="notif">
-                <div class="notif-counter"
-                     v-if="notifCounter != 0 && showNotif"
-                     @click="notifClicked"
+            <TransitionGroup name="user" tag="a" class="user-wrapper" key="2">
+              <div class="user-outer" key="1" v-if="signedInCheck.state">
+                <a class="user"
+                   @click.native.prevent="userTabClicked.state = !userTabClicked.state; showMessagesTab = false"
                 >
-                  {{ notifCounter }}
+                  {{ displayName }}
+                  <div class="notif-counter" v-if="showNotif && notificationArray.length != 0"
+                       @click="notifClicked"
+                  >
+                    {{ notifCounter }}
+                  </div>
+                </a>
+                <div class="messages">
+                  <messageIcon @click="showMessagesTab = !showMessagesTab; userIsInChat=false; userTabClicked.state = false"
+                  />
+                  <div class="message-request-notif" v-if="userData().data.friendsActions.requestUsers.length != 0"
+                  >
+                    {{ messageNotifCount }}
+                  </div>
+                  <div class="message-notif" v-if="messageGottenNotifCount != 0"
+                  >
+                    {{ messageGottenNotifCount }}
+                  </div>
                 </div>
-              </transition>
-
-              <div class="login-user-wrapper">
-                <TransitionGroup name="user">
-                  <a key="1"
-                     v-if="signedInCheck.state"
-                     class="user"
-                     @click.native.prevent="userTabClicked.state = !userTabClicked.state"
-                  >
-                    {{ displayName }}
-                  </a>
-                  <a key="2"
-                     v-if="!signedInCheck.state && loginActivated"
-                     to="/login"
-                     class="login"
-                     @click.stop.prevent="activeLogin()"
-                     :class="activateLoginTab ? 'active' : ''"
-                  >
-                    <li>Login</li>
-                  </a>
-                </TransitionGroup>
               </div>
-            </a>
+              <div key="2"
+                   v-if="!signedInCheck.state && loginActivated"
+                   to="/login"
+                   class="login"
+                   @click.stop.prevent="activeLogin()"
+              >
+                <li>Login</li>
+              </div>
+            </TransitionGroup>
             <RouterLink to="/rulebook" key="3">
               <li>Rulebook</li>
             </RouterLink>
@@ -339,14 +560,14 @@ const notifClicked = (value: any) => {
             <RouterLink to="/bsl" key="5">
               <li>BSL</li>
             </RouterLink>
-            <div class="search" v-if="searchIcon2.state" key="6">
+            <div class="search" v-if="searchIconActive" key="6">
               <searchIcon class="searchIcon"
                           @click="searchActive.state = !searchActive.state"
                           key="2"
               />
             </div>
             <RouterLink to="/custom-teams" key="7">
-              <li>Custom Teams</li>
+              <li>Shop</li>
             </RouterLink>
             <RouterLink to="/contact" key="8">
               <li>Contact</li>
@@ -366,7 +587,7 @@ const notifClicked = (value: any) => {
             <div class="time">{{ time }}</div>
             <div class="weather">
               <div class="city">{{ city }}</div>
-              <div class="temp">{{ temp }} Celsius</div>
+              <div class="temp">{{ temp }}°C</div>
             </div>
           </div>
         </div>
@@ -403,6 +624,10 @@ const notifClicked = (value: any) => {
                    :closeTab="closeTab"
           />
         </transition>
+        <transition name="userTab">
+          <Messages :socketIO="socket" v-if="showMessagesTab" :isTyping="userIsTyping" @chatViewOpened="messageTabOpened" @seledctedUser="seledctedUser"
+          />
+        </transition>
       </nav>
     </div>
   </header>
@@ -424,6 +649,17 @@ const notifClicked = (value: any) => {
   width: 100%;
   height: 70px;
 
+  .modal {
+    z-index: -1;
+    top: 73px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width: 250px;
+    box-shadow: 4px 8px 5px 0px rgba(0, 0, 0, 0.24);
+    border-radius: 20px;
+    overflow: hidden;
+  }
   .notif-wrapper {
     position: absolute;
   }
@@ -436,24 +672,24 @@ const notifClicked = (value: any) => {
       position: relative;
       background-color: var(--color-nav-bg);
       box-shadow: 4px 8px 5px 0px rgba(0, 0, 0, 0.24);
-      gap: 40px;
+      gap: 20px;
       height: 100%;
       width: 100vw;
       display: flex;
       flex-direction: row;
-      align-items: center;
       justify-content: space-between;
       transition: all 0.5s ease-out;
+      overflow: hidden;
 
       .nav-links {
         position: relative;
         height: 100%;
+        width: 90%;
         display: flex;
         margin-block-start: 0;
         padding-inline-start: 0;
         align-items: center;
-        max-width: 100%;
-        width: 90%;
+        max-width: 85%;
         .search {
           height: 100%;
           position: relative;
@@ -485,13 +721,14 @@ const notifClicked = (value: any) => {
         a {
           color: var(--color-nav-txt);
           text-decoration: none;
-          font-size: 1.4rem;
+          font-size: 1.3rem;
           text-transform: uppercase;
           font-family: Chango;
           height: 100%;
-          padding: 0 40px;
+          padding: 0 2vw;
           position: relative;
           overflow: hidden;
+
           li {
             position: relative;
             list-style-type: none;
@@ -499,7 +736,6 @@ const notifClicked = (value: any) => {
             justify-content: center;
             align-items: center;
             height: 100%;
-            transition: all 0.2s;
           }
         }
 
@@ -558,95 +794,106 @@ const notifClicked = (value: any) => {
           opacity: 1;
         }
         .user-wrapper {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          overflow: visible;
-          padding: 3px;
-          margin: 0 40px;
-          width: 100px;
-          .notif-counter {
-            position: absolute;
-            background-color: var(--color-nav-txt-lighter);
-            box-shadow: 1px 1px 3px 1px rgba(32, 32, 32, 0.664);
-            color: var(--color-nav-bg);
-            font-family: Roboto Condensed;
-            font-weight: 700;
-            font-size: 1.5rem;
-            z-index: 1;
-            width: 35px;
-            height: 35px;
-            border-radius: 10%;
-            top: 0;
-            right: 10px;
+          position: relative;
+          .login {
+            height: 100%;
+            width: 100%;
+            left: 0;
+            cursor: pointer;
+          }
+          .user-outer {
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 3px;
-            cursor: pointer;
-            animation: fading 2s ease-in-out infinite;
-          }
-
-          @keyframes fading {
-            0% {
-              opacity: 0;
-            }
-
-            10% {
-              opacity: 1;
-            }
-
-            90% {
-              opacity: 1;
-            }
-
-            100% {
-              opacity: 0;
-            }
-          }
-
-          a {
-            cursor: pointer;
-            padding: 0;
-          }
-          .login-user-wrapper {
-            position: relative;
             height: 100%;
             width: 100%;
-            .login {
-              height: 100%;
-              width: 100%;
-              transition: opacity 0.2s;
-              overflow: visible;
-              width: 65px;
-              height: 65px;
-            }
-
-            .login:hover {
-              background-color: transparent;
-              color: var(--color-nav-txt);
-            }
+            gap: 20px;
 
             .user {
+              cursor: pointer;
               transform: translate(0, 0);
               align-self: center;
               border-radius: 50%;
               display: flex;
-              width: 65px;
-              height: 65px;
-
+              width: 1px;
+              height: 1px;
+              padding: 32px;
               align-items: center;
               justify-content: center;
               color: var(--color-nav-user-txt);
               background: var(--color-nav-user);
-              transition: all 0.1s ease-in-out;
-
+              overflow: visible;
+              .notif-counter {
+                position: absolute;
+                background-color: var(--color-nav-txt-lighter);
+                box-shadow: 1px 1px 3px 1px rgba(32, 32, 32, 0.664);
+                color: var(--color-nav-bg);
+                font-family: Roboto Condensed;
+                font-weight: 700;
+                font-size: 1.3rem;
+                z-index: 1;
+                padding: 0 5px;
+                top: 0px;
+                right: 0;
+                border-radius: 10%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                animation: fading 2s ease-in-out infinite;
+              }
               &:hover {
                 background: var(--color-nav-user-hover);
               }
 
               a {
                 position: absolute;
+              }
+            }
+            @keyframes fading {
+              0% {
+                opacity: 0;
+              }
+
+              10% {
+                opacity: 1;
+              }
+
+              90% {
+                opacity: 1;
+              }
+
+              100% {
+                opacity: 0;
+              }
+            }
+            .messages {
+              position: relative;
+              height: 100%;
+              display: flex;
+              svg {
+                width: 70%;
+                min-width: 40px;
+                cursor: pointer;
+                fill: var(--color-nav-txt-lighter);
+              }
+              .message-notif {
+                position: absolute;
+                background-color: green;
+                box-shadow: 1px 1px 3px 1px rgba(32, 32, 32, 0.664);
+                color: var(--color-nav-bg);
+                font-family: Roboto Condensed;
+                font-weight: 700;
+                font-size: 1.3rem;
+                z-index: 1;
+                padding: 0 5px;
+                top: 2px;
+                right: -10px;
+                border-radius: 10%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                animation: fading 2s ease-in-out infinite;
               }
             }
           }
@@ -670,21 +917,19 @@ const notifClicked = (value: any) => {
   .wt-wrapper {
     height: 100%;
     overflow: hidden;
-    width: 200px;
-
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
     .weather-time {
       top: -35px;
       height: 200%;
-      margin-right: 20px;
       display: flex;
       flex-direction: column;
       font-family: Chango;
-      font-size: 1.5rem;
       color: var(--color-nav-txt);
       transition: transform 0.1s ease-in-out;
 
       .weather {
-        width: 100%;
         height: 50%;
         text-align: center;
         display: flex;
@@ -692,10 +937,6 @@ const notifClicked = (value: any) => {
         align-items: center;
         justify-content: center;
         align-content: center;
-
-        div {
-          width: 100%;
-        }
       }
 
       .time {
@@ -846,8 +1087,11 @@ const notifClicked = (value: any) => {
   .wrapper {
     nav {
       .nav-links {
+        a:first-child {
+          padding: 0;
+        }
         a {
-          font-size: 1rem;
+          font-size: 1.8vw;
         }
       }
     }
@@ -857,10 +1101,11 @@ const notifClicked = (value: any) => {
 .user-enter-active,
 .user-leave-active {
   transition: all 0.3s ease-in-out;
-  opacity: 0;
+  opacity: 1;
 }
 .user-enter-from,
 .user-leave-to {
+  transform: translateY(50px);
   opacity: 0;
 }
 .user-leave-to {
@@ -901,6 +1146,17 @@ const notifClicked = (value: any) => {
 .notif-enter-from,
 .notif-leave-to {
   transform: translateY(-400px);
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  opacity: 1;
+  transition: transform 1s;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  transform: translateY(-100px);
 }
 
 .hey-move,

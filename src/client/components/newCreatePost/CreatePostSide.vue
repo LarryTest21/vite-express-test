@@ -11,24 +11,40 @@ const props = defineProps({
   postContent: String,
   postTitle: String,
   userID: String,
-  savedPost: Object,
   showSavedPost: Boolean,
   emittedMainCategory: Object,
   emittedSubCategory: Object,
+  postOrEvent: String,
+  savedPost: Object,
+  editEvent: Object,
 });
-
 const emit = defineEmits([
   "showPreview",
   "interPost",
   "postSaved",
   "postNotFullfilled",
+  "eventNotFullfilled",
 ]);
+watch(()=> props.emittedMainCategory, (newv)=> {
+interPost.value['interEventCategory'] = newv
+
+})
+const userID = ref(props.userID);
+
+//Variables to show and save
+const postTitle = computed(() => props.postTitle);
+const postContent = computed(() => props.postContent);
+const showPostDate = ref();
+
+const savedPost = ref();
+const saveShow = ref(false);
+const isEventEdit = computed(() => props.editEvent);
+const isPostEdit = computed(() => props.savedPost);
 
 const mainCategory = computed(() => props.emittedMainCategory);
 const subCategory = computed(() => props.emittedSubCategory);
 
-const changedImage = ref(false);
-
+//InterPost as undefined
 const interPost = ref({
   postContent: undefined,
   postTitle: undefined,
@@ -39,36 +55,18 @@ const interPost = ref({
   subCategory: undefined,
 }) as any;
 
-const postDate = ref();
-const autoFill = ref();
+const showPostDateFormatted = ref();
 
-const excerpt = ref();
-const saveShow = ref(false);
-
-const characterCounter = ref("70 characters left");
-const characterCounterRef = ref() as any;
-const excerptDialogue = ref();
-
-const showCoverPreview = ref();
-
-const showSavedButton = ref();
+//Image
 const fileUpload = ref() as any;
 const coverFile = ref() as any;
 const rawImg = ref();
-
-const showModalImage = ref();
-
-const btnClose = (e: any) => {
-  fileUpload.value = "";
-  showCoverPreview.value = false;
-  saveShow.value = true;
-  rawImg.value = null;
-};
+const changedImage = ref(false);
+const showCoverPreview = ref();
 
 const onFileClick = (e: any) => {
   e.target.value = null;
 };
-
 const onFileSelect = (file: any) => {
   coverFile.value = file.target.files[0];
   changedImage.value = true;
@@ -173,85 +171,154 @@ const onFileSelect = (file: any) => {
   }
 };
 
-const userID = ref(props.userID);
+const btnClose = (e: any) => {
+  fileUpload.value = "";
+  showCoverPreview.value = false;
+  saveShow.value = true;
+  rawImg.value = null;
+};
+//Excerpt
+const excerpt = ref();
 
-const postTitle = computed(() => props.postTitle);
-
-const postContent = computed(() => props.postContent);
-
-const showPostDate = ref();
-
-watch(postContent, (newvalue) => {
-  if (newvalue === "<p></p>") {
-    interPost.value["postContent"] = undefined;
-  } else {
-    interPost.value["postContent"] = newvalue;
-  }
-});
-
-watch(postTitle, (newvalue) => {
-  if (newvalue === "" || newvalue === undefined) {
-    interPost.value["postTitle"] = undefined;
-  } else {
-    interPost.value["postTitle"] = newvalue;
-  }
-});
-
-watch(
-  () => excerpt.value,
-  (newvalue) => {
-    if (newvalue === "" || newvalue === undefined) {
-      interPost.value["postExcerpt"] = undefined;
-    } else {
-      interPost.value["postExcerpt"] = excerpt.value;
-    }
-  }
-);
-
-watch(showPostDate, (newvalue) => {
-  if (newvalue === null) {
-    interPost.value["postDate"] = undefined;
-  } else {
-    interPost.value["postDate"] = newvalue;
-  }
-});
-
-watch(
-  () => rawImg.value,
-  (newvalue) => {
-    if (newvalue === "" || newvalue === undefined || newvalue === null) {
-      interPost.value["coverImage"] = undefined;
-    } else {
-      interPost.value["coverImage"] = newvalue;
-    }
-  }
-);
-
-watch(
-  mainCategory,
-  (newvalue) => {
-    if (newvalue === undefined || newvalue === null) {
-      interPost.value["mainCategory"] = undefined;
-    } else {
-      interPost.value["mainCategory"] = newvalue;
-    }
-  },
-  { deep: true }
-);
-
-watch(
-  subCategory,
-  (newvalue) => {
-    if (newvalue === undefined || newvalue === null) {
-      interPost.value["subCategory"] = undefined;
-    } else {
-      interPost.value["subCategory"] = newvalue;
-    }
-  },
-  { deep: true }
-);
-
+const autoFill = ref();
 const autoFillLeaveCheck = ref(false);
+const autoFillHover = () => {
+  setTimeout(() => {
+    if (!autoFillLeaveCheck.value) {
+      autoFill.value = true;
+    }
+  }, 800);
+};
+
+const characterCounter = ref("70 characters left");
+const characterCounterRef = ref() as any;
+const excerptDialogue = ref();
+
+const excerptCount = (newvalue: any) => {
+  var maxlength = 70;
+
+  if (newvalue !== null) {
+    var currentLength = newvalue.length;
+  } else {
+    currentLength = 0;
+  }
+
+  if (currentLength >= maxlength) {
+    characterCounter.value = "0 characters left";
+    characterCounterRef.value.style.color = "red";
+  } else {
+    characterCounter.value = maxlength - currentLength + " characters left";
+
+    characterCounterRef.value.style.color = "var(--color-nav-txt)";
+  }
+  excerptDialogue.value = false;
+};
+const autoFillLeave = () => {
+  autoFillLeaveCheck.value = true;
+  setTimeout(() => {
+    autoFillLeaveCheck.value = false;
+  }, 900);
+  autoFill.value = false;
+};
+const autoFillExcerpt = () => {
+  autoFill.value = false;
+
+  if (postContent.value != undefined) {
+    var strippedHtml = postContent.value!.replace(/<[^>]+>/g, "");
+    excerpt.value = strippedHtml.slice(0, 70);
+  }
+};
+//Modal
+const showModalImage = ref();
+
+//Save Button
+const showSavedButton = ref();
+
+//Watch post edit
+
+watch(isPostEdit, (newvalue) => {
+  console.log(newvalue);
+
+  watch(
+    () => interPost.value,
+    (newvalue) => {
+      if (
+        newvalue.postDate === undefined &&
+        newvalue.postContent === undefined &&
+        newvalue.postExcerpt === undefined &&
+        newvalue.coverImage === undefined &&
+        newvalue.postTitle === undefined &&
+        newvalue.mainCategory === undefined &&
+        newvalue.subCategory === undefined
+      ) {
+        showSavedButton.value = false;
+      } else {
+        if (_.isEqual(interPost.value, props.savedPost)) {
+          showSavedButton.value = false;
+        } else {
+          showSavedButton.value = true;
+        }
+      }
+    },
+    { deep: true }
+  );
+});
+
+//Watch event edit
+
+const eventEditDate = ref(false);
+watch(
+  isEventEdit,
+  (newvalue) => {
+    if (newvalue != undefined) {
+      interPost.value = {
+        interContent: newvalue!.eventText,
+        interTitle: newvalue!.eventTitle,
+        interDate: newvalue!.eventDate,
+        interImage: newvalue!.eventImage,
+        interEventCategory: newvalue!.eventCategory,
+      };
+      eventEditDate.value = true;
+      console.log(interPost.value);
+      showPostDateFormatted.value = moment(
+        new Date(interPost.value['interDate'])
+      ).format("MM/DD/YYYY HH:mm");
+
+      rawImg.value = interPost.value.interImage;
+      showCoverPreview.value = true;
+    }
+    watch(
+      () => interPost.value,
+      (newvalue) => {
+        if (_.isEqual(interPost.value, isEventEdit.value)) {
+          showSavedButton.value = false;
+        } else {
+          if (_.isEqual(interPost.value, props.savedPost)) {
+            showSavedButton.value = false;
+          } else {
+            showSavedButton.value = true;
+          }
+        }
+      },
+      { deep: true }
+    );
+  },
+  { deep: true }
+);
+
+watch(
+  showPostDateFormatted,
+  (newvalue) => {
+    if (isEventEdit.value != undefined && eventEditDate.value) {
+      if (newvalue === null) {
+        interPost.value['interDate'] = undefined;
+      } else {
+        interPost.value['interDate'] = newvalue;
+      }
+    }
+  },
+  { deep: true }
+);
 
 const handler = () => {
   if (excerpt.value !== "") {
@@ -273,30 +340,6 @@ const handler = () => {
     saveShow.value = false;
   }
 };
-
-const autoFillLeave = () => {
-  autoFillLeaveCheck.value = true;
-  setTimeout(() => {
-    autoFillLeaveCheck.value = false;
-  }, 900);
-  autoFill.value = false;
-};
-const autoFillExcerpt = () => {
-  autoFill.value = false;
-
-  if (postContent.value != undefined) {
-    var strippedHtml = postContent.value!.replace(/<[^>]+>/g, "");
-    excerpt.value = strippedHtml.slice(0, 70);
-  }
-};
-const autoFillHover = () => {
-  setTimeout(() => {
-    if (!autoFillLeaveCheck.value) {
-      autoFill.value = true;
-    }
-  }, 800);
-};
-const savedPost = ref();
 
 const savePost = () => {
   savedPost.value = interPost.value;
@@ -324,67 +367,6 @@ const savePost = () => {
     });
 };
 
-const excerptCount = (newvalue: any) => {
-  var maxlength = 70;
-
-  if (newvalue !== null) {
-    var currentLength = newvalue.length;
-  } else {
-    currentLength = 0;
-  }
-
-  if (currentLength >= maxlength) {
-    characterCounter.value = "0 characters left";
-    characterCounterRef.value.style.color = "red";
-  } else {
-    characterCounter.value = maxlength - currentLength + " characters left";
-
-    characterCounterRef.value.style.color = "var(--color-nav-txt)";
-  }
-  excerptDialogue.value = false;
-};
-watch(
-  () => props.showSavedPost,
-  () => {
-    if (props.showSavedPost) {
-      interPost.value = userData().data.savedPost;
-
-      if (userData().data.savedPost.postDate != undefined) {
-        showPostDate.value = moment(new Date(interPost.value.postDate)).format(
-          "DD/MM/YYYY HH:MM"
-        );
-        watch(
-          () => showPostDate.value,
-          (newvalue) => {
-            if (newvalue === null) {
-              postDate.value = undefined;
-            } else {
-              postDate.value = newvalue.toISOString();
-            }
-          }
-        );
-      }
-
-      if (
-        userData().data.savedPost.coverImage != undefined ||
-        userData().data.savedPost.coverImage != null
-      ) {
-        rawImg.value = userData().data.savedPost.coverImage;
-        showCoverPreview.value = true;
-      }
-      if (userData().data.savedPost.postExcerpt != undefined) {
-        excerpt.value = userData().data.savedPost.postExcerpt;
-
-        var newvalue = excerpt.value;
-        setTimeout(() => {
-          excerptCount(newvalue);
-        }, 1);
-      }
-    }
-  },
-  { immediate: true }
-);
-
 watch(
   () => excerpt.value,
   (newvalue) => {
@@ -392,84 +374,118 @@ watch(
   }
 );
 
-watch(
-  () => interPost.value,
-  (newvalue) => {
-    if (
-      newvalue.postDate === undefined &&
-      newvalue.postContent === undefined &&
-      newvalue.postExcerpt === undefined &&
-      newvalue.coverImage === undefined &&
-      newvalue.postTitle === undefined &&
-      newvalue.mainCategory === undefined &&
-      newvalue.subCategory === undefined
-    ) {
-      showSavedButton.value = false;
-    } else {
-      if (_.isEqual(interPost.value, props.savedPost)) {
-        showSavedButton.value = false;
-      } else {
-        showSavedButton.value = true;
-      }
-    }
-  },
-  { deep: true }
-);
-
-const test = () => {
-  showModalImage.value = false;
-};
-
 const previewPost = () => {
   emit("showPreview", true);
   emit("interPost", interPost.value);
 };
 
 const uploadPost = () => {
-  console.log(`output->interPost.postTitle`, interPost.value);
-  if (
-    interPost.value["postTitle"] === undefined ||
-    interPost.value["postContent"] === undefined ||
-    interPost.value["postExcerpt"] === undefined ||
-    interPost.value["coverImage"] === undefined ||
-    interPost.value["postDate"] === undefined ||
-    interPost.value["subCategory"] === undefined ||
-    interPost.value["mainCategory"] === undefined
-  ) {
-    console.log(`output->interPost.value`, interPost.value);
-    emit("postNotFullfilled", false);
-  } else {
-    emit("postNotFullfilled", "uploading");
-    axios.post("/api/user/refresh").then((res) => {
-      console.log(`output->res`, res);
-      axios.post("/api/uploadPost", interPost.value).then((res) => {
-        console.log(`output->res`, res);
-        if (res.status === 200) {
-          emit("postNotFullfilled", "complete");
+  if (props.editEvent != undefined) {
+    const eventData = {
+      event: true,
+      eventTitle: interPost.value['interTitle'],
+      eventDate: interPost.value['interDate'],
+      eventCategory: interPost.value['interEventCategory'],
+      eventImage: interPost.value['interImage'],
+      eventContent: interPost.value['eventText'],
+    };
+    console.log(eventData);
+    if (
+      eventData["eventTitle"] === undefined ||
+      eventData["eventDate"] === undefined ||
+      eventData["eventCategory"] === undefined ||
+      eventData["eventImage"] === undefined
+    ) {
+      emit("postNotFullfilled", false);
+    } else {
+      emit("postNotFullfilled", "Updating");
+
+      axios.post("/api/user/refresh").then((res) => {
+        if (res.data === "success") {
+          axios
+            .post("/api/editPost/" + props.editEvent!._id, eventData)
+            .then((result) => {
+              console.log(result);
+              if (result.status === 200) {
+                emit("postNotFullfilled", "updateComplete");
+              }
+            });
         }
       });
-    });
+    }
+
+    return;
+  }
+
+  if (props.postOrEvent === 'createpost') {
+    if (
+      interPost.value["postTitle"] === undefined ||
+      interPost.value["postContent"] === undefined ||
+      interPost.value["postExcerpt"] === undefined ||
+      interPost.value["coverImage"] === undefined ||
+      interPost.value["postDate"] === undefined ||
+      interPost.value["subCategory"] === undefined ||
+      interPost.value["mainCategory"] === undefined
+    ) {
+      emit("postNotFullfilled", false);
+    } else {
+      emit("postNotFullfilled", "uploading");
+      axios.post("/api/user/refresh").then((res) => {
+        axios.post("/api/uploadPost", interPost.value).then((res) => {
+          if (res.status === 200) {
+            emit("postNotFullfilled", "complete");
+          }
+        });
+      });
+    }
+  }
+  if (props.postOrEvent === 'createevent') {
+    console.log(interPost.value);
+    const eventData = {
+      event: true,
+      eventTitle: interPost.value['interTitle'],
+      eventDate: interPost.value['interDate'],
+      eventCategory: interPost.value['interEventCategory'],
+      eventImage: interPost.value['interImage'],
+    };
+    if (
+      eventData["eventTitle"] === undefined ||
+      eventData["eventDate"] === undefined ||
+      eventData["eventCategory"] === undefined ||
+      eventData["eventImage"] === undefined
+    ) {
+      console.log(eventData);
+
+      emit("eventNotFullfilled", false);
+    } else {
+      emit("eventNotFullfilled", "uploading");
+      axios.post("/api/user/refresh").then((res) => {
+        axios.post("/api/uploadPost", eventData).then((res) => {
+          if (res.status === 200) {
+            emit("postNotFullfilled", "complete");
+          }
+        });
+      });
+    }
   }
 };
-
-onMounted(() => {});
 </script>
 
 <template>
-  <div class="post-side-wrapper">
+  <div class="post-side-wrapper" :class="props.postOrEvent === 'createpost' ? 'post' : 'event'"
+  >
     <transition name="autofill">
-      <div class="modal-back" v-if="showModalImage" v-click-away="test"></div>
+      <div class="modal-back" v-if="showModalImage"></div>
     </transition>
 
     <div class="calendar-wrapper wrapper">
       <label>Post Date</label>
-      <Calendar
-        id="calendar-24h"
-        v-model="showPostDate"
-        showTime
-        hourFormat="24"
-        showButtonBar
-        hideOnDateTimeSelect
+      <Calendar id="calendar-24h"
+                v-model="showPostDateFormatted"
+                showTime
+                hourFormat="24"
+                showButtonBar
+                hideOnDateTimeSelect
       />
     </div>
 
@@ -477,56 +493,51 @@ onMounted(() => {});
       <label>Cover Image</label>
       <div class="cover-image-wrapper">
         <transition name="autofill">
-          <Modal
-            v-if="showModalImage"
-            v-click-away="test"
-            class="modal"
-            :modalLoadingMessageColor="'red'"
-            :modalLoadingMessage="'Select an image file (png or jpeg)'"
-            :fontSize="'1rem'"
-            :position="'absolute'"
-            :backgroundOpacity="1"
+          <Modal v-if="showModalImage"
+                 class="modal"
+                 :modalLoadingMessageColor="'red'"
+                 :modalLoadingMessage="'Select an image file (png or jpeg)'"
+                 :fontSize="'1rem'"
+                 :position="'absolute'"
+                 :backgroundOpacity="1"
           />
         </transition>
         <TransitionGroup name="autofill">
           <img :src="rawImg" alt="" key="2" v-if="showCoverPreview" />
         </TransitionGroup>
-        <div
-          v-if="showCoverPreview"
-          type="button"
-          class="btn-close"
-          @click.prevent="btnClose"
+        <div v-if="showCoverPreview"
+             type="button"
+             class="btn-close"
+             @click.prevent="btnClose"
         >
           <span class="icon-cross"></span>
           <span class="visually-hidden"></span>
         </div>
       </div>
-      <input
-        type="button"
-        @click="fileUpload.click()"
-        class="custom-file-upload"
-        value="Select Image"
+      <input type="button"
+             @click="fileUpload.click()"
+             class="custom-file-upload"
+             value="Select Image"
       />
-      <input
-        type="file"
-        @change="onFileSelect"
-        @click="onFileClick"
-        name=""
-        ref="fileUpload"
-        id="file-upload"
-        style="display: none"
+      <input type="file"
+             @change="onFileSelect"
+             @click="onFileClick"
+             name=""
+             ref="fileUpload"
+             id="file-upload"
+             style="display: none"
       />
     </div>
 
-    <div class="excerpt-wrapper wrapper">
+    <div class="excerpt-wrapper wrapper" v-if="props.postOrEvent === 'createpost'"
+    >
       <label>Excerpt</label>
-      <textarea
-        type="text"
-        class="excerpt-textarea"
-        v-model="excerpt"
-        maxlength="70"
-        ref="excerptText"
-        @input="handler"
+      <textarea type="text"
+                class="excerpt-textarea"
+                v-model="excerpt"
+                maxlength="70"
+                ref="excerptText"
+                @input="handler"
       />
       <div class="excerpt-counter">
         <transition name="autofill">
@@ -535,17 +546,15 @@ onMounted(() => {});
             the left
           </div>
         </transition>
-        <div
-          ref="characterCounterRef"
-          v-text="characterCounter"
-          class="character-counter"
+        <div ref="characterCounterRef"
+             v-text="characterCounter"
+             class="character-counter"
         />
-        <input
-          type="button"
-          value="AutoFill"
-          @click="autoFillExcerpt"
-          @mouseover="autoFillHover"
-          @mouseleave="autoFillLeave"
+        <input type="button"
+               value="AutoFill"
+               @click="autoFillExcerpt"
+               @mouseover="autoFillHover"
+               @mouseleave="autoFillLeave"
         />
       </div>
     </div>
@@ -553,27 +562,24 @@ onMounted(() => {});
     <div class="buttons wrapper">
       <transition-group name="savedbutton">
         <div class="button" key="1">
-          <input
-            type="button"
-            class="preview"
-            value="Preview post"
-            @click.prevent="previewPost"
+          <input type="button"
+                 class="preview"
+                 :value="props.postOrEvent === 'createpost' ? 'Preview Post' : 'Preview Event'"
+                 @click.prevent="previewPost"
           />
         </div>
         <div class="button" v-if="showSavedButton" key="2">
-          <input
-            type="button"
-            class="save"
-            value="Save"
-            @click.prevent="savePost"
+          <input type="button"
+                 class="save"
+                 :value="props.postOrEvent === 'createpost' ? 'Save Post' : 'Save Event'"
+                 @click.prevent="savePost"
           />
         </div>
         <div class="button" key="3">
-          <input
-            type="button"
-            class="upload"
-            value="Upload"
-            @click="uploadPost"
+          <input type="button"
+                 class="upload"
+                 :value="props.postOrEvent === 'createpost' ? 'Upload Post' : 'Post Event'"
+                 @click="uploadPost"
           />
         </div>
       </transition-group>
@@ -640,6 +646,7 @@ input[type="button"]:hover {
   gap: 20px;
   display: flex;
   justify-content: space-around;
+
   label {
     font-family: Chango;
     font-size: 1.5rem;
@@ -831,6 +838,7 @@ input[type="button"]:hover {
         color: var(--color-nav-bg);
         top: 0;
         left: 0;
+        position: relative;
         align-self: center;
       }
 
@@ -889,6 +897,17 @@ input[type="button"]:hover {
 
 @media (max-height: 824px) {
   .post-side-wrapper {
+    &.event {
+      .cover-preview-wrapper {
+        .cover-image-wrapper {
+          width: 100%;
+
+          input[type="button"] {
+            font-size: 0.5rem;
+          }
+        }
+      }
+    }
     label {
       font-size: 1rem;
     }
@@ -933,7 +952,17 @@ input[type="button"]:hover {
     width: 20%;
     display: flex;
     gap: 5px;
-
+    &.event {
+      .cover-preview-wrapper {
+        .cover-image-wrapper {
+          width: 100%;
+          height: 100px;
+          input[type="button"] {
+            font-size: 0.5rem;
+          }
+        }
+      }
+    }
     label {
       font-size: 1.1rem;
     }
