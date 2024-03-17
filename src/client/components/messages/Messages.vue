@@ -24,11 +24,14 @@ import backButton from "./backButton.vue";
 import { socketUsers } from "../../store/socketUsers";
 import { io } from 'socket.io-client';
 import { userData } from "../../store/userData";
-//STROE
+//STORE
 import { stopScroll } from "../../store/stopScroll";
 import gsap from "gsap";
 
 import svgSad from "./emojis/emoji_1";
+import $ from 'jquery';
+
+
 const requestNotif = ref();
 const view = ref(0) as any;
 
@@ -242,8 +245,8 @@ const socketRoom = (user: any) => {
   watch(
    ()=> messageInput.value.innerHTML,
     (newValue) => {
-      
-    
+
+
     },
     { deep: true }
   );
@@ -346,10 +349,8 @@ const insertSvg = (emoji: any) => {
 
 //Disable enter for contenteditable
 $('p[contenteditable]').keyup(function(e) {
-  return e.which !== 13 
+  return e.which !== 13
 });
-
-
 </script>
 
 <template>
