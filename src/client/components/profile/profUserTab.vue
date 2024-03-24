@@ -58,11 +58,11 @@ const email = ref()
 const firstName = ref()
 const lastName = ref()
 const userName = ref()
-const password = ref()
-const newPassword = ref()
 const userID = ref()
 
-modalActivation.value = true
+const password = ref()
+const newPassword = ref()
+
 
 if (props.userData!.data != undefined) {
   email.value = props.userData!.data.email
@@ -76,7 +76,6 @@ if (props.userData!.data != undefined) {
   }, 1000);
 } else {
   watch(() => props.userData, () => {
-
     email.value = props.userData!.data.email
     firstName.value = props.userData!.data.firstName
     lastName.value = props.userData!.data.lastName
@@ -87,7 +86,6 @@ if (props.userData!.data != undefined) {
     setTimeout(() => {
       skeletonLoad.value = false
     }, 1000)
-
   })
 
 }
@@ -111,18 +109,16 @@ const closeProf = () => {
 
 //SAVEPROFILE
 const saveProfile = async () => {
-
   modalActivation.value = true;
   modalLoadingMessage.value = "Updating";
   modalAnimation.value = true
-
-
-
 }
 
 
 
 onMounted(() => {
+
+
 
   $(".skeleton").each(function (i: number, el) {
     $(el).css({ 'animation-delay': (i / 10 * Math.floor(Math.random() * -100)) + "s" });
@@ -289,12 +285,7 @@ onMounted(() => {
           <input type="button" value="Save" @click.prevent="saveProfile" />
         </div>
       </transition>
-
     </div>
-
-
-
-
 
   </div>
 </template>
