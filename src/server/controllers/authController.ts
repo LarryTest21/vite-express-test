@@ -544,6 +544,8 @@ export async function acceptUserRequest(req: Request, res: Response) {
 }
 
 export async function privateMessage(req: Request, res: Response) {
+
+  console.log("checking first privatemessage")
   const senderID = req.body.senderID;
   const sendTo = req.body.sendTo;
   const message = req.body.message;

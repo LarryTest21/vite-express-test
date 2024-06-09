@@ -31,7 +31,6 @@ import gsap from "gsap";
 import svgSad from "./emojis/emoji_1";
 import $ from 'jquery';
 
-
 const requestNotif = ref();
 const view = ref(0) as any;
 
@@ -217,43 +216,35 @@ const messageRef = ref();
 const selfMessage = ref();
 const messageInput = ref();
 
-
-
-
 const socketRoom = (user: any) => {
+//   messageInput.value!.addEventListener('input', function (data: any) {
 
-  messageInput.value!.addEventListener('input', function(data:any){
+//     const sendTo = socketUsers().socketUsers.filter(
+//       (item: any) => item.userID === chatUserData.value._id
+//     );
+//     const typeData = {
+//       isTyping: true,
+//       userTyping: userData().data._id,
+//       userSendTo: sendTo,
+//     };
 
-    console.log(data)
-      const sendTo = socketUsers().socketUsers.filter(
-        (item: any) => item.userID === chatUserData.value._id
-      );
-      const typeData = {
-        isTyping: true,
-        userTyping: userData().data._id,
-        userSendTo: sendTo,
-      };
+//     console.log(typeData);
+//     props.socketIO!.emit('userIsTyping', typeData);
+//   });
 
-      console.log(typeData)
-      props.socketIO!.emit('userIsTyping', typeData);
+//   watch(
+//     () => messageInput.value.innerHTML,
+//     (newValue) => {
+// console.log(newValue)
 
-  })
-
-
-
-
-  watch(
-   ()=> messageInput.value.innerHTML,
-    (newValue) => {
-
-
-    },
-    { deep: true }
-  );
+//     },
+//     { deep: true }
+//   );
 };
 
 const sendMessage = () => {
-  console.log(messageInput.value.innerHTML);
+  emojiShow.value = false;
+
   var isConnected = socketUsers().socketUsers.some(
     (e: any) => e.userID === chatUserData.value._id
   );
@@ -274,7 +265,9 @@ const sendMessage = () => {
     axios.post("/api/user/refresh").then(() => {
       axios
         .post("/api/user/privateMessage", messageData)
-        .then((result) => {})
+        .then((result) => {
+          console.log(messageData);
+        })
         .catch((error) => {
           console.log(error.response.data);
         });
@@ -291,16 +284,15 @@ const sendMessage = () => {
     console.log("triggeredfirst");
 
     selfMessage.value = messageData;
-    // uploadMessage();
+    uploadMessage();
     messageRef.value = '';
   } else if (
     !isConnected &&
     messageInput.value.innerHTML != undefined &&
     messageInput.value.innerHTML != ''
   ) {
-    console.log("triggeredsecond");
     selfMessage.value = messageData;
-    // uploadMessage();
+    uploadMessage();
     messageRef.value = '';
   }
 };
@@ -346,11 +338,6 @@ const insertSvg = (emoji: any) => {
   selection!.removeAllRanges();
   selection!.addRange(range);
 };
-
-//Disable enter for contenteditable
-$('p[contenteditable]').keyup(function(e) {
-  return e.which !== 13
-});
 </script>
 
 <template>
@@ -397,10 +384,13 @@ $('p[contenteditable]').keyup(function(e) {
       </div>
 
       <div class="chat-input" v-if="showChatInput">
+       
+    
         <div class="back" @click="view = 1">
           <backButton class="back-button" />
         </div>
-        <div class="input" contenteditadble="true" ref="messageInput"></div>
+        <div class="message-input" contenteditable="true"></div>
+
 
         <button class="emoji-btn" @click="emojiShow = !emojiShow">
           <img class="emoji " src="../../components/messages/emojis/emoji2.png"
@@ -647,7 +637,7 @@ $('p[contenteditable]').keyup(function(e) {
         font-size: 1rem;
         box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.3);
       }
-      .input {
+      .message-input {
         overflow-y: auto;
         width: 100%;
         height: 100%;
@@ -656,7 +646,6 @@ $('p[contenteditable]').keyup(function(e) {
         text-align: left;
         vertical-align: middle;
         line-height: 1.9rem;
-
         background-color: transparent;
         border: transparent;
         border-radius: 30px;
@@ -667,9 +656,10 @@ $('p[contenteditable]').keyup(function(e) {
         color: var(--color-nav-txt-darker);
         will-change: height;
         transition: all 0.2s ease-in-out;
-
-        &:focus-visible {
+        &:focus-visible{
           outline: none;
+          box-shadow: 1px 1px 5px 2px var(--color-nav-txt) ;
+
         }
       }
     }

@@ -38,41 +38,44 @@ const newChange = ref(false);
 
 const messagesScrolledBottom = ref(false);
 
-// function onElementVisibility(state: any) {
-//   if (state) {
-//     console.log("elementvisible",state);
-//     var message = messagesArray.value.findLast(
-//       (message: any) => message.read === false
-//     );
+function onElementVisibility(state: any) {
+  if (state) {
+    console.log("elementvisible",state);
+    var message = messagesArray.value.findLast(
+      (message: any) => message.read === false
+    );
 
-//     const userSocket = socketUsers().socketUsers.filter(
-//       (socketUser: any) => socketUser.userID === props.chatUserData!._id
-//     );
+    const userSocket = socketUsers().socketUsers.filter(
+      (socketUser: any) => socketUser.userID === props.chatUserData!._id
+    );
 
-//     if (!isEqual(lastmessage.value, message)) {
-//       lastmessage.value = message;
+    if (!isEqual(lastmessage.value, message)) {
+      lastmessage.value = message;
 
-//       if (userSocket != '') {
-//         const readMessage = {
-//           sendTo: userSocket[0].socketID,
-//           newChange: newChange.value,
-//         };
-//         props.socket!.emit("messageRead", readMessage);
-//       }
-//       // axios
-//       //   .post("/api/user/refresh")
-//       //   .then((result) => {})
-//       //   .then(() => {
-//       //     const message = {
-//       //       messageIndex: messageIndex,
-//       //       senderID: props.chatUserData!._id,
-//       //       sendTo: userData().data._id,
-//       //     };
-//       //     axios.post("/api/user/readMessage", message);
-//       //   });
-//     }
-//   }
-// }
+      const messageIndex = ''
+      lastmessage.value = messageIndex;
+
+      if (userSocket != '') {
+        const readMessage = {
+          sendTo: userSocket[0].socketID,
+          newChange: newChange.value,
+        };
+        props.socket!.emit("messageRead", readMessage);
+      }
+      axios
+        .post("/api/user/refresh")
+        .then((result) => {})
+        .then(() => {
+          const message = {
+            messageIndex: messageIndex,
+            senderID: props.chatUserData!._id,
+            sendTo: userData().data._id,
+          };
+          axios.post("/api/user/readMessage", message);
+        });
+    }
+  }
+}
 const isRunning = ref(false);
 
 props.socket!.on("messageRead", function (data: any) {
@@ -248,25 +251,25 @@ const showDate = (message: any) => {
   }
 };
 
-// const checkLastread = (date: any) => {
-//   const numberTime = new Date(date).getTime();
-//   const numberTimeArray = ref([]) as any;
-//   messagesArray.value.forEach((message: any) => {
-//     if (message.read === true) {
-//       if (new Date(message.date).getTime() != numberTime) {
-//         numberTimeArray.value.push(new Date(message.date).getTime());
-//       }
-//     }
-//   });
+const checkLastread = (date: any) => {
+  const numberTime = new Date(date).getTime();
+  const numberTimeArray = ref([]) as any;
+  messagesArray.value.forEach((message: any) => {
+    if (message.read === true) {
+      if (new Date(message.date).getTime() != numberTime) {
+        numberTimeArray.value.push(new Date(message.date).getTime());
+      }
+    }
+  });
 
-//   const getY = (date: any) =>
-//     numberTimeArray.value.find((number: any) => number >= date) || 0;
+  const getY = (date: any) =>
+    numberTimeArray.value.find((number: any) => number >= date) || 0;
 
-//   console.log(getY(numberTime));
-//   if (getY(numberTime) === 0) {
-//     return true;
-//   }
-// };
+  console.log(getY(numberTime));
+  if (getY(numberTime) === 0) {
+    return true;
+  }
+};
 const isVisible = ref();
 const root = ref() as any;
 const onIntersectionObserver2 = (data: any) => {
@@ -294,17 +297,17 @@ const onIntersectionObserver2 = (data: any) => {
       }
     }
 
-    // axios
-    //   .post("/api/user/refresh")
-    //   .then((result) => {})
-    //   .then(() => {
-    //     const message = {
-    //       messageIndex: messageIndex,
-    //       senderID: props.chatUserData!._id,
-    //       sendTo: userData().data._id,
-    //     };
-    //     axios.post("/api/user/readMessage", message);
-    //   });
+    axios
+      .post("/api/user/refresh")
+      .then((result) => {})
+      .then(() => {
+        const message = {
+          messageIndex: messageIndex,
+          senderID: props.chatUserData!._id,
+          sendTo: userData().data._id,
+        };
+        axios.post("/api/user/readMessage", message);
+      });
   }
 };
 const onScroll = (e: any) => {

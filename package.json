@@ -61,6 +61,7 @@
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
+    "mongodb": "^6.6.2",
     "mongoose": "^7.6.3",
     "next-auth": "^4.24.3",
     "node-stdlib-browser": "^1.2.0",
