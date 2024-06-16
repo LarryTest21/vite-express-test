@@ -47,6 +47,11 @@ const saved = (e: any) => {
   console.log(`output->e`, e);
   modalMessage.value = "Settings Saved";
   modalActivation.value = true;
+
+  setTimeout(() => {
+    modalActivation.value = false;
+
+  }, 1000);
 };
 
 const enableTab = (event: any) => {
@@ -77,13 +82,13 @@ onMounted(() => {
 
 <template>
   <div class="profile-wrapper">
-    <transition name="modal">
-      <Modal v-if="modalActivation" class="modal-div" :position="'absolute'" :modalLoadingMessage="modalMessage"
-             :spinnerColor="'var(--color-nav-txt)'" :fontSize="'3rem'" @click="modalActivation = false"
-      />
-    </transition>
     <div class="profile-wrapper-inner">
       <div class="show">
+        <transition name="modal">
+          <Modal v-if="modalActivation" class="modal-div" :position="'absolute'" :modalLoadingMessage="modalMessage" 
+             :fontSize="'3rem'" @click="modalActivation = false"
+          />
+        </transition>
         <div class="username">{{ userName }}</div>
 
         <div class="cat-tab">
@@ -133,7 +138,7 @@ onMounted(() => {
   height: calc(100vh - 70px);
   width: 100%;
   padding-top: 70px;
-  
+
   .profile-wrapper-inner {
     width: 100%;
     height: 100%;
@@ -143,9 +148,6 @@ onMounted(() => {
     padding: 50px;
     overflow: hidden;
 
-    .modal {
-      position:relative;
-    }
     .show {
       position: relative;
       height: 100%;
@@ -155,8 +157,12 @@ onMounted(() => {
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow:  1px 3px 5px 4px rgb(2, 60, 114);
-
+      box-shadow: 1px 3px 5px 4px rgb(2, 60, 114);
+      .modal {
+        position:absolute;
+        height: 100%;
+        width: 100%;
+      }
       .username {
         position: relative;
         width: 100%;
@@ -232,16 +238,10 @@ onMounted(() => {
           width: 100%;
           height: 100%;
           overflow: hidden;
-
         }
       }
     }
   }
-}
-
-.modal {
-  width: 100%;
-  height: 100%;
 }
 
 .tabs-move,

@@ -217,30 +217,31 @@ const selfMessage = ref();
 const messageInput = ref();
 
 const socketRoom = (user: any) => {
-//   messageInput.value!.addEventListener('input', function (data: any) {
-
-//     const sendTo = socketUsers().socketUsers.filter(
-//       (item: any) => item.userID === chatUserData.value._id
-//     );
-//     const typeData = {
-//       isTyping: true,
-//       userTyping: userData().data._id,
-//       userSendTo: sendTo,
-//     };
-
-//     console.log(typeData);
-//     props.socketIO!.emit('userIsTyping', typeData);
-//   });
-
-//   watch(
-//     () => messageInput.value.innerHTML,
-//     (newValue) => {
-// console.log(newValue)
-
-//     },
-//     { deep: true }
-//   );
+  //   messageInput.value!.addEventListener('input', function (data: any) {
+  //     const sendTo = socketUsers().socketUsers.filter(
+  //       (item: any) => item.userID === chatUserData.value._id
+  //     );
+  //     const typeData = {
+  //       isTyping: true,
+  //       userTyping: userData().data._id,
+  //       userSendTo: sendTo,
+  //     };
+  //     console.log(typeData);
+  //     props.socketIO!.emit('userIsTyping', typeData);
+  //   });
+  //   watch(
+  //     () => messageInput.value.innerHTML,
+  //     (newValue) => {
+  // console.log(newValue)
+  //     },
+  //     { deep: true }
+  //   );
 };
+
+const onDivInput = (e: any) => {
+  messageInput.value = e.target.innerHTML;
+};
+
 
 const sendMessage = () => {
   emojiShow.value = false;
@@ -256,10 +257,12 @@ const sendMessage = () => {
   const messageData = {
     senderID: userData().data._id,
     sendTo: chatUserData.value._id,
-    message: messageInput.value.innerHTML,
+    message: messageInput.value,
     date: new Date(),
     read: false,
   };
+
+  console.log(messageData)
 
   const uploadMessage = () => {
     axios.post("/api/user/refresh").then(() => {
@@ -276,8 +279,8 @@ const sendMessage = () => {
 
   if (
     isConnected &&
-    messageInput.value.innerHTML != undefined &&
-    messageInput.value.innerHTML != ''
+    messageInput.value != undefined &&
+    messageInput.value != ''
   ) {
     Object.assign(messageData, { sendToSocket: sendTo });
     props.socketIO!.emit('privateMessage', messageData);
@@ -288,8 +291,8 @@ const sendMessage = () => {
     messageRef.value = '';
   } else if (
     !isConnected &&
-    messageInput.value.innerHTML != undefined &&
-    messageInput.value.innerHTML != ''
+    messageInput.value != undefined &&
+    messageInput.value != ''
   ) {
     selfMessage.value = messageData;
     uploadMessage();
@@ -384,13 +387,12 @@ const insertSvg = (emoji: any) => {
       </div>
 
       <div class="chat-input" v-if="showChatInput">
-       
-    
         <div class="back" @click="view = 1">
           <backButton class="back-button" />
         </div>
-        <div class="message-input" contenteditable="true"></div>
-
+        <div @input="onDivInput($event)"
+             class="message-input" contenteditable="true"
+        ></div>
 
         <button class="emoji-btn" @click="emojiShow = !emojiShow">
           <img class="emoji " src="../../components/messages/emojis/emoji2.png"
@@ -656,10 +658,9 @@ const insertSvg = (emoji: any) => {
         color: var(--color-nav-txt-darker);
         will-change: height;
         transition: all 0.2s ease-in-out;
-        &:focus-visible{
+        &:focus-visible {
           outline: none;
-          box-shadow: 1px 1px 5px 2px var(--color-nav-txt) ;
-
+          box-shadow: 1px 1px 5px 2px var(--color-nav-txt);
         }
       }
     }
