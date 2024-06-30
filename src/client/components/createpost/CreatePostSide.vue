@@ -3,7 +3,6 @@ import { ref, onMounted, watch, computed } from "vue";
 import firebase from "firebase/compat/app";
 import "cropperjs/dist/cropper.css";
 
-import db from "../../firebase/firebaseInit";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "../../assets/vuepic.scss";
 import Modal from "../../components/Modal.vue";
@@ -283,7 +282,7 @@ const savePost = () => {
       .update({
         savedPost: savedObj.value,
       })
-      .catch((error) => {
+      .catch((error:any) => {
         error.value = true;
         errorMsg.value = error.message;
       })
@@ -376,7 +375,7 @@ const uploadPost = async () => {
           modalLoadingMessage.value = "Successfull Upload";
           modalAnimation.value = false;
         })
-        .catch((error) => {
+        .catch((error:any) => {
           modalLoadingMessage.value = error.msg;
         })
         .then(() => {
@@ -410,7 +409,7 @@ const uploadPost = async () => {
           modalLoadingMessage.value = "Successfull Upload";
           modalAnimation.value = false;
         })
-        .catch((error) => {
+        .catch((error:any) => {
           modalLoadingMessage.value = error.msg;
         })
         .then(() => {
@@ -433,7 +432,7 @@ watch(checkSavedPost, () => {
         .doc(firebase.auth().currentUser?.uid);
       dataBase
         .get()
-        .then((doc) => {
+        .then((doc:any) => {
           userData.value = doc.data();
         })
 

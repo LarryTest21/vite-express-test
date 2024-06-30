@@ -375,7 +375,7 @@ const showColorPicker = ref(false);
         ></div>
         <transition name="date">
           <div class="date" v-if="showDateData === message.date">
-            {{ moment(new Date(message.date)).format("HH:mm") }}
+            {{ moment(new Date(message.date)).format("MMM DD, HH:mm") + " || "  }}
           </div>
         </transition>
       </div>
