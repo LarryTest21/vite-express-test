@@ -461,6 +461,10 @@ const loadSaved = (loadpost: any) => {
   editor.value.commands.insertContent(postContent.value);
 };
 
+const deleteSavedPost=(post:any) => {
+  localStorage.setItem("savedPosts", JSON.stringify(post));
+}
+
 onBeforeUpdate(() => {
   currentRouteName.value = route.name;
 });
@@ -487,6 +491,7 @@ onBeforeUpdate(() => {
       <SavedPosts v-if="showSavedPostsB"
                   @closeSavedPosts="closeSavedPosts"
                   @loadSaved="loadSaved"
+                  @deletePost="deleteSavedPost"
       />
     </transition>
 

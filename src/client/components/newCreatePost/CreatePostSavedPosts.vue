@@ -6,7 +6,7 @@ import axios from "axios";
 
 const savedPosts = ref(JSON.parse(localStorage.getItem("savedPosts") as any));
 
-const emit = defineEmits(["closeSavedPosts", "loadSaved"]);
+const emit = defineEmits(["closeSavedPosts", "loadSaved", "deletePost"]);
 
 const wrapper = ref();
 
@@ -22,6 +22,16 @@ const loadPost = (saveTime: any) => {
 onClickOutside(wrapper, close);
 function close() {
   emit('closeSavedPosts');
+}
+
+const deleteSavedPost = (savedPostId:any)=>{
+
+const deletedSavedPosts = savedPosts.value.filter((deletePost:any) => deletePost.savedpostid !== savedPostId)
+
+savedPosts.value = deletedSavedPosts
+
+emit('deletePost', savedPosts.value);
+
 }
 </script>
 
@@ -61,7 +71,7 @@ function close() {
           <div class="transparentclick" @click="loadPost(savedpost.savedpostid)"
           />
 
-          <div class="delete" @click="console.log('deleted')">
+          <div class="delete" @click="deleteSavedPost(savedpost.savedpostid)">
             <div class="confirmdelete">
               
             </div>
