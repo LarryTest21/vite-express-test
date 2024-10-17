@@ -62,7 +62,6 @@ const signIn = () => {
     modalAnimation.value = false
     console.log(err);
     if (err.response.status === 404) {
-
       modalButtonMessage.value = "User doesn't exist"
     } else if (err.response.status === 401) {
       modalButtonMessage.value = "Wrong credentials"

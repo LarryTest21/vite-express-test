@@ -13,9 +13,11 @@ const props = defineProps({
   eventCategory: Boolean,
 });
 
+const selectTab = ref();
 const shadowStyle = props.shadowStyle;
-const animationHeigth = ref('190px');
 const eventCategory = props.eventCategory;
+
+const animHeight = props.multiSelectOptions!.length*45 + 'px'
 
 const emit = defineEmits(['mainCategory', 'subCategory']);
 
@@ -35,8 +37,9 @@ const multiSelectOptionsFiltered = ref(props.multiSelectOptions);
 
 const fontSize = computed(() => props.fontSize || '1.5rem');
 
-const showSelects = () => {
+const showSelects = (e:any) => {
   showSelectsTab.value = !showSelectsTab.value;
+  console.log(animHeight)
 };
 
 const clickAway = () => {
@@ -108,6 +111,7 @@ const deleteFn = (e: any) => {
     }
   }
 };
+
 </script>
 
 <template>
@@ -138,11 +142,11 @@ const deleteFn = (e: any) => {
       </div>
     </div>
     <transition :name="eventCategory === true ? 'tab-event':  'tab'">
-      <div class="select-tab" :class="eventCategory === true ? 'event': ''" v-if="showSelectsTab && multiSelectOptionsFiltered!.length != 0"
+      <div class="select-tab" ref="selectTab" :class="eventCategory === true ? 'event': ''" v-if="showSelectsTab && multiSelectOptionsFiltered!.length != 0"
            v-click-away="clickAway2"
       >
         <div class="category" v-for="category in multiSelectOptionsFiltered">
-          <div class="category" @click="showSelectedDeletable">
+          <div class="category-name" @click="showSelectedDeletable">
             {{ category }}
           </div>
         </div>
@@ -249,7 +253,8 @@ const deleteFn = (e: any) => {
 
   .select-tab {
     position: absolute;
-    top: 30px;
+    top: 40px;
+    width: 100%;
     background-color: var(--color-nav-bg);
     border-radius: 0 0 5px 5px;
     box-shadow: 2px 1px 5px 2px rgba(0, 0, 0, 0.404);
@@ -257,8 +262,8 @@ const deleteFn = (e: any) => {
     margin-top: 5px;
     text-align: center;
     overflow: hidden;
-    padding-top: 10px;
     will-change: height;
+
     &.event {
       top: 0;
       padding: 0px;
@@ -278,13 +283,18 @@ const deleteFn = (e: any) => {
     }
     .category {
       transition: all 0.05s;
+      width: 100%;
       cursor: pointer;
       text-align: left;
-      padding: 5px 0px 5px 10px;
       font-size: 1.3rem;
       &:hover {
         background-color: var(--color-nav-txt);
         color: var(--color-nav-bg);
+      }
+      .category-name {
+        padding: 10px;
+        width: 100%;
+        text-align: center;
       }
     }
   }
@@ -311,7 +321,7 @@ const deleteFn = (e: any) => {
 
 .tab-enter-active,
 .tab-leave-active {
-  height: 190px;
+  height: v-bind(animHeight);
   transition: all 0.5s;
 }
 
@@ -322,7 +332,6 @@ const deleteFn = (e: any) => {
 
 .tab-event-enter-active,
 .tab-event-leave-active {
-  width: 80px;
   transition: all 0.5s;
 }
 

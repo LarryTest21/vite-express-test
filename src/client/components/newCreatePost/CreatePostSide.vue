@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from "vue";
+import { ref, watch, computed } from "vue";
 import Calendar from "primevue/calendar";
 import moment from "moment";
 import axios from "axios";
@@ -10,12 +10,16 @@ import Modal from "../../components/Modal.vue";
 const props = defineProps({
   postContent: String,
   postTitle: String,
+  postAuthor: String,
+  postDate: String,
+  postExcerpt: String,
+  savedpostid: Number,
   userID: String,
-  showSavedPost: Boolean,
   emittedMainCategory: Object,
   emittedSubCategory: Object,
   postOrEvent: String,
   savedPost: Object,
+  showSavedPost: Boolean,
   editEvent: Object,
 });
 const emit = defineEmits([
@@ -24,19 +28,30 @@ const emit = defineEmits([
   "postSaved",
   "postNotFullfilled",
   "eventNotFullfilled",
+  "showSavedPosts",
+  "closeSavedPosts",
 ]);
-watch(()=> props.emittedMainCategory, (newv)=> {
-interPost.value['interEventCategory'] = newv
+watch(
+  () => props.emittedMainCategory,
+  (newv) => {
+    interPost.value['interEventCategory'] = newv;
+  }
+);
 
-})
 const userID = ref(props.userID);
+
+const insertedPost = ref() as Object;
 
 //Variables to show and save
 const postTitle = computed(() => props.postTitle);
+const postAuthor = computed(() => props.postAuthor);
+const savedpostid = computed(() => props.savedpostid);
+
 const postContent = computed(() => props.postContent);
 const showPostDate = ref();
+const showPostDateFormatted = ref();
 
-const savedPost = ref();
+const savedPost = ref() as any;
 const saveShow = ref(false);
 const isEventEdit = computed(() => props.editEvent);
 const isPostEdit = computed(() => props.savedPost);
@@ -55,7 +70,89 @@ const interPost = ref({
   subCategory: undefined,
 }) as any;
 
-const showPostDateFormatted = ref();
+const postDate = computed(() => props.postDate);
+const postExcerpt = computed(() => props.postDate);
+
+watch(
+  postDate,
+  (newv) => {
+    console.log("postdate", newv);
+    if (newv === undefined) {
+      showPostDateFormatted.value = ''
+    } else {
+      interPost.value.postDate = newv;
+      showPostDateFormatted.value = moment(new Date(newv!)).format(
+        "MM/DD/YYYY HH:mm"
+      );
+    }
+  },
+  { deep: true }
+);
+
+watch(
+  postExcerpt,
+  (newv) => {
+    interPost.value.postExcerpt = newv;
+  },
+  { deep: true }
+);
+
+watch(
+  mainCategory,
+  (newv) => {
+    interPost.value.mainCategory = newv;
+  },
+  { deep: true }
+);
+
+watch(
+  subCategory,
+  (newv) => {
+    interPost.value.subCategory = subCategory.value;
+  },
+  { deep: true }
+);
+
+watch(
+  postTitle,
+  (newv) => {
+    if (newv == "") {
+      interPost.value.postTitle = undefined;
+    } else {
+      interPost.value.postTitle = newv;
+    }
+  },
+  { deep: true }
+);
+
+watch(
+  postContent,
+  (newv) => {
+    console.log(newv);
+
+    if (newv == "<p></p>") {
+      interPost.value.postContent = undefined;
+    } else {
+      interPost.value.postContent = newv;
+    }
+  },
+  { deep: true }
+);
+watch(
+  showPostDateFormatted,
+  (newv) => {
+    interPost.value.postDate = newv;
+  },
+  { deep: true }
+);
+watch(
+  savedpostid,
+  (newv) => {
+    console.log(newv);
+    interPost.value.savedpostid = newv;
+  },
+  { deep: true }
+);
 
 //Image
 const fileUpload = ref() as any;
@@ -234,6 +331,33 @@ const showModalImage = ref();
 //Save Button
 const showSavedButton = ref();
 
+watch(
+  interPost,
+
+  (newvalue) => {
+    if (newvalue.postTitle == "") {
+    }
+
+    if (
+      newvalue.postDate === undefined &&
+      newvalue.postContent === undefined &&
+      newvalue.postExcerpt === undefined &&
+      newvalue.coverImage === undefined &&
+      newvalue.postTitle === undefined &&
+      newvalue.mainCategory === undefined &&
+      newvalue.subCategory === undefined
+    ) {
+      showSavedButton.value = false;
+    } else {
+      if (_.isEqual(interPost.value, props.savedPost)) {
+        showSavedButton.value = false;
+      } else {
+        showSavedButton.value = true;
+      }
+    }
+  },
+  { deep: true }
+);
 //Watch post edit
 
 watch(isPostEdit, (newvalue) => {
@@ -241,6 +365,7 @@ watch(isPostEdit, (newvalue) => {
 
   watch(
     () => interPost.value,
+
     (newvalue) => {
       if (
         newvalue.postDate === undefined &&
@@ -252,11 +377,16 @@ watch(isPostEdit, (newvalue) => {
         newvalue.subCategory === undefined
       ) {
         showSavedButton.value = false;
+        console.log("same");
       } else {
-        if (_.isEqual(interPost.value, props.savedPost)) {
-          showSavedButton.value = false;
+        if (props.savedPost != null) {
+          if (_.isEqual(interPost.value, props.savedPost)) {
+            showSavedButton.value = false;
+          } else {
+            showSavedButton.value = true;
+          }
         } else {
-          showSavedButton.value = true;
+          showSavedButton.value = false;
         }
       }
     },
@@ -342,40 +472,93 @@ const handler = () => {
 };
 
 const savePost = () => {
+  const currentDate = new Date();
+  const timestamp = currentDate.getTime();
+
   savedPost.value = interPost.value;
   savedPost.value["author"] = userData().data.firstName;
-  localStorage.setItem("savedPost", JSON.stringify(savedPost.value));
+  savedPost.value['lastsaved'] = timestamp;
 
-  axios
-    .post("/api/user/refresh")
-    .then(() => {
-      axios
-        .post("/api/user/updateSavedPost/" + userID.value, {
-          savedPost: savedPost.value,
-        })
-        .then((res) => {
-          emit("postSaved", true);
-        })
-        .then(() => {
-          setTimeout(() => {
-            showSavedButton.value = false;
-          }, 1400);
-        });
-    })
-    .catch((err) => {
-      console.log(`output->err`, err);
-    });
+  if (savedPost.value['savedpostid'] == undefined) {
+    savedPost.value['savedpostid'] = timestamp;
+
+    const lsavedpost = localStorage.getItem("savedPosts");
+
+    if (lsavedpost != null) {
+      const prevPosts = ref(
+        JSON.parse(localStorage.getItem("savedPosts") as any)
+      );
+      prevPosts.value.push(savedPost.value);
+
+      localStorage.setItem("savedPosts", JSON.stringify(prevPosts.value));
+    } else {
+      const savedPostsArray = ref([]) as any;
+
+      savedPostsArray.value.push(savedPost.value);
+
+      localStorage.setItem("savedPosts", JSON.stringify(savedPostsArray.value));
+    }
+  } else {
+    const prevPosts = ref(
+      JSON.parse(localStorage.getItem("savedPosts") as any)
+    );
+
+    const matchingPost = prevPosts.value.find(
+      (post: any) => post.savedpostid === savedPost.value['savedpostid']
+    );
+
+    let foundIndex = prevPosts.value.findIndex(
+      (id: any) => id.savedpostid === savedPost.value['savedpostid']
+    );
+    prevPosts.value.splice(foundIndex, 1, savedPost.value);
+
+    localStorage.setItem("savedPosts", JSON.stringify(prevPosts.value));
+  }
+
+  // THIS IS NEEDED
+  // axios.post("/api/user/refresh").then((res) => {
+  //   const userID = userData().data._id;
+
+  //   const sendData = { userID: userID, savedPosts: savedPost.value };
+
+  //   axios.post("/api/user/updateSavedPosts/:id", sendData).then((res) => {
+  //   });
+  // });
+
+  // localStorage.setItem("savedPost", JSON.stringify(savedPost.value));
+
+  // axios
+  //   .post("/api/user/refresh")
+  //   .then(() => {
+  //     axios
+  //       .post("/api/user/updateSavedPost/" + userID.value, {
+  //         savedPost: savedPost.value,
+  //       })
+  //       .then((res) => {
+  //         emit("postSaved", true);
+  //       })
+  //       .then(() => {
+  //         setTimeout(() => {
+  //           showSavedButton.value = false;
+  //         }, 1400);
+  //       });
+  //   })
+  //   .catch((err) => {
+  //     console.log(`output->err`, err);
+  //   });
 };
 
 watch(
   () => excerpt.value,
   (newvalue) => {
     excerptCount(newvalue);
+    console.log(interPost.value);
+    interPost.value.postExcerpt = newvalue;
   }
 );
 
 const previewPost = () => {
-  emit("showPreview", true);
+  emit("showPreview");
   emit("interPost", interPost.value);
 };
 
@@ -440,7 +623,6 @@ const uploadPost = () => {
     }
   }
   if (props.postOrEvent === 'createevent') {
-    console.log(interPost.value);
     const eventData = {
       event: true,
       eventTitle: interPost.value['interTitle'],
@@ -474,6 +656,7 @@ const uploadPost = () => {
 <template>
   <div class="post-side-wrapper" :class="props.postOrEvent === 'createpost' ? 'post' : 'event'"
   >
+    <div class="author">{{ postAuthor }}</div>
     <transition name="autofill">
       <div class="modal-back" v-if="showModalImage"></div>
     </transition>
@@ -582,6 +765,14 @@ const uploadPost = () => {
                  @click="uploadPost"
           />
         </div>
+        <div class="button" key="3">
+          <input type="button"
+                 class="saved"
+                 :value="props.postOrEvent === 'createpost' ? 'Saved Posts' : 'Saved Events'"
+                 @click="emit('showSavedPosts')"
+                 @closeSavedPosts="emit('closeSavedPosts')"
+          />
+        </div>
       </transition-group>
     </div>
   </div>
@@ -634,19 +825,36 @@ input[type="button"]:hover {
   background-color: var(--color-nav-bg-darker);
 }
 
+input[type="button"].saved:hover {
+  background-color: green;
+  color: var(--color-nav-bg);
+}
+
 .post-side-wrapper {
   width: 15%;
   height: 100%;
   position: relative;
   border-radius: 5px;
   background-color: var(--color-nav-bg);
-  padding: 10px;
+  padding: 20px;
   flex-direction: column;
   overflow: hidden;
   gap: 20px;
   display: flex;
   justify-content: space-around;
 
+  .author {
+    font-family: Roboto;
+    font-weight: 700;
+    font-size: 0.9rem;
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 2px;
+    color: var(--color-nav-bg);
+    border-radius: 0% 10%;
+    background-color: var(--color-nav-txt-darker);
+  }
   label {
     font-family: Chango;
     font-size: 1.5rem;
@@ -900,8 +1108,6 @@ input[type="button"]:hover {
     &.event {
       .cover-preview-wrapper {
         .cover-image-wrapper {
-          width: 100%;
-
           input[type="button"] {
             font-size: 0.5rem;
           }
@@ -947,7 +1153,7 @@ input[type="button"]:hover {
   }
 }
 
-@media (max-height: 760px) {
+@media (max-height: 880px) {
   .post-side-wrapper {
     width: 20%;
     display: flex;
@@ -1008,7 +1214,7 @@ input[type="button"]:hover {
   }
 }
 
-@media (max-height: 684px) {
+@media (max-height: 750px) {
   .post-side-wrapper {
     display: grid;
     grid-template-columns: 1fr 1fr;

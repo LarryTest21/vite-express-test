@@ -155,6 +155,7 @@ const logOut = () => {
     modalActivationLogout.value = true;
     modalQuestion.value = "Disable Auto-Login?";
     modalButtonActive.value = true;
+
   } else {
     axios.post("/api/user/logout").then((res) => {});
     userD.data = undefined;

@@ -8,6 +8,7 @@ import {
   onBeforeMount,
   computed,
 } from "vue";
+
 //EDITOR
 import StarterKit from "@tiptap/starter-kit";
 import { Editor, EditorContent } from "@tiptap/vue-3";
@@ -27,6 +28,7 @@ import Modal from "../components/Modal.vue";
 import createPostSide from "../components/newCreatePost/CreatePostSide.vue";
 import MultiSelect from "../components/MultiSelect.vue";
 import PostPreview from "../components/newCreatePost/CreatePostPreview.vue";
+import SavedPosts from "../components/newCreatePost/CreatePostSavedPosts.vue";
 
 //STYLING
 var shadowStyle = " 2px 1px 5px 2px rgba(0, 0, 0, 0.404)";
@@ -42,7 +44,24 @@ if (userD != undefined) {
   userID.value = userD._id;
 }
 
+const postAuthor = ref(
+  userData().data.firstName + " " + userData().data.lastName
+);
+
+const postTitle = ref();
 const postContent = ref();
+const showPreview = ref();
+
+const showPreviewFn = (e: any) => {
+  showPreview.value = true;
+};
+
+const interPost = ref() as any;
+
+const interPostFn = (post: any) => {
+  interPost.value = post;
+};
+
 const modalLoadingMessageColor = ref();
 const editor = ref() as any;
 if (currentRouteName.value === 'createpost') {
@@ -94,8 +113,6 @@ if (currentRouteName.value === 'createpost') {
     },
   });
 }
-
-const postTitle = ref();
 
 watch(
   () => postContent.value,
@@ -158,9 +175,6 @@ const toggleHeading2 = () => {
       .run();
   }
 };
-
-const interPost = ref();
-const showPreview = ref();
 
 const imageSelect = ref();
 const originalImage = ref([]) as any;
@@ -404,7 +418,6 @@ onMounted(() => {
     editor.value.chain().selectAll().setFontSize("20pt").run();
   }
 
-
   if (route.name === 'createevent') {
     if (editPost.value['createEvent'] != 'newEvent') {
       axios.post("/api/user/refresh").then((result) => {
@@ -423,6 +436,31 @@ onMounted(() => {
   }
 });
 
+const savedpostid = ref();
+const showSavedPostsB = ref(false);
+
+const postDate = ref()
+const postExcerpt = ref()
+const showSavedPosts = () => {
+  showSavedPostsB.value = true;
+};
+
+const closeSavedPosts = () => {
+  showSavedPostsB.value = false;
+};
+
+const loadSaved = (loadpost: any) => {
+  console.log(loadpost)
+  editor.value.commands.clearContent();
+  postContent.value = loadpost.postContent;
+  postTitle.value = loadpost.postTitle;
+  postDate.value = loadpost.postDate
+  postExcerpt.value = loadpost.postExcerpt
+
+  savedpostid.value = loadpost.savedpostid;
+  editor.value.commands.insertContent(postContent.value);
+};
+
 onBeforeUpdate(() => {
   currentRouteName.value = route.name;
 });
@@ -437,11 +475,20 @@ onBeforeUpdate(() => {
         </div>
       </transition>
     </keep-alive>
+    <transition name="postPreview">
+      <PostPreview v-if="showPreview"
+                   :showPreview="showPreview"
+                   :interPost="interPost"
+                   @show-preview="showPreview=false"
+      />
+    </transition>
 
-    <PostPreview v-if="showPreview"
-                 :showPreview="showPreview"
-                 :interPost="interPost"
-    />
+    <transition name="savedPosts">
+      <SavedPosts v-if="showSavedPostsB"
+                  @closeSavedPosts="closeSavedPosts"
+                  @loadSaved="loadSaved"
+      />
+    </transition>
 
     <transition name="savedModal">
       <Modal v-if="showModal"
@@ -719,16 +766,21 @@ onBeforeUpdate(() => {
                         :savedPost="savedPost"
                         :editEvent="editEvent"
                         :showSavedPost="showSavedPost"
+                        :postAuthor="postAuthor"
                         :postTitle="postTitle"
                         :postContent="postContent"
+                        :postExcerpt="postExcerpt"
+                        :postDate="postDate"
+                        :savedpostid="savedpostid"
                         @postSaved="postSaved"
-                        @interPost="interPost"
-                        @showPreview="showPreview"
+                        @interPost="interPostFn"
+                        @showPreview="showPreviewFn"
                         :emittedMainCategory="emittedMainCategory"
                         :emittedSubCategory="emittedSubCategory"
                         @postNotFullfilled="postIncomplete"
                         @eventNotFullfilled="eventIncomplete"
                         :postOrEvent="currentRouteName"
+                        @showSavedPosts="showSavedPosts"
         />
       </div>
     </div>
@@ -1159,6 +1211,30 @@ onBeforeUpdate(() => {
 .preview-enter-from,
 .preview-leave-to {
   height: 0%;
+  opacity: 0;
+}
+
+.postPreview-enter-active,
+.postPreview-leave-active {
+  height: 70%;
+  opacity: 1;
+  transition: all 0.2s;
+}
+
+.postPreview-enter-from,
+.postPreview-leave-to {
+  height: 0%;
+  opacity: 0;
+}
+
+.savedPosts-enter-active,
+.savedPosts-leave-active {
+  opacity: 1;
+  transition: all 0.2s;
+}
+
+.savedPosts-enter-from,
+.savedPosts-leave-to {
   opacity: 0;
 }
 </style>

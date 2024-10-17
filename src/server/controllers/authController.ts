@@ -544,8 +544,7 @@ export async function acceptUserRequest(req: Request, res: Response) {
 }
 
 export async function privateMessage(req: Request, res: Response) {
-
-  console.log("checking first privatemessage")
+  console.log("checking first privatemessage");
   const senderID = req.body.senderID;
   const sendTo = req.body.sendTo;
   const message = req.body.message;
@@ -672,3 +671,29 @@ export async function changeFriendColorChat(req: Request, res: Response) {
   });
 }
 
+export async function updateSavedPosts(req: Request, res: Response) {
+  const userID = req.body.userID;
+  const savedPosts = req.body.savedPosts;
+
+
+  User.find({ _id: userID }).then((result) => {
+    const savedPostsCloud = result[0].savedPosts;
+
+    console.log(savedPostsCloud)
+
+})
+
+  try {
+    User.findOneAndUpdate(
+      { _id: userID },
+      {
+        $push: { savedPosts: savedPosts },
+      },
+      { returnOriginal: false }
+    ).then((result) => {
+      res.status(200).json({ succesfull: true, result: result, data:savedPosts });
+    });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err });
+  }
+}

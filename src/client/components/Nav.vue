@@ -254,16 +254,18 @@ if (userD.value.data != undefined) {
   watch(
     () => userD.value.data,
     (newValue) => {
-      if (userData().data.friendsActions.requestUsers.length != 0) {
-        messageNotifCount.value =
-          userData().data.friendsActions.requestUsers.length;
-      }
+      if (newValue != undefined) {
+        if (userData().data.friendsActions.requestUsers.length != 0) {
+          messageNotifCount.value =
+            userData().data.friendsActions.requestUsers.length;
+        }
 
-      if (newValue === undefined) {
-        themeCheck.value = true;
-      } else {
-        if (userD.value.data.userSettings != undefined) {
-          themeCheck.value = userD.value.data.userSettings.themeCheck;
+        if (newValue === undefined) {
+          themeCheck.value = true;
+        } else {
+          if (userD.value.data.userSettings != undefined) {
+            themeCheck.value = userD.value.data.userSettings.themeCheck;
+          }
         }
       }
     },

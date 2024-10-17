@@ -17,13 +17,11 @@ const showEditButton = ref();
 
 const eventsWrapper = ref();
 
-const widthEvents = 500;
-const widthEventsPx = widthEvents + 'px';
-
 const eventTransition = ref();
 
 const isScrolling = ref(false);
-const eventsArrayLength = ref();
+
+const showScroll = ref();
 
 if (userData().data != undefined) {
   showEditButton.value = true;
@@ -31,33 +29,31 @@ if (userData().data != undefined) {
   watch(
     () => userData(),
     (newvalue) => {
-      console.log(newvalue.data.clearance);
-      newvalue.data.clearance === 'admin'
-        ? (showEditButton.value = true)
-        : (showEditButton.value = true);
+      if (newvalue.data != undefined) {
+        newvalue.data.clearance === 'admin'
+          ? (showEditButton.value = true)
+          : (showEditButton.value = false);
+      } else {
+        showEditButton.value = false;
+      }
     },
     { deep: true }
   );
 }
 
 const editEvent = (id: any) => {
-  console.log(id);
   router.push({ path: "/CreateEvent/" + id });
 };
 const eventRef = ref(0) as any;
 
-const numero = ref<number>(1);
-
 const onWheel = (e: any) => {
   if (isScrolling.value === false) {
     if (e.deltaY > 0) {
-      console.log("scrolled");
       eventTransition.value = 'left';
       isScrolling.value = true;
       const index = eventsArray.value.findIndex(
         (event: any) => event.active === true
       );
-      console.log(index);
 
       if (index === eventsArray.value.length - 1) {
         delete eventsArray.value[index].active;
@@ -71,7 +67,6 @@ const onWheel = (e: any) => {
         setTimeout(() => {
           gsap.to('.event.active', {
             duration: 0.6,
-
             scale: 1,
             webkitFilter: "blur(" + 0 + "px)",
             height: '80%',
@@ -91,7 +86,6 @@ const onWheel = (e: any) => {
         setTimeout(() => {
           gsap.to('.event.active', {
             duration: 0.6,
-
             scale: 1,
             webkitFilter: "blur(" + 0 + "px)",
             height: '80%',
@@ -99,7 +93,6 @@ const onWheel = (e: any) => {
           });
           gsap.to('.event:not(.active)', {
             duration: 0.6,
-
             scale: 1,
             webkitFilter: "blur(" + 10 + "px)",
             height: '50%',
@@ -121,7 +114,6 @@ const onWheel = (e: any) => {
       const index = eventsArray.value.findIndex(
         (event: any) => event.active === true
       );
-      console.log(index);
 
       if (index === 0) {
         delete eventsArray.value[0].active;
@@ -144,7 +136,6 @@ const onWheel = (e: any) => {
 
           gsap.to('.event:not(.active)', {
             duration: 0.6,
-
             scale: 1,
             webkitFilter: "blur(" + 10 + "px)",
             height: '50%',
@@ -156,8 +147,6 @@ const onWheel = (e: any) => {
         eventsArray.value[index - 1].active = true;
 
         if (index === 2) {
-          console.log("scrollingup2222");
-
           gsap.to('.event', {
             duration: 0.8,
             ease: "back.out(1.7)",
@@ -213,8 +202,6 @@ const onWheel = (e: any) => {
     }
   }
 };
-const divRef = ref(null);
-const divHeight = ref(0);
 
 onMounted(() => {
   axios
@@ -232,8 +219,6 @@ onMounted(() => {
       eventsArray.value[0].active = true;
     })
     .then(() => {
-      console.log(eventsArray.value[0]);
-
       gsap.to('.event.active', {
         scale: 1,
         webkitFilter: "blur(" + 0 + "px)",
@@ -242,15 +227,11 @@ onMounted(() => {
       });
     });
 });
-
-const onHover = (event: any) => {};
-
-const onUnHover = (event: any) => {};
 </script>
 
 <template>
   <div class="outer-overflow" ref="eventsWrapper">
-    <transition-group :name="eventTransition" tag="div" class="events-wrapper" @wheel.prevent="onWheel"
+    <transition-group :name="eventTransition" tag="div" class="events-wrapper" @wheel.prevent="onWheel" @mouseover="showScroll = true" @mouseleave="showScroll = false"
     >
       <template v-for="event in eventsArray" :key="event._id">
         <div class="event" ref="eventRef" :class="(event.active ? 'active' : '') "
@@ -297,9 +278,12 @@ const onUnHover = (event: any) => {};
   max-height: 500px;
   display: flex;
   justify-content: center;
-  align-items: center;
   padding: 0px;
-
+  .show-scroll {
+    position: absolute;
+    z-index: 10;
+    color: var(--color-nav-bg);
+  }
   .events-wrapper {
     scroll-behavior: none;
     z-index: 1;
@@ -476,5 +460,17 @@ const onUnHover = (event: any) => {};
 .right-leave-to {
   opacity: 0;
   transform: translateX(-100%);
+}
+
+.showScroll-enter-active,
+.showScroll-leave-active {
+  transition: all 0.1s cubic-bezier(0.55, 0, 0.1, 1.2);
+  opacity: 1;
+}
+
+.showScroll-enter-from,
+.showScroll-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
 }
 </style>

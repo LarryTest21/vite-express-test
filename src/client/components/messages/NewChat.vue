@@ -40,7 +40,7 @@ const messagesScrolledBottom = ref(false);
 
 function onElementVisibility(state: any) {
   if (state) {
-    console.log("elementvisible",state);
+    console.log("elementvisible", state);
     var message = messagesArray.value.findLast(
       (message: any) => message.read === false
     );
@@ -52,7 +52,7 @@ function onElementVisibility(state: any) {
     if (!isEqual(lastmessage.value, message)) {
       lastmessage.value = message;
 
-      const messageIndex = ''
+      const messageIndex = '';
       lastmessage.value = messageIndex;
 
       if (userSocket != '') {
@@ -333,6 +333,12 @@ const changeColor = (color: string) => {
         })
         .then((result) => {
           console.log(result.data);
+        })
+        .then(() => {
+          const usercolor = userData().data.chatFriendColor.find(
+            (user: any) => user[props.chatUserData!._id]
+          );
+          usercolor[props.chatUserData!._id] = color;
         });
     }
   });
@@ -375,7 +381,9 @@ const showColorPicker = ref(false);
         ></div>
         <transition name="date">
           <div class="date" v-if="showDateData === message.date">
-            {{ moment(new Date(message.date)).format("MMM DD, HH:mm") + " || "  }}
+            {{
+              moment(new Date(message.date)).format("MMM DD, HH:mm") + " || "
+            }}
           </div>
         </transition>
       </div>

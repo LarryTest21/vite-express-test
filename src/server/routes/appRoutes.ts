@@ -20,6 +20,7 @@ import {
   getPrivateMessage,
   saveRead,
   changeFriendColorChat,
+  updateSavedPosts
 } from "../controllers/authController";
 import { getAnalytics } from "../controllers/analyticsController";
 import {
@@ -102,6 +103,8 @@ router.get("/content/event/:id", getEvent);
 //Upload Posts
 router.post("/uploadPost", authenticateRoutes, uploadPost);
 
+//Save Posts
+router.post("/user/updateSavedPosts/:id", authenticateRoutes, updateSavedPosts)
 
 //Edit Event
 router.post("/editPost/:id", authenticateRoutes, updateEvent);
