@@ -3,10 +3,11 @@ import { ref, watch, computed } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import moment from "moment";
 import axios from "axios";
+import { userData } from "../../store/userData";
 
 const savedPosts = ref(JSON.parse(localStorage.getItem("savedPosts") as any));
 
-const emit = defineEmits(["closeSavedPosts", "loadSaved", "deletePost"]);
+const emit = defineEmits(["closeSavedPosts", "loadSaved"]);
 
 const wrapper = ref();
 
@@ -24,15 +25,24 @@ function close() {
   emit('closeSavedPosts');
 }
 
-const deleteSavedPost = (savedPostId:any)=>{
+const deleteSavedPost = (savedPostId: any) => {
+  const deletedSavedPosts = savedPosts.value.filter(
+    (deletePost: any) => deletePost.savedpostid !== savedPostId
+  );
+  savedPosts.value = deletedSavedPosts;
 
-const deletedSavedPosts = savedPosts.value.filter((deletePost:any) => deletePost.savedpostid !== savedPostId)
+  localStorage.setItem("savedPosts", JSON.stringify(savedPosts.value));
 
-savedPosts.value = deletedSavedPosts
+  const userID = userData().data._id;
 
-emit('deletePost', savedPosts.value);
+  const sendData = { userID: userID, savedPostID: savedPostId };
 
-}
+  axios.post("/api/user/refresh").then(() => {
+    axios.post("/api/user/deleteSavedPost/", sendData).then((res) => {
+      console.log(res);
+    });
+  });
+};
 </script>
 
 <template>
@@ -72,9 +82,7 @@ emit('deletePost', savedPosts.value);
           />
 
           <div class="delete" @click="deleteSavedPost(savedpost.savedpostid)">
-            <div class="confirmdelete">
-              
-            </div>
+            <div class="confirmdelete"></div>
             <div class="trash-box">
               <div class="trash"></div>
               <div class="trash-top"></div>

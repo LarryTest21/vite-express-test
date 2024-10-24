@@ -207,14 +207,17 @@ onMounted(() => {
   axios
     .get("/api/content/events/")
     .then((res) => {
+      console.log(res)
       eventsArray.value = [...res.data];
     })
     .then(() => {
       eventsArray.value.sort(function compare(a: any, b: any) {
         var dateA = new Date(a.eventDate) as any;
         var dateB = new Date(b.eventDate) as any;
+        console.log(eventsArray.value)
 
         return dateA - dateB;
+
       });
       eventsArray.value[0].active = true;
     })
@@ -244,13 +247,13 @@ onMounted(() => {
           <div class="img-wrapper">
             <div class="date-wrapper">
               <div class="month">
-                {{ moment(event.eventDate).format("MMM") }}
+                {{ moment(new Date(event.eventDate)).format("MMM") }}
               </div>
               <div class="day">
-                {{ moment(event.eventDate).format("DD") }}
+                {{ moment(new Date(event.eventDate)).format("DD") }}
               </div>
               <div class="time">
-                {{ moment(event.eventDate).format("HH:mm") }}
+                {{ moment(new Date(event.eventDate)).format("HH:mm") }}
               </div>
             </div>
             <img :src="event.eventImage" class="event-image" />

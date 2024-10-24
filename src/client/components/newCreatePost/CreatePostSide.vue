@@ -78,7 +78,7 @@ watch(
   (newv) => {
     console.log("postdate", newv);
     if (newv === undefined) {
-      showPostDateFormatted.value = ''
+      showPostDateFormatted.value = '';
     } else {
       interPost.value.postDate = newv;
       showPostDateFormatted.value = moment(new Date(newv!)).format(
@@ -141,14 +141,19 @@ watch(
 watch(
   showPostDateFormatted,
   (newv) => {
-    interPost.value.postDate = newv;
+    console.log(newv);
+    if (newv == null) {
+      interPost.value.postDate = undefined;
+    } else {
+      interPost.value.postDate = newv;
+    }
   },
   { deep: true }
 );
 watch(
   savedpostid,
   (newv) => {
-    console.log(newv);
+    console.log("loadpostid", newv);
     interPost.value.savedpostid = newv;
   },
   { deep: true }
@@ -274,6 +279,18 @@ const btnClose = (e: any) => {
   saveShow.value = true;
   rawImg.value = null;
 };
+
+watch(
+  rawImg,
+  (newv) => {
+    if (newv == null) {
+      interPost.value["coverImage"] = undefined;
+    } else {
+      interPost.value["coverImage"] = newv;
+    }
+  },
+  { deep: true }
+);
 //Excerpt
 const excerpt = ref();
 
@@ -333,11 +350,7 @@ const showSavedButton = ref();
 
 watch(
   interPost,
-
   (newvalue) => {
-    if (newvalue.postTitle == "") {
-    }
-
     if (
       newvalue.postDate === undefined &&
       newvalue.postContent === undefined &&
@@ -480,31 +493,70 @@ const savePost = () => {
   savedPost.value['lastsaved'] = timestamp;
 
   if (savedPost.value['savedpostid'] == undefined) {
+    //IF POST NOT SAVED YET
+
     savedPost.value['savedpostid'] = timestamp;
 
-    const lsavedpost = localStorage.getItem("savedPosts");
+    //UPLOAD TO CLOUD
+    axios.post("/api/user/refresh").then(() => {
+      const savedPostsBefore = userData().data.savedPosts;
+      const savedPosts = ref();
 
-    if (lsavedpost != null) {
-      const prevPosts = ref(
-        JSON.parse(localStorage.getItem("savedPosts") as any)
-      );
-      prevPosts.value.push(savedPost.value);
+      savedPostsBefore.push(savedPost.value);
+      savedPosts.value = savedPostsBefore;
 
-      localStorage.setItem("savedPosts", JSON.stringify(prevPosts.value));
-    } else {
-      const savedPostsArray = ref([]) as any;
+      const userID = userData().data._id;
 
-      savedPostsArray.value.push(savedPost.value);
+      const sendData = { userID: userID, savedPosts: savedPosts.value };
 
-      localStorage.setItem("savedPosts", JSON.stringify(savedPostsArray.value));
-    }
+      axios.post("/api/user/updateSavedPosts/", sendData).then((res) => {
+        console.log(res);
+      });
+    });
+
+    //CHANGE LOCALSTORAGE STORED SAVEDPOSTS
+    // if (lsavedpost != null) {
+    //   const prevPosts = ref(
+    //     JSON.parse(localStorage.getItem("savedPosts") as any)
+    //   );
+    //   prevPosts.value.push(savedPost.value);
+
+    //   localStorage.setItem("savedPosts", JSON.stringify(prevPosts.value));
+    // } else {
+    //   const savedPostsArray = ref([]) as any;
+
+    //   savedPostsArray.value.push(savedPost.value);
+
+    //   localStorage.setItem("savedPosts", JSON.stringify(savedPostsArray.value));
+    // }
   } else {
+    //IF POST ALREADY EXISTS
+    const savedPosts = ref();
+
+    const savedPostsBefore = ref(userData().data.savedPosts);
+
+    console.log(savedPostsBefore.value);
+    const newPosts = ref([]) as any;
+    console.log(interPost.value.savedpostid);
+    newPosts.value = savedPostsBefore.value.filter((post: any) => {
+      post.savedpostid != interPost.value.savedpostid;
+    });
+
+    newPosts.value.push(interPost.value);
+
+    savedPosts.value = newPosts.value;
+    console.log(newPosts.value);
+
+    const userID = userData().data._id;
+
+    const sendData = { userID: userID, savedPosts: savedPosts.value };
+
+    axios.post("/api/user/updateSavedPosts/", sendData).then((res) => {
+      console.log(res);
+    });
+
     const prevPosts = ref(
       JSON.parse(localStorage.getItem("savedPosts") as any)
-    );
-
-    const matchingPost = prevPosts.value.find(
-      (post: any) => post.savedpostid === savedPost.value['savedpostid']
     );
 
     let foundIndex = prevPosts.value.findIndex(
@@ -683,6 +735,7 @@ const uploadPost = () => {
                  :fontSize="'1rem'"
                  :position="'absolute'"
                  :backgroundOpacity="1"
+                 @closeModal="showModalImage = false"
           />
         </transition>
         <TransitionGroup name="autofill">
@@ -805,7 +858,7 @@ const uploadPost = () => {
 }
 
 input[type="button"] {
-  font-size: 1rem;
+  font-size: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -837,16 +890,18 @@ input[type="button"].saved:hover {
   border-radius: 5px;
   background-color: var(--color-nav-bg);
   padding: 20px;
+  padding-top: 40px;
   flex-direction: column;
   overflow: hidden;
   gap: 20px;
-  display: flex;
+  display: grid;
   justify-content: space-around;
+  width: auto;
 
   .author {
     font-family: Roboto;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 2rem;
     position: absolute;
     right: 0;
     top: 0;
@@ -857,7 +912,7 @@ input[type="button"].saved:hover {
   }
   label {
     font-family: Chango;
-    font-size: 1.5rem;
+    font-size: 2rem;
     width: 100%;
   }
 
@@ -882,23 +937,21 @@ input[type="button"].saved:hover {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
-    gap: 10px;
+    max-width: 100%;
+    height: 280px;
+    gap: 20px;
 
     .btn-close {
       position: absolute;
-      border: 0;
-      padding: 0;
-      right: 50px;
-      top: 50px;
       background: var(--color-nav-bg);
+      width: 30px;
+      height: 30px;
+      top: 80px;
+      right: 40px;
       border-radius: 50%;
       box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.432);
-      width: 40px;
-      height: 40px;
       cursor: pointer;
-      transition: all 150ms;
-
+      transition: all 50ms;
       &:hover {
         box-shadow: inset 0px 1px 1px 1px var(--color-nav-txt);
         background: var(--color-nav-txt-lighter);
@@ -937,12 +990,12 @@ input[type="button"].saved:hover {
 
     .cover-image-wrapper {
       padding: 3px;
-      width: 50%;
+      width: 280px;
       border-radius: 5px;
       border: solid 2px var(--color-nav-txt);
       border-radius: 10px;
       overflow: hidden;
-      height: 90px;
+      height: 100%;
       overflow: hidden;
 
       img {
@@ -958,9 +1011,10 @@ input[type="button"].saved:hover {
     gap: 10px;
 
     textarea {
+      height: 100%;
       width: 100%;
       font-family: Roboto Condensed;
-      font-size: 1rem;
+      font-size: 2rem;
       font-weight: 600;
       border-radius: 10px;
       border: solid 2px var(--color-nav-txt);
@@ -1003,7 +1057,7 @@ input[type="button"].saved:hover {
       align-items: flex-start;
       justify-content: space-between;
       padding: 0 10px;
-      font-size: 1rem;
+      font-size: 1.2rem;
 
       .autofill-hover {
         font-size: 1rem;
@@ -1013,7 +1067,7 @@ input[type="button"].saved:hover {
         width: 200px;
         background-color: white;
         padding: 10px;
-        right: -150px;
+        right: 150px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -1153,7 +1207,7 @@ input[type="button"].saved:hover {
   }
 }
 
-@media (max-height: 880px) {
+@media (max-height: 900px) {
   .post-side-wrapper {
     width: 20%;
     display: flex;
@@ -1224,5 +1278,25 @@ input[type="button"].saved:hover {
       width: 100%;
     }
   }
+}
+@media (max-width:1980px){
+  .post-side-wrapper .excerpt-wrapper .excerpt-counter .autofill-hover {
+    left:10px;
+    width: 100px;
+    font-size: 0.8rem;
+  }
+}
+@media (min-width: 600px) and (max-width: 1356px) {
+  .post-side-wrapper {
+    display: grid;
+    width: 100%;
+
+    label {
+      font-size: 2rem;
+      left: 0;
+      right: 0;
+    }
+  }
+  
 }
 </style>

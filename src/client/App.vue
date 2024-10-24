@@ -18,7 +18,6 @@ import axios from "axios";
 import { storeRouterAnalytics } from "./components/newAnalytics";
 import { signedIn } from "./store/signedIn";
 
-
 const router = useRoute();
 const path = computed(() => router.name);
 
@@ -115,9 +114,17 @@ onMounted(() => {
     theme.state = "theme-light";
   }
 
+  watch(
+    usrData,
+    (usrdata) => {
+      const savedPosts = usrdata.data.savedPosts;
+      localStorage.setItem("savedPosts", JSON.stringify(savedPosts));
+    },
+    { deep: true }
+  );
+
   if (usrData.data != undefined) {
     console.log(usrData.data);
-
     theme.state = usrData.data.userSettings.themeName;
   }
 
@@ -135,14 +142,14 @@ onMounted(() => {
   );
 
   if (!isLoadingCheck.state) {
-      showNav.value = true;
+    showNav.value = true;
   }
 
   watch(
     () => isLoadingCheck.state,
     (loaded) => {
       if (!loaded) {
-          showNav.value = true;
+        showNav.value = true;
       }
     }
   );
@@ -151,50 +158,48 @@ onMounted(() => {
   window.addEventListener("resize", onResize);
   onResize();
 
-    getUser().then(() => {
-      watch(
-        () => route.name,
-        () => {
-          checkRoute();
-          if (route.name === "blogpost" || route.name === "newspost") {
-            window.addEventListener("scroll", moveScrollIndicator);
-          } else {
-            window.removeEventListener("scroll", moveScrollIndicator);
-            showScroll.value = false;
-          }
-          const pageID = ref(route.name);
-          const userID = ref();
-
-          const checkUserAnalytics = new Promise(async (resolve, reject) => {
-            if (userData().data != undefined) {
-              resolve("success");
-
-            } else {
-              reject("rejected");
-
-            }
-          });
-
-          checkUserAnalytics
-            .then(() => {
-              userID.value = userData().data._id;
-              if (route.name === "blogpost") {
-                pageID.value = route.params.blogSlug.toString();
-              } else if (route.name === "newspost") {
-                pageID.value = route.params.newsSlug.toString();
-              }
-            })
-            .then(() => {
-              storeRouterAnalytics(pageID.value, userID.value);
-            })
-            .catch(() => {
-              userID.value = "randomUser";
-
-              storeRouterAnalytics(pageID.value, userID.value);
-            });
+  getUser().then(() => {
+    watch(
+      () => route.name,
+      () => {
+        checkRoute();
+        if (route.name === "blogpost" || route.name === "newspost") {
+          window.addEventListener("scroll", moveScrollIndicator);
+        } else {
+          window.removeEventListener("scroll", moveScrollIndicator);
+          showScroll.value = false;
         }
-      );
-    });
+        const pageID = ref(route.name);
+        const userID = ref();
+
+        const checkUserAnalytics = new Promise(async (resolve, reject) => {
+          if (userData().data != undefined) {
+            resolve("success");
+          } else {
+            reject("rejected");
+          }
+        });
+
+        checkUserAnalytics
+          .then(() => {
+            userID.value = userData().data._id;
+            if (route.name === "blogpost") {
+              pageID.value = route.params.blogSlug.toString();
+            } else if (route.name === "newspost") {
+              pageID.value = route.params.newsSlug.toString();
+            }
+          })
+          .then(() => {
+            storeRouterAnalytics(pageID.value, userID.value);
+          })
+          .catch(() => {
+            userID.value = "randomUser";
+
+            storeRouterAnalytics(pageID.value, userID.value);
+          });
+      }
+    );
+  });
 });
 </script>
 
@@ -203,8 +208,7 @@ onMounted(() => {
 <template>
   <div id="app" v-if="mountApp" :class="[mobileNav]">
     <MobileNavIcon class="mobilenavicon" v-if="mobileNav === 'mobile'" />
-    <div class="background">
-    </div>
+    <div class="background"></div>
 
     <transition name="nav">
       <Nav v-if="
@@ -361,8 +365,7 @@ onMounted(() => {
   color: red;
 }
 
-
-#app.mobile{
-  width:100vw;
+#app.mobile {
+  width: 100vw;
 }
 </style>

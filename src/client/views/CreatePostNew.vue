@@ -439,8 +439,8 @@ onMounted(() => {
 const savedpostid = ref();
 const showSavedPostsB = ref(false);
 
-const postDate = ref()
-const postExcerpt = ref()
+const postDate = ref();
+const postExcerpt = ref();
 const showSavedPosts = () => {
   showSavedPostsB.value = true;
 };
@@ -450,20 +450,15 @@ const closeSavedPosts = () => {
 };
 
 const loadSaved = (loadpost: any) => {
-  console.log(loadpost)
   editor.value.commands.clearContent();
   postContent.value = loadpost.postContent;
   postTitle.value = loadpost.postTitle;
-  postDate.value = loadpost.postDate
-  postExcerpt.value = loadpost.postExcerpt
+  postDate.value = loadpost.postDate;
+  postExcerpt.value = loadpost.postExcerpt;
 
   savedpostid.value = loadpost.savedpostid;
   editor.value.commands.insertContent(postContent.value);
 };
-
-const deleteSavedPost=(post:any) => {
-  localStorage.setItem("savedPosts", JSON.stringify(post));
-}
 
 onBeforeUpdate(() => {
   currentRouteName.value = route.name;
@@ -491,7 +486,6 @@ onBeforeUpdate(() => {
       <SavedPosts v-if="showSavedPostsB"
                   @closeSavedPosts="closeSavedPosts"
                   @loadSaved="loadSaved"
-                  @deletePost="deleteSavedPost"
       />
     </transition>
 
@@ -526,7 +520,7 @@ onBeforeUpdate(() => {
               <label for="category" v-text="currentRouteName == 'createpost' ? 'Post Category' : 'Type of Event'"
               />
               <MultiSelect :multiSelectOptions="eventCategory" v-if="currentRouteName === 'createevent'"
-                           :fontSize="'1.5rem'"
+                           :fontSize="'1rem'"
                            :savedValue="savedMainCategory"
                            :deleteAble="false"
                            @mainCategory="mainCategoryEmit"
@@ -544,6 +538,7 @@ onBeforeUpdate(() => {
                 <transition name="subStyle">
                   <MultiSelect v-if="subCategoryShow && currentRouteName === 'createpost'"
                                :multiSelectOptions="subCategory"
+                               :fontSize="'1.5rem'"
                                :deleteAble="true"
                                :savedValue="savedSubCategory"
                                @subCategory="subCategoryEmit"
@@ -869,7 +864,6 @@ onBeforeUpdate(() => {
             .selection-wrapper {
               display: flex;
               justify-content: center;
-              width: 100%;
               .multiselect-wrapper {
                 width: 50%;
               }
@@ -941,8 +935,8 @@ onBeforeUpdate(() => {
             flex-direction: column;
             border-radius: 10px;
             width: 50%;
+            min-width:400px;
             position: relative;
-            align-items: flexstart;
 
             .selects {
               position: relative;

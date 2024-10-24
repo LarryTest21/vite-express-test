@@ -334,10 +334,7 @@ $.ajax({
     } else {
       langEn.value = true;
     }
-  },
-  error: function (err) {
-    console.log("Request failed, error= " + err);
-  },
+  }
 });
 
 const loginActivated = ref(false);

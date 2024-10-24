@@ -35,7 +35,12 @@ const deleteAbleShowTab = ref();
 
 const multiSelectOptionsFiltered = ref(props.multiSelectOptions);
 
-const fontSize = computed(() => props.fontSize || '1.5rem');
+const fontSize = computed(() => props.fontSize);
+
+watch(fontSize, (newv) => {
+  console.log(newv)
+})
+
 
 const showSelects = (e:any) => {
   showSelectsTab.value = !showSelectsTab.value;
@@ -169,7 +174,6 @@ const deleteFn = (e: any) => {
     position: relative;
     height: 100%;
     min-width: 100%;
-    font-size: 1.5rem;
     font-size: v-bind(fontSize);
     border-width: 0;
     background-color: var(--color-nav-bg);

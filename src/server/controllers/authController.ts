@@ -674,26 +674,57 @@ export async function changeFriendColorChat(req: Request, res: Response) {
 export async function updateSavedPosts(req: Request, res: Response) {
   const userID = req.body.userID;
   const savedPosts = req.body.savedPosts;
-
-
-  User.find({ _id: userID }).then((result) => {
-    const savedPostsCloud = result[0].savedPosts;
-
-    console.log(savedPostsCloud)
-
-})
+console.log(savedPosts)
 
   try {
     User.findOneAndUpdate(
       { _id: userID },
       {
-        $push: { savedPosts: savedPosts },
+        $set: { savedPosts: savedPosts },
       },
       { returnOriginal: false }
     ).then((result) => {
-      res.status(200).json({ succesfull: true, result: result, data:savedPosts });
+      res
+        .status(200)
+        .json({ succesfull: true, result: result });
     });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err });
   }
+}
+
+
+
+export async function deleteSavedPost(req: Request, res: Response) {
+  const userID = req.body.userID;
+  const savedPostID = req.body.savedPostID;
+
+  User.find({ _id: userID }).then((result) => {
+    console.log(result);
+    const savedPostsCloud = result[0].savedPosts;
+
+    const newSavedPosts = savedPostsCloud.filter(
+      (deletePost: any) => deletePost.savedpostid !== savedPostID
+    );
+
+    try {
+      User.findOneAndUpdate(
+        { _id: userID },
+        {
+          $set: { savedPosts: newSavedPosts },
+        },
+        { returnOriginal: false }
+      ).then((result) => {
+        res
+          .status(200)
+          .json({ succesfull: true, result: result, data: newSavedPosts });
+      });
+    } catch (err: any) {
+      res.status(400).json({ success: false, error: err });
+    }
+  
+
+
+
+  });
 }
