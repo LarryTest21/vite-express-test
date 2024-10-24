@@ -450,14 +450,24 @@ const closeSavedPosts = () => {
 };
 
 const loadSaved = (loadpost: any) => {
+  savedMainCategory.value = undefined
+  savedSubCategory.value = undefined
+
+
+
   editor.value.commands.clearContent();
   postContent.value = loadpost.postContent;
   postTitle.value = loadpost.postTitle;
   postDate.value = loadpost.postDate;
   postExcerpt.value = loadpost.postExcerpt;
 
+  interPost.mainCategory = loadpost.mainCategory;
+  interPost.mainCategory = loadpost.subCategory;
   savedpostid.value = loadpost.savedpostid;
   editor.value.commands.insertContent(postContent.value);
+  savedMainCategory.value = loadpost.mainCategory
+  savedSubCategory.value = loadpost.subCategory
+
 };
 
 onBeforeUpdate(() => {
@@ -935,7 +945,7 @@ onBeforeUpdate(() => {
             flex-direction: column;
             border-radius: 10px;
             width: 50%;
-            min-width:400px;
+            min-width: 400px;
             position: relative;
 
             .selects {

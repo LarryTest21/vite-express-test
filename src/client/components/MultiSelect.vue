@@ -17,15 +17,18 @@ const selectTab = ref();
 const shadowStyle = props.shadowStyle;
 const eventCategory = props.eventCategory;
 
-const animHeight = props.multiSelectOptions!.length*45 + 'px'
+const animHeight = props.multiSelectOptions!.length * 45 + 'px';
 
 const emit = defineEmits(['mainCategory', 'subCategory']);
 
 const savedValue = computed(() => props.savedValue);
 
-watch(savedValue, () => {
-  if (savedValue.value != undefined) {
-    selectedCategory.value = savedValue.value;
+watch(savedValue, (newv) => {
+  console.log(newv);
+  if (newv != undefined) {
+    selectedCategory.value = newv;
+  } else {
+    selectedCategory.value = ['Choose category'];
   }
 });
 
@@ -38,13 +41,12 @@ const multiSelectOptionsFiltered = ref(props.multiSelectOptions);
 const fontSize = computed(() => props.fontSize);
 
 watch(fontSize, (newv) => {
-  console.log(newv)
-})
+  console.log(newv);
+});
 
-
-const showSelects = (e:any) => {
+const showSelects = (e: any) => {
   showSelectsTab.value = !showSelectsTab.value;
-  console.log(animHeight)
+  console.log(animHeight);
 };
 
 const clickAway = () => {
@@ -83,7 +85,7 @@ const showSelectedDeletable = (e: any) => {
 watch(
   () => selectedCategory.value,
   (newvalue: any) => {
-    if (newvalue.length === 0) {
+    if (newvalue === undefined || newvalue.length === 0) {
       if (deleteAble.value) {
         selectedCategory.value = ['Choose category'];
         emit("subCategory", undefined);
@@ -116,7 +118,6 @@ const deleteFn = (e: any) => {
     }
   }
 };
-
 </script>
 
 <template>

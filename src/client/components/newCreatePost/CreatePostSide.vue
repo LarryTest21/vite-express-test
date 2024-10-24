@@ -34,6 +34,7 @@ const emit = defineEmits([
 watch(
   () => props.emittedMainCategory,
   (newv) => {
+
     interPost.value['interEventCategory'] = newv;
   }
 );
@@ -489,6 +490,7 @@ const savePost = () => {
   const timestamp = currentDate.getTime();
 
   savedPost.value = interPost.value;
+  console.log(savedPost.value)
   savedPost.value["author"] = userData().data.firstName;
   savedPost.value['lastsaved'] = timestamp;
 
@@ -1279,9 +1281,9 @@ input[type="button"].saved:hover {
     }
   }
 }
-@media (max-width:1980px){
+@media (max-width: 1980px) {
   .post-side-wrapper .excerpt-wrapper .excerpt-counter .autofill-hover {
-    left:10px;
+    left: 10px;
     width: 100px;
     font-size: 0.8rem;
   }
@@ -1297,6 +1299,5 @@ input[type="button"].saved:hover {
       right: 0;
     }
   }
-  
 }
 </style>
