@@ -20,7 +20,7 @@ import {
   getPrivateMessage,
   saveRead,
   changeFriendColorChat,
-  updateSavedPosts,
+  savePost,
   deleteSavedPost
 } from "../controllers/authController";
 import { getAnalytics } from "../controllers/analyticsController";
@@ -105,7 +105,7 @@ router.get("/content/event/:id", getEvent);
 router.post("/uploadPost", authenticateRoutes, uploadPost);
 
 //Save Posts
-router.post("/user/updateSavedPosts/", authenticateRoutes, updateSavedPosts)
+router.post("/user/savePost/", authenticateRoutes, savePost)
 router.post("/user/deleteSavedPost/", authenticateRoutes, deleteSavedPost)
 
 //Edit Event

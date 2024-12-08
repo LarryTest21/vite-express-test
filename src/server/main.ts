@@ -23,7 +23,7 @@ database.once('connected', () => {
 mongoose.connect(mongoURI)
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.json({ limit: '100mb' }));
 app.use(cookieParser())
 
 

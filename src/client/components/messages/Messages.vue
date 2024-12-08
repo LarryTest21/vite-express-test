@@ -31,6 +31,8 @@ import gsap from "gsap";
 import svgSad from "./emojis/emoji_1";
 import $ from 'jquery';
 
+const inputRef = ref<HTMLElement | null>(null);
+
 const requestNotif = ref();
 const view = ref(0) as any;
 
@@ -237,12 +239,83 @@ const socketRoom = (user: any) => {
   //     { deep: true }
   //   );
 };
+const inputText = ref<string>('');
+const processedText = ref<string>('');
+const isFocused = ref<boolean>(false);
 
 const onDivInput = (e: any) => {
-  messageInput.value = e.target.innerHTML;
+  if (!inputRef.value) return; // Guard clause
+
+  const selection = window.getSelection();
+  let range = selection?.getRangeAt(0).cloneRange();
+
+  const wasAtEnd =
+    range &&
+    range.startContainer === inputRef.value &&
+    range.startOffset === inputRef.value.childNodes.length;
+  const preCaretRange = range?.cloneRange();
+  preCaretRange?.selectNodeContents(inputRef.value);
+  preCaretRange?.setEnd(range?.startContainer!, range!.startOffset);
+  const cursorOffset = preCaretRange?.toString().length;
+  let content = inputRef.value.innerHTML;
+  content = content.replace(
+    /^(<div>[\s\n]*<br\s*\/?>[\s\n]*)+|(\s*<br\s*\/?>[\s\n]*<\/div>)|(\s*<br\s*\/?>)+$/g,
+    ''
+  );
+  content = content
+    .replace(
+      /:D/g,
+      `<img src="${happyEmojiPng}" alt="smile" style="width:20px; height:20px;">`
+    )
+    .replace(
+      /:\(/g,
+      `<img src="${sadEmojiPng}" alt="sad" style="width:20px; height:20px;">`
+    );
+  inputRef.value.innerHTML = content;
+  inputText.value = inputRef.value.innerText;
+  // Move the cursor to the end only if it was at the end before
+  if (wasAtEnd) {
+    moveCursorToEnd();
+  } else {
+    const newRange = document.createRange();
+    const newSelection = window.getSelection();
+
+    if (inputRef.value && newSelection) {
+      const textNode = inputRef.value.firstChild as Node;
+      if (textNode.nodeType === Node.TEXT_NODE) {
+        newRange.setStart(textNode, cursorOffset!);
+      } else {
+        newRange.setStart(inputRef.value, cursorOffset!);
+      }
+      newRange.collapse(true);
+      newSelection.removeAllRanges();
+      newSelection.addRange(newRange);
+    }
+  }
+  processedText.value = content;
+  messageInput.value = processedText.value;
 };
 
+const moveCursorToEnd = () => {
+  if (inputRef.value) {
+    const range = document.createRange();
+    const selection = window.getSelection();
+    const lastChild = inputRef.value.lastChild;
 
+    if (lastChild?.nodeType === Node.TEXT_NODE) {
+      range.setStart(lastChild, lastChild.textContent?.length || 0);
+    } else if (lastChild) {
+      range.setStartAfter(lastChild);
+    } else {
+      range.selectNodeContents(inputRef.value);
+      range.collapse(false);
+    }
+
+    range.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  }
+};
 const sendMessage = () => {
   emojiShow.value = false;
 
@@ -254,6 +327,21 @@ const sendMessage = () => {
     (e: any) => e.userID === chatUserData.value._id
   );
 
+  // messageInput.value = messageInput.value
+  //   .replace(
+  //     /:D/g,
+  //     `<img src="${happyEmojiPng}" alt="smile" style="width:20px; height:20px;">`
+  //   )
+  //   .replace(
+  //     /:\(/g,
+  //     `<img src="${sadEmojiPng}" alt="sad" style="width:20px; height:20px;">`
+  //   );
+
+  messageInput.value = messageInput.value.replace(
+    /^(<div>[\s\n]*<br\s*\/?>[\s\n]*)+|(\s*<br\s*\/?>[\s\n]*<\/div>)|(\s*<br\s*\/?>)+$/g,
+    ''
+  );
+
   const messageData = {
     senderID: userData().data._id,
     sendTo: chatUserData.value._id,
@@ -262,18 +350,14 @@ const sendMessage = () => {
     read: false,
   };
 
-  console.log(messageData)
-
   const uploadMessage = () => {
     axios.post("/api/user/refresh").then(() => {
       axios
         .post("/api/user/privateMessage", messageData)
         .then((result) => {
-          console.log(messageData);
+          inputRef.value!.innerHTML = '';
         })
-        .catch((error) => {
-          console.log(error.response.data);
-        });
+        .catch((error) => {});
     });
   };
 
@@ -299,6 +383,14 @@ const sendMessage = () => {
     messageRef.value = '';
   }
 };
+
+const checkKeyPress = (event: KeyboardEvent) => {
+  if (event.shiftKey && event.key === 'Enter') {
+    event.preventDefault(); // Prevent the default behavior of inserting a newline
+    sendMessage(); // Call your sendMessage function
+  }
+};
+
 const emojiShow = ref();
 onMounted(() => {
   if (userData().data != undefined) {
@@ -308,6 +400,15 @@ onMounted(() => {
       requestNotif.value = userData().data.friendsActions.requestUsers.length;
     });
   }
+  watch(
+    inputRef,
+    (newv) => {
+      if (newv != undefined) {
+        inputRef.value?.focus();
+      }
+    },
+    { deep: true }
+  );
 });
 
 watch(emojiShow, (newvalue) => {
@@ -390,8 +491,8 @@ const insertSvg = (emoji: any) => {
         <div class="back" @click="view = 1">
           <backButton class="back-button" />
         </div>
-        <div @input="onDivInput($event)"
-             class="message-input" contenteditable="true"
+        <div @input="onDivInput($event)" ref="inputRef"
+             class="message-input" contenteditable="true" @keydown="checkKeyPress"
         ></div>
 
         <button class="emoji-btn" @click="emojiShow = !emojiShow">
@@ -691,7 +792,6 @@ const insertSvg = (emoji: any) => {
 .message-chat-enter-from,
 .message-chat-leave-to {
   opacity: 0;
-  transform: translateY(20px);
 }
 .message-chat-leave-active {
   position: absolute;

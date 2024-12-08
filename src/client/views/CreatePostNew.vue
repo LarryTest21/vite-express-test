@@ -234,20 +234,6 @@ const onFileSelect = (e: any) => {
 
 const savedPost = ref(JSON.parse(localStorage.getItem("savedPost") as any));
 
-if (savedPost.value === undefined || savedPost.value === null) {
-  if (userD != undefined && userD.savedPost == undefined) {
-    watch(
-      () => userData().data,
-      () => {
-        if (userD != null) {
-          savedPost.value = userD.savedPost;
-          localStorage.setItem("savedPost", JSON.stringify(savedPost.value));
-        }
-      }
-    );
-  } else {
-  }
-}
 const refreshCalendar = ref();
 
 const showSavedPost = ref(false) as any;
@@ -302,7 +288,7 @@ const mainCategory = ["News", "Blog"];
 const subCategory = ["Blog", "Tournament", "Cup", "General"];
 const eventCategory = ["Tournament", "Cup", "Training", "Disclaimer"];
 const postSaved = () => {
-  modalLoadingMessageColor.value = "";
+  modalLoadingMessageColor.value = "var(--color-nav-txt)";
 
   showModal.value = true;
   modalMessage.value = "Post Saved";
@@ -338,16 +324,15 @@ const subCategoryEmit = (value: any) => {
   emittedSubCategory.value = value;
 };
 
-onMounted(() => {});
-
 const postIncomplete = (e: any) => {
-  console.log(`output->e`, e);
 
   if (e === "uploading") {
     modalSaved.value = false;
     modalUpload.value = true;
     showModal.value = true;
     modalAnim.value = true;
+    modalLoadingMessageColor.value = "var(--color-nav-txt)";
+
     modalMessage.value = "Uploading...";
   } else if (e === "complete") {
     setTimeout(() => {
@@ -434,6 +419,10 @@ onMounted(() => {
       });
     }
   }
+  localStorage.setItem(
+    "savedPosts",
+    JSON.stringify(userData().data.savedPosts)
+  );
 });
 
 const savedpostid = ref();
@@ -450,12 +439,17 @@ const closeSavedPosts = () => {
 };
 
 const loadSaved = (loadpost: any) => {
-  savedMainCategory.value = undefined
-  savedSubCategory.value = undefined
-
-
-
+  savedMainCategory.value = undefined;
+  savedSubCategory.value = undefined;
+  savedpostid.value = undefined;
+  postContent.value = undefined
+  postTitle.value = undefined
+  postDate.value = undefined
+  postExcerpt.value = undefined
   editor.value.commands.clearContent();
+
+
+
   postContent.value = loadpost.postContent;
   postTitle.value = loadpost.postTitle;
   postDate.value = loadpost.postDate;
@@ -463,10 +457,14 @@ const loadSaved = (loadpost: any) => {
 
   interPost.mainCategory = loadpost.mainCategory;
   interPost.mainCategory = loadpost.subCategory;
+
   savedpostid.value = loadpost.savedpostid;
+
   editor.value.commands.insertContent(postContent.value);
-  savedMainCategory.value = loadpost.mainCategory
-  savedSubCategory.value = loadpost.subCategory
+  savedMainCategory.value = loadpost.mainCategory;
+  savedSubCategory.value = loadpost.subCategory;
+  console.log(typeof savedpostid.value);
+
 
 };
 
@@ -530,7 +528,7 @@ onBeforeUpdate(() => {
               <label for="category" v-text="currentRouteName == 'createpost' ? 'Post Category' : 'Type of Event'"
               />
               <MultiSelect :multiSelectOptions="eventCategory" v-if="currentRouteName === 'createevent'"
-                           :fontSize="'1rem'"
+                           :fontSize="'1.5rem'"
                            :savedValue="savedMainCategory"
                            :deleteAble="false"
                            @mainCategory="mainCategoryEmit"
@@ -855,7 +853,8 @@ onBeforeUpdate(() => {
     padding: 50px;
 
     &.event {
-      width: 50%;
+      width: 80%;
+      min-width: 1200px;
       .editor {
         .post-side {
           width: 40%;

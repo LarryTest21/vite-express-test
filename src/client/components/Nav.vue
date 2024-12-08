@@ -83,6 +83,7 @@ const socketIoFn = () => {
   socket.value!.emit("userListRequest", "");
 
   socket.value!.on("userListRequest", function () {
+  
     socket.value!.emit("userListInitial", {
       socketID: socket.value!.id,
       userID: userData().data._id,
@@ -151,7 +152,7 @@ const socketIoFn = () => {
 
   socket.value.on("userListUpdate", async function (value: any) {
     socketAction.value = "userConnected";
-    userConnectedInfo.value = value.userInfo;
+    userConnectedInfo.value = {userName: value.userName, userProfilepic: value.userProfPic};
     userSocketNotif.value = true;
 
     if (userData().data.userSettings.notifSounds) {
@@ -185,24 +186,25 @@ const socketIoFn = () => {
 
   if (userD.value.data != undefined) {
     socket.value.on('connect', function () {
+
       socket.value.emit("userConnected", {
         socketID: socket.value.id,
         userID: userData().data._id,
-        userInfo: userData().data,
+        userProfPic: userData().data.profilePic,
+        userName: userData().data.firstName,
       });
     });
   } else {
     watch(
       () => userD.value.data,
       () => {
-        console.log(userD.value.data);
-
         if (userD.value.data != undefined) {
           socket.value.on('connect', function () {
             socket.value.emit("userConnected", {
               socketID: socket.value.id,
               userID: userData().data._id,
-              userInfo: userData().data,
+              userProfPic: userData().data.profilePic,
+              userName: userData().data.firstName,
             });
           });
         }
@@ -334,7 +336,7 @@ $.ajax({
     } else {
       langEn.value = true;
     }
-  }
+  },
 });
 
 const loginActivated = ref(false);
@@ -504,7 +506,7 @@ const notifClicked = (value: any) => {
   <header class="fullNav" ref="navRef">
     <div class="wrapper">
       <transition name="modal">
-        <Modal v-if="userSocketNotif" class="modal" :socketAction="socketAction" :userInfo="userConnectedInfo" :position="'absolute'"
+        <Modal v-if="userSocketNotif"  class="modal" :socketAction="socketAction" :userInfo="userConnectedInfo" :position="'absolute'"
         />
       </transition>
       <nav>

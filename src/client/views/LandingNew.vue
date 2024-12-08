@@ -190,4 +190,11 @@ const checkMobile = ref(isMobile().state);
     font-size: 30px;
   }
 }
+
+@media (max-width:1200px) {
+  .landing-wrapper .section-landing .section-wrapper {
+    display:grid;
+  }
+}
+
 </style>

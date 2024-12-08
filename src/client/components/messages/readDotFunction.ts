@@ -44,7 +44,6 @@ const readDotFunction = (
       }
     });
 
-    console.log(messageArray);
   } else if (!ifNewChat) {
     // if (isItRunning.value == false) {
     //   isItRunning.value = true;

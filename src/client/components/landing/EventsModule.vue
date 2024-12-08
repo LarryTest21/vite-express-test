@@ -49,16 +49,17 @@ const eventRef = ref(0) as any;
 const onWheel = (e: any) => {
   if (isScrolling.value === false) {
     if (e.deltaY > 0) {
-      eventTransition.value = 'left';
       isScrolling.value = true;
+
+      eventTransition.value = 'left';
       const index = eventsArray.value.findIndex(
         (event: any) => event.active === true
       );
 
       if (index === eventsArray.value.length - 1) {
+        isScrolling.value = false;
         delete eventsArray.value[index].active;
         eventsArray.value[0].active = true;
-        isScrolling.value = false;
         gsap.to('.event', {
           duration: 0.8,
           ease: "back.out(1.7)",
@@ -79,7 +80,7 @@ const onWheel = (e: any) => {
             height: '50%',
             width: '30%',
           });
-        }, 10);
+        }, 2);
       } else {
         delete eventsArray.value[index].active;
         eventsArray.value[index + 1].active = true;
@@ -116,9 +117,9 @@ const onWheel = (e: any) => {
       );
 
       if (index === 0) {
+        isScrolling.value = false;
         delete eventsArray.value[0].active;
         eventsArray.value[eventsArray.value.length - 1].active = true;
-        isScrolling.value = false;
         gsap.to('.event', {
           duration: 0.8,
           ease: "back.out(1.7)",
@@ -141,7 +142,7 @@ const onWheel = (e: any) => {
             height: '50%',
             width: '30%',
           });
-        }, 10);
+        }, 2);
       } else {
         delete eventsArray.value[index].active;
         eventsArray.value[index - 1].active = true;
@@ -200,6 +201,8 @@ const onWheel = (e: any) => {
         }, 700);
       }
     }
+  } else {
+    e.preventDefault();
   }
 };
 
@@ -207,17 +210,14 @@ onMounted(() => {
   axios
     .get("/api/content/events/")
     .then((res) => {
-      console.log(res)
       eventsArray.value = [...res.data];
     })
     .then(() => {
       eventsArray.value.sort(function compare(a: any, b: any) {
         var dateA = new Date(a.eventDate) as any;
         var dateB = new Date(b.eventDate) as any;
-        console.log(eventsArray.value)
 
         return dateA - dateB;
-
       });
       eventsArray.value[0].active = true;
     })

@@ -5,7 +5,6 @@ import $ from "jquery";
 import { isMobile } from "../store/isMobile";
 import { stopScroll } from "../store/stopScroll";
 
-
 const checkMobile = ref(isMobile());
 const frontImages = ref([] as any);
 const imageStart = ref(false);
@@ -467,4 +466,5 @@ onUnmounted(() => {
     font-size: 30px;
   }
 }
+
 </style>

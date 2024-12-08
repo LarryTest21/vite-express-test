@@ -6,6 +6,7 @@ import axios from "axios";
 import { userData } from "../../store/userData";
 import _ from "lodash";
 import Modal from "../../components/Modal.vue";
+import SpinnerChekMark from "../../components/icons/LoadingSpinnerCheckMark.vue";
 
 const props = defineProps({
   postContent: String,
@@ -34,14 +35,9 @@ const emit = defineEmits([
 watch(
   () => props.emittedMainCategory,
   (newv) => {
-
     interPost.value['interEventCategory'] = newv;
   }
 );
-
-const userID = ref(props.userID);
-
-const insertedPost = ref() as Object;
 
 //Variables to show and save
 const postTitle = computed(() => props.postTitle);
@@ -50,7 +46,20 @@ const savedpostid = computed(() => props.savedpostid);
 
 const postContent = computed(() => props.postContent);
 const showPostDate = ref();
+watch(
+  showPostDate,
+  (newv) => {
+    if (newv === undefined) {
+      showPostDateFormatted.value = undefined;
+    }
+  },
+  { deep: true }
+);
 const showPostDateFormatted = ref();
+
+watch(showPostDateFormatted, (newv)=> {
+console.log(newv)
+}, {deep:true})
 
 const savedPost = ref() as any;
 const saveShow = ref(false);
@@ -129,8 +138,6 @@ watch(
 watch(
   postContent,
   (newv) => {
-    console.log(newv);
-
     if (newv == "<p></p>") {
       interPost.value.postContent = undefined;
     } else {
@@ -142,7 +149,6 @@ watch(
 watch(
   showPostDateFormatted,
   (newv) => {
-    console.log(newv);
     if (newv == null) {
       interPost.value.postDate = undefined;
     } else {
@@ -154,7 +160,7 @@ watch(
 watch(
   savedpostid,
   (newv) => {
-    console.log("loadpostid", newv);
+    console.log(newv);
     interPost.value.savedpostid = newv;
   },
   { deep: true }
@@ -423,7 +429,6 @@ watch(
         interEventCategory: newvalue!.eventCategory,
       };
       eventEditDate.value = true;
-      console.log(interPost.value);
       showPostDateFormatted.value = moment(
         new Date(interPost.value['interDate'])
       ).format("MM/DD/YYYY HH:mm");
@@ -485,121 +490,87 @@ const handler = () => {
   }
 };
 
+const originalSavedPosts = ref(userData().data.savedPosts);
+
+watch(originalSavedPosts, (newv) => {
+  console.log(newv);
+}),
+  { deep: true };
+
+const saveingAnim = ref(false);
+const savingCompleted = ref(false) as any;
+
+const animationCompleted = (newvalue: any) => {
+  console.log(newvalue);
+  if (newvalue) {
+    setTimeout(() => {
+      saveingAnim.value = false;
+      savingCompleted.value = false;
+    }, 700);
+  }
+};
+
 const savePost = () => {
+  saveingAnim.value = true;
+
+  var originalArray = "" as any;
   const currentDate = new Date();
   const timestamp = currentDate.getTime();
 
-  savedPost.value = interPost.value;
-  console.log(savedPost.value)
-  savedPost.value["author"] = userData().data.firstName;
-  savedPost.value['lastsaved'] = timestamp;
-
-  if (savedPost.value['savedpostid'] == undefined) {
+  interPost.value["author"] = userData().data.firstName;
+  interPost.value['lastsaved'] = timestamp;
+  originalArray = JSON.parse(localStorage.getItem("savedPosts") || '') as any;
+  if (interPost.value['savedpostid'] === undefined) {
     //IF POST NOT SAVED YET
 
-    savedPost.value['savedpostid'] = timestamp;
+    interPost.value['savedpostid'] = timestamp;
 
     //UPLOAD TO CLOUD
     axios.post("/api/user/refresh").then(() => {
-      const savedPostsBefore = userData().data.savedPosts;
-      const savedPosts = ref();
-
-      savedPostsBefore.push(savedPost.value);
-      savedPosts.value = savedPostsBefore;
+      const originalSavedPosts = ref(userData().data.savedPosts);
 
       const userID = userData().data._id;
 
-      const sendData = { userID: userID, savedPosts: savedPosts.value };
+      originalSavedPosts.value.push(interPost.value);
+      const sendData = { userID: userID, savedPosts: originalSavedPosts.value };
 
-      axios.post("/api/user/updateSavedPosts/", sendData).then((res) => {
-        console.log(res);
+      axios.post("/api/user/savePost/", sendData).then(() => {
+        const userD = userData();
+        userD.data.savedPosts = originalSavedPosts.value;
+        localStorage.setItem(
+          "savedPosts",
+          JSON.stringify(originalSavedPosts.value)
+        );
+        setTimeout(() => {
+          savingCompleted.value = true;
+        }, 1000);
       });
     });
-
-    //CHANGE LOCALSTORAGE STORED SAVEDPOSTS
-    // if (lsavedpost != null) {
-    //   const prevPosts = ref(
-    //     JSON.parse(localStorage.getItem("savedPosts") as any)
-    //   );
-    //   prevPosts.value.push(savedPost.value);
-
-    //   localStorage.setItem("savedPosts", JSON.stringify(prevPosts.value));
-    // } else {
-    //   const savedPostsArray = ref([]) as any;
-
-    //   savedPostsArray.value.push(savedPost.value);
-
-    //   localStorage.setItem("savedPosts", JSON.stringify(savedPostsArray.value));
-    // }
   } else {
     //IF POST ALREADY EXISTS
-    const savedPosts = ref();
+    var newPostID = savedpostid.value;
 
-    const savedPostsBefore = ref(userData().data.savedPosts);
+    const filteredArray = originalArray.filter(
+      (item: any) => Number(item['savedpostid']) !== Number(newPostID)
+    );
 
-    console.log(savedPostsBefore.value);
-    const newPosts = ref([]) as any;
-    console.log(interPost.value.savedpostid);
-    newPosts.value = savedPostsBefore.value.filter((post: any) => {
-      post.savedpostid != interPost.value.savedpostid;
-    });
-
-    newPosts.value.push(interPost.value);
-
-    savedPosts.value = newPosts.value;
-    console.log(newPosts.value);
+    filteredArray.push(interPost.value);
+    localStorage.setItem("savedPosts", JSON.stringify(filteredArray));
 
     const userID = userData().data._id;
 
-    const sendData = { userID: userID, savedPosts: savedPosts.value };
+    const sendData = { userID: userID, savedPosts: filteredArray };
 
-    axios.post("/api/user/updateSavedPosts/", sendData).then((res) => {
-      console.log(res);
+    //UPLOAD TO CLOUD
+    axios.post("/api/user/refresh").then(() => {
+      axios.post("/api/user/savePost/", sendData).then((res) => {
+        userData().data.savedPosts = filteredArray;
+        setTimeout(() => {
+          savingCompleted.value = true;
+        }, 1000);
+      });
     });
-
-    const prevPosts = ref(
-      JSON.parse(localStorage.getItem("savedPosts") as any)
-    );
-
-    let foundIndex = prevPosts.value.findIndex(
-      (id: any) => id.savedpostid === savedPost.value['savedpostid']
-    );
-    prevPosts.value.splice(foundIndex, 1, savedPost.value);
-
-    localStorage.setItem("savedPosts", JSON.stringify(prevPosts.value));
   }
-
-  // THIS IS NEEDED
-  // axios.post("/api/user/refresh").then((res) => {
-  //   const userID = userData().data._id;
-
-  //   const sendData = { userID: userID, savedPosts: savedPost.value };
-
-  //   axios.post("/api/user/updateSavedPosts/:id", sendData).then((res) => {
-  //   });
-  // });
-
-  // localStorage.setItem("savedPost", JSON.stringify(savedPost.value));
-
-  // axios
-  //   .post("/api/user/refresh")
-  //   .then(() => {
-  //     axios
-  //       .post("/api/user/updateSavedPost/" + userID.value, {
-  //         savedPost: savedPost.value,
-  //       })
-  //       .then((res) => {
-  //         emit("postSaved", true);
-  //       })
-  //       .then(() => {
-  //         setTimeout(() => {
-  //           showSavedButton.value = false;
-  //         }, 1400);
-  //       });
-  //   })
-  //   .catch((err) => {
-  //     console.log(`output->err`, err);
-  //   });
 };
 
 watch(
@@ -620,13 +591,13 @@ const uploadPost = () => {
   if (props.editEvent != undefined) {
     const eventData = {
       event: true,
-      eventTitle: interPost.value['interTitle'],
+      eventTitle: interPost.value['postTitle'],
       eventDate: interPost.value['interDate'],
       eventCategory: interPost.value['interEventCategory'],
       eventImage: interPost.value['interImage'],
-      eventContent: interPost.value['eventText'],
+      eventContent: interPost.value.postContent,
     };
-    console.log(eventData);
+
     if (
       eventData["eventTitle"] === undefined ||
       eventData["eventDate"] === undefined ||
@@ -640,9 +611,8 @@ const uploadPost = () => {
       axios.post("/api/user/refresh").then((res) => {
         if (res.data === "success") {
           axios
-            .post("/api/editPost/" + props.editEvent!._id, eventData)
+            .post("/api/editPost/"+props.editEvent!._id, eventData)
             .then((result) => {
-              console.log(result);
               if (result.status === 200) {
                 emit("postNotFullfilled", "updateComplete");
               }
@@ -807,6 +777,13 @@ const uploadPost = () => {
           />
         </div>
         <div class="button" v-if="showSavedButton" key="2">
+          <transition name="spinner">
+            <div class="spinner-wrapper" v-if="saveingAnim">
+              <SpinnerChekMark class="spinner" :saveingCompleted="savingCompleted" @animationCompleted="animationCompleted"
+              />
+            </div>
+          </transition>
+
           <input type="button"
                  class="save"
                  :value="props.postOrEvent === 'createpost' ? 'Save Post' : 'Save Event'"
@@ -859,8 +836,43 @@ const uploadPost = () => {
   z-index: 2;
 }
 
+.button {
+  position: relative;
+  height: 50px;
+  width: 50px;
+  border-radius: 5px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-nav-bg);
+  font-family: Roboto Condensed;
+  font-weight: 900;
+  border-radius: 5px;
+  box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.363);
+  .spinner-wrapper {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.815);
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    .spinner {
+      position: absolute;
+      z-index: 10;
+      height: 45px;
+      width: 45px;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: auto;
+    }
+  }
+}
+
 input[type="button"] {
-  font-size: 2rem;
+  font-size: 1.5rem;
+  border: 1px solid transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -871,7 +883,6 @@ input[type="button"] {
   box-sizing: border-box;
   cursor: pointer;
   color: var(--color-nav-txt);
-  border: 1px solid transparent;
   box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.363);
   padding: 5px;
 }
@@ -886,7 +897,6 @@ input[type="button"].saved:hover {
 }
 
 .post-side-wrapper {
-  width: 15%;
   height: 100%;
   position: relative;
   border-radius: 5px;
@@ -897,8 +907,6 @@ input[type="button"].saved:hover {
   overflow: hidden;
   gap: 20px;
   display: grid;
-  justify-content: space-around;
-  width: auto;
 
   .author {
     font-family: Roboto;
@@ -914,7 +922,7 @@ input[type="button"].saved:hover {
   }
   label {
     font-family: Chango;
-    font-size: 2rem;
+    font-size: 1.3rem;
     width: 100%;
   }
 
@@ -924,7 +932,7 @@ input[type="button"].saved:hover {
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
-    gap: 10px;
+    gap: 5px;
     font-family: Roboto Condensed;
     font-weight: 700;
   }
@@ -932,6 +940,7 @@ input[type="button"].saved:hover {
   .calendar-wrapper {
     display: flex;
     justify-content: flex-start;
+    width: 300px;
   }
 
   .cover-preview-wrapper {
@@ -940,9 +949,7 @@ input[type="button"].saved:hover {
     flex-direction: column;
     align-items: center;
     max-width: 100%;
-    height: 280px;
-    gap: 20px;
-
+    gap: 10px;
     .btn-close {
       position: absolute;
       background: var(--color-nav-bg);
@@ -992,13 +999,12 @@ input[type="button"].saved:hover {
 
     .cover-image-wrapper {
       padding: 3px;
-      width: 280px;
       border-radius: 5px;
       border: solid 2px var(--color-nav-txt);
       border-radius: 10px;
       overflow: hidden;
-      height: 100%;
-      overflow: hidden;
+      height: 120px;
+      width: 70%;
 
       img {
         border-radius: 5px;
@@ -1110,7 +1116,7 @@ input[type="button"].saved:hover {
         background-color: rgb(139, 1, 1);
       }
 
-      .save:focus {
+      .save:focus-visible {
         background-color: rgb(0, 116, 48);
       }
 
@@ -1132,6 +1138,17 @@ input[type="button"].saved:hover {
 .autofill-enter-from,
 .autofill-leave-to {
   transform: translateY(-4px);
+  opacity: 0;
+}
+
+.spinner-enter-active,
+.spinner-leave-active {
+  opacity: 1;
+  transition: all 0.3s;
+}
+
+.spinner-enter-from,
+.spinner-leave-to {
   opacity: 0;
 }
 
@@ -1159,41 +1176,37 @@ input[type="button"].saved:hover {
   position: absolute;
 }
 
-@media (max-height: 824px) {
+@media (max-height: 794px) {
   .post-side-wrapper {
-    &.event {
-      .cover-preview-wrapper {
-        .cover-image-wrapper {
-          input[type="button"] {
-            font-size: 0.5rem;
-          }
-        }
+    display: grid;
+    .cover-preview-wrapper {
+      height: 150px;
+      .cover-image-wrapper {
+        width: 40%;
       }
-    }
-    label {
-      font-size: 1rem;
     }
 
     .calendar-wrapper {
       flex-direction: column;
+      margin-bottom: 0;
     }
-
     .cover-preview-wrapper {
       .cover-image-wrapper {
-        width: 50%;
-
-        input[type="button"] {
-          font-size: 0.5rem;
-        }
+        width: 70%;
       }
     }
 
     .excerpt-wrapper {
-      .excerpt-counter {
-        font-size: 0.8rem;
+      position: relative;
+      width: 100%;
+      display: flex;
+      margin-bottom: 0;
+
+      .excerpt-textarea {
+        font-size: 0.5rem;
+        height: 70px;
 
         input {
-          width: 50px;
           font-size: 0.8rem;
         }
       }
@@ -1208,39 +1221,30 @@ input[type="button"].saved:hover {
     }
   }
 }
-
-@media (max-height: 900px) {
+@media (max-height: 827px) {
   .post-side-wrapper {
-    width: 20%;
-    display: flex;
+    display: grid;
     gap: 5px;
+    .cover-preview-wrapper {
+      .cover-image-wrapper {
+        height: 100px;
+      }
+    }
     &.event {
       .cover-preview-wrapper {
         .cover-image-wrapper {
-          width: 100%;
-          height: 100px;
-          input[type="button"] {
-            font-size: 0.5rem;
-          }
+          height: 50px;
         }
       }
     }
-    label {
-      font-size: 1.1rem;
-    }
-
     .calendar-wrapper {
       flex-direction: column;
-      width: 100%;
+      width: 300px;
       margin-bottom: 0;
     }
-
     .cover-preview-wrapper {
-      width: 100%;
-
       .cover-image-wrapper {
-        width: 100px;
-        height: 70px;
+        width: 70%;
       }
     }
 
@@ -1249,13 +1253,17 @@ input[type="button"].saved:hover {
       width: 100%;
       display: flex;
       margin-bottom: 0;
-
+      .excerpt-counter {
+        input {
+          font-size: 1rem;
+        }
+      }
       .excerpt-textarea {
-        font-size: 0.8rem;
+        font-size: 1rem;
         height: 70px;
 
         input {
-          font-size: 0.9rem;
+          font-size: 9rem;
         }
       }
     }
@@ -1263,34 +1271,22 @@ input[type="button"].saved:hover {
     .buttons {
       .button {
         input {
-          font-size: 1.5rem;
+          font-size: 1.2rem;
         }
       }
     }
   }
 }
 
-@media (max-height: 750px) {
-  .post-side-wrapper {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr;
-
-    .wrapper {
-      width: 100%;
-    }
-  }
-}
 @media (max-width: 1980px) {
   .post-side-wrapper .excerpt-wrapper .excerpt-counter .autofill-hover {
     left: 10px;
-    width: 100px;
-    font-size: 0.8rem;
+    font-size: 1rem;
   }
 }
 @media (min-width: 600px) and (max-width: 1356px) {
   .post-side-wrapper {
-    display: grid;
+    display: fle;
     width: 100%;
 
     label {

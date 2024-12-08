@@ -17,7 +17,7 @@ const selectTab = ref();
 const shadowStyle = props.shadowStyle;
 const eventCategory = props.eventCategory;
 
-const animHeight = props.multiSelectOptions!.length * 45 + 'px';
+const animHeight = props.multiSelectOptions!.length * 45 + 10 + 'px';
 
 const emit = defineEmits(['mainCategory', 'subCategory']);
 
@@ -40,13 +40,8 @@ const multiSelectOptionsFiltered = ref(props.multiSelectOptions);
 
 const fontSize = computed(() => props.fontSize);
 
-watch(fontSize, (newv) => {
-  console.log(newv);
-});
-
 const showSelects = (e: any) => {
   showSelectsTab.value = !showSelectsTab.value;
-  console.log(animHeight);
 };
 
 const clickAway = () => {
@@ -147,7 +142,7 @@ const deleteFn = (e: any) => {
         </div>
       </div>
     </div>
-    <transition :name="eventCategory === true ? 'tab-event':  'tab'">
+    <transition :name="'tab'">
       <div class="select-tab" ref="selectTab" :class="eventCategory === true ? 'event': ''" v-if="showSelectsTab && multiSelectOptionsFiltered!.length != 0"
            v-click-away="clickAway2"
       >
@@ -271,19 +266,16 @@ const deleteFn = (e: any) => {
 
     &.event {
       top: 0;
-      padding: 0px;
-      margin-top: 0px;
+      margin-top: 45px;
       flex-wrap: wrap;
-      right: -84px;
       border-radius: 3px;
-      will-change: width;
       .category {
         display: flex;
         align-items: center;
         border-radius: 4px;
-        padding: 1px;
         display: flex;
         font-size: 1rem;
+
       }
     }
     .category {
@@ -292,6 +284,10 @@ const deleteFn = (e: any) => {
       cursor: pointer;
       text-align: left;
       font-size: 1.3rem;
+      &:first-child {
+        margin-top: 10px;
+      }
+
       &:hover {
         background-color: var(--color-nav-txt);
         color: var(--color-nav-bg);

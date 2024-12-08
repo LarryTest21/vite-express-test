@@ -3,7 +3,7 @@ const socket = require('socket.io');
 const chatRouter = (server: any) => {
   let io = socket(server);
 
-  io.on("connection", function (socket: any) {
+  io.on("connect", function (socket: any) {
     socket.broadcast.emit('connectedUser', socket.id);
 
     socket.on("userConnected", function (data: any) {

@@ -5,7 +5,12 @@ import moment from "moment";
 import axios from "axios";
 import { userData } from "../../store/userData";
 
-const savedPosts = ref(JSON.parse(localStorage.getItem("savedPosts") as any));
+const savedPosts = ref((JSON.parse(localStorage.getItem("savedPosts") as any).sort(function (a:any, b:any) {
+    return a.savedpostid < b.savedpostid ? 1 : -1;
+})));
+
+
+
 
 const emit = defineEmits(["closeSavedPosts", "loadSaved"]);
 
@@ -39,7 +44,7 @@ const deleteSavedPost = (savedPostId: any) => {
 
   axios.post("/api/user/refresh").then(() => {
     axios.post("/api/user/deleteSavedPost/", sendData).then((res) => {
-      console.log(res);
+userData().data.savedPosts = savedPosts.value
     });
   });
 };
@@ -81,10 +86,10 @@ const deleteSavedPost = (savedPostId: any) => {
           <div class="transparentclick" @click="loadPost(savedpost.savedpostid)"
           />
 
-          <div class="delete" @click="deleteSavedPost(savedpost.savedpostid)">
+          <div class="delete" >
             <div class="confirmdelete"></div>
-            <div class="trash-box">
-              <div class="trash"></div>
+            <div class="trash-box" @click="deleteSavedPost(savedpost.savedpostid)">
+              <div class="trash" ></div>
               <div class="trash-top"></div>
               <div class="trash-btm">
                 <div class="trash-lines">

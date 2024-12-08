@@ -114,15 +114,6 @@ onMounted(() => {
     theme.state = "theme-light";
   }
 
-  watch(
-    usrData,
-    (usrdata) => {
-      const savedPosts = usrdata.data.savedPosts;
-      localStorage.setItem("savedPosts", JSON.stringify(savedPosts));
-    },
-    { deep: true }
-  );
-
   if (usrData.data != undefined) {
     console.log(usrData.data);
     theme.state = usrData.data.userSettings.themeName;
@@ -263,8 +254,7 @@ onMounted(() => {
     opacity: 0.1;
   }
 
-  &::after {
-  }
+
 }
 
 .scrollLineTop {

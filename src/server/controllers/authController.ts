@@ -671,10 +671,9 @@ export async function changeFriendColorChat(req: Request, res: Response) {
   });
 }
 
-export async function updateSavedPosts(req: Request, res: Response) {
+export async function savePost(req: Request, res: Response) {
   const userID = req.body.userID;
   const savedPosts = req.body.savedPosts;
-console.log(savedPosts)
 
   try {
     User.findOneAndUpdate(
@@ -684,16 +683,12 @@ console.log(savedPosts)
       },
       { returnOriginal: false }
     ).then((result) => {
-      res
-        .status(200)
-        .json({ succesfull: true, result: result });
+      res.status(200).json({ succesfull: true, result: result });
     });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err });
   }
 }
-
-
 
 export async function deleteSavedPost(req: Request, res: Response) {
   const userID = req.body.userID;
@@ -722,9 +717,5 @@ export async function deleteSavedPost(req: Request, res: Response) {
     } catch (err: any) {
       res.status(400).json({ success: false, error: err });
     }
-  
-
-
-
   });
 }
