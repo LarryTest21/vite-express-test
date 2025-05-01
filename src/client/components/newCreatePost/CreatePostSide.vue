@@ -57,9 +57,13 @@ watch(
 );
 const showPostDateFormatted = ref();
 
-watch(showPostDateFormatted, (newv)=> {
-console.log(newv)
-}, {deep:true})
+watch(
+  showPostDateFormatted,
+  (newv) => {
+    console.log(newv);
+  },
+  { deep: true }
+);
 
 const savedPost = ref() as any;
 const saveShow = ref(false);
@@ -611,7 +615,7 @@ const uploadPost = () => {
       axios.post("/api/user/refresh").then((res) => {
         if (res.data === "success") {
           axios
-            .post("/api/editPost/"+props.editEvent!._id, eventData)
+            .post("/api/editPost/" + props.editEvent!._id, eventData)
             .then((result) => {
               if (result.status === 200) {
                 emit("postNotFullfilled", "updateComplete");
@@ -872,6 +876,7 @@ const uploadPost = () => {
 
 input[type="button"] {
   font-size: 1.5rem;
+  height: 100%;
   border: 1px solid transparent;
   display: flex;
   align-items: center;
@@ -1270,6 +1275,7 @@ input[type="button"].saved:hover {
 
     .buttons {
       .button {
+        height: 50px;
         input {
           font-size: 1.2rem;
         }

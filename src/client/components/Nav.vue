@@ -23,6 +23,7 @@ import { useRouter } from "vue-router";
 import { blogSearch } from "../store/blogSearch";
 import { blogSearchIcon } from "../store/blogSearchIcon";
 import { socketUsers } from "../store/socketUsers";
+
 //ICONS
 import searchIcon from "../components/icons/search.vue";
 import messageIcon from "../components/icons/message.vue";
@@ -31,6 +32,8 @@ import notifSound from "./messages/notificationSounds/signedIn.mp3";
 //SCRIPTS
 import "../components/newAnalytics";
 import { io } from 'socket.io-client';
+
+
 
 const searchIcon2 = blogSearchIcon();
 const searchIconActive = ref(false);
@@ -346,6 +349,7 @@ const activateLoginTab = ref(false);
 
 const userTabClicked = userTabClick();
 
+
 watch(
   userTabClicked,
   () => {
@@ -373,10 +377,14 @@ const closeLoginTab = () => {
 };
 
 const closeProfileTab = () => {
+  console.log("closed")
   if (userTabClicked) {
-    userTabClicked.state = true;
+    userTabClicked.state = false;
   }
 };
+function closeModal() {
+  userTabClicked.state = false
+}
 
 //THEME SCRIPT
 const theme = useTheme();
@@ -518,7 +526,7 @@ const notifClicked = (value: any) => {
               </div>
             </RouterLink>
             <TransitionGroup name="user" tag="a" class="user-wrapper" key="2">
-              <div class="user-outer" key="1" v-if="signedInCheck.state">
+              <div class="user-outer" key="1" v-if="signedInCheck.state!">
                 <a class="user"
                    @click.native.prevent="userTabClicked.state = !userTabClicked.state; showMessagesTab = false"
                 >
