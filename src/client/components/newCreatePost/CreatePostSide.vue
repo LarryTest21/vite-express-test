@@ -57,14 +57,6 @@ watch(
 );
 const showPostDateFormatted = ref();
 
-watch(
-  showPostDateFormatted,
-  (newv) => {
-    console.log(newv);
-  },
-  { deep: true }
-);
-
 const savedPost = ref() as any;
 const saveShow = ref(false);
 const isEventEdit = computed(() => props.editEvent);
@@ -359,29 +351,35 @@ const showModalImage = ref();
 //Save Button
 const showSavedButton = ref();
 
-watch(
-  interPost,
-  (newvalue) => {
-    if (
-      newvalue.postDate === undefined &&
-      newvalue.postContent === undefined &&
-      newvalue.postExcerpt === undefined &&
-      newvalue.coverImage === undefined &&
-      newvalue.postTitle === undefined &&
-      newvalue.mainCategory === undefined &&
-      newvalue.subCategory === undefined
-    ) {
-      showSavedButton.value = false;
-    } else {
-      if (_.isEqual(interPost.value, props.savedPost)) {
+if (props.postOrEvent === 'createevent') {
+  showSavedButton.value = false;
+
+} else {
+  watch(
+    interPost,
+    (newvalue) => {
+      if (
+        newvalue.postDate === undefined &&
+        newvalue.postContent === undefined &&
+        newvalue.postExcerpt === undefined &&
+        newvalue.coverImage === undefined &&
+        newvalue.postTitle === undefined &&
+        newvalue.mainCategory === undefined &&
+        newvalue.subCategory === undefined
+      ) {
         showSavedButton.value = false;
       } else {
-        showSavedButton.value = true;
+        if (_.isEqual(interPost.value, props.savedPost)) {
+          showSavedButton.value = false;
+        } else {
+          showSavedButton.value = true;
+        }
       }
-    }
-  },
-  { deep: true }
-);
+    },
+    { deep: true }
+  );
+}
+
 //Watch post edit
 
 watch(isPostEdit, (newvalue) => {
