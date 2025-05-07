@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onBeforeUpdate } from "vue";
 import Calendar from "primevue/calendar";
 import moment from "moment";
 import axios from "axios";
@@ -7,6 +7,10 @@ import { userData } from "../../store/userData";
 import _ from "lodash";
 import Modal from "../../components/Modal.vue";
 import SpinnerChekMark from "../../components/icons/LoadingSpinnerCheckMark.vue";
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const currentRouteName = ref(route.name) as any;
 
 const props = defineProps({
   postContent: String,
@@ -20,8 +24,9 @@ const props = defineProps({
   emittedSubCategory: Object,
   postOrEvent: String,
   savedPost: Object,
-  showSavedPost: Boolean,
+  showSavedPosts: Boolean,
   editEvent: Object,
+  coverImage: String,
 });
 const emit = defineEmits([
   "showPreview",
@@ -37,6 +42,20 @@ watch(
   (newv) => {
     interPost.value['interEventCategory'] = newv;
   }
+);
+
+watch(
+  () => props.coverImage,
+  (newv) => {
+    if (newv != undefined || '') {
+      showCoverPreview.value = true;
+      rawImg.value = newv;
+    } else {
+      rawImg.value = undefined;
+      showCoverPreview.value = false;
+    }
+  },
+  { deep: true }
 );
 
 //Variables to show and save
@@ -57,10 +76,12 @@ watch(
 );
 const showPostDateFormatted = ref();
 
-const savedPost = ref() as any;
 const saveShow = ref(false);
 const isEventEdit = computed(() => props.editEvent);
 const isPostEdit = computed(() => props.savedPost);
+watch(isPostEdit, (newv) => {
+  console.log(newv);
+});
 
 const mainCategory = computed(() => props.emittedMainCategory);
 const subCategory = computed(() => props.emittedSubCategory);
@@ -82,7 +103,6 @@ const postExcerpt = computed(() => props.postDate);
 watch(
   postDate,
   (newv) => {
-    console.log("postdate", newv);
     if (newv === undefined) {
       showPostDateFormatted.value = '';
     } else {
@@ -156,7 +176,6 @@ watch(
 watch(
   savedpostid,
   (newv) => {
-    console.log(newv);
     interPost.value.savedpostid = newv;
   },
   { deep: true }
@@ -353,7 +372,6 @@ const showSavedButton = ref();
 
 if (props.postOrEvent === 'createevent') {
   showSavedButton.value = false;
-
 } else {
   watch(
     interPost,
@@ -383,12 +401,12 @@ if (props.postOrEvent === 'createevent') {
 //Watch post edit
 
 watch(isPostEdit, (newvalue) => {
-  console.log(newvalue);
-
   watch(
     () => interPost.value,
 
     (newvalue) => {
+      console.log(newvalue);
+
       if (
         newvalue.postDate === undefined &&
         newvalue.postContent === undefined &&
@@ -399,7 +417,6 @@ watch(isPostEdit, (newvalue) => {
         newvalue.subCategory === undefined
       ) {
         showSavedButton.value = false;
-        console.log("same");
       } else {
         if (props.savedPost != null) {
           if (_.isEqual(interPost.value, props.savedPost)) {
@@ -492,13 +509,6 @@ const handler = () => {
   }
 };
 
-const originalSavedPosts = ref(userData().data.savedPosts);
-
-watch(originalSavedPosts, (newv) => {
-  console.log(newv);
-}),
-  { deep: true };
-
 const saveingAnim = ref(false);
 const savingCompleted = ref(false) as any;
 
@@ -524,7 +534,6 @@ const savePost = () => {
   originalArray = JSON.parse(localStorage.getItem("savedPosts") || '') as any;
   if (interPost.value['savedpostid'] === undefined) {
     //IF POST NOT SAVED YET
-
     interPost.value['savedpostid'] = timestamp;
 
     //UPLOAD TO CLOUD
@@ -550,12 +559,13 @@ const savePost = () => {
     });
   } else {
     //IF POST ALREADY EXISTS
-    var newPostID = savedpostid.value;
+
+    var newPostID = interPost.value['savedpostid'];
 
     const filteredArray = originalArray.filter(
-      (item: any) => Number(item['savedpostid']) !== Number(newPostID)
+      (item: any) => item['savedpostid'] !== newPostID
     );
-
+    console.log(originalArray);
     filteredArray.push(interPost.value);
     localStorage.setItem("savedPosts", JSON.stringify(filteredArray));
 
@@ -599,6 +609,8 @@ const uploadPost = () => {
       eventImage: interPost.value['interImage'],
       eventContent: interPost.value.postContent,
     };
+
+    console.log(eventData);
 
     if (
       eventData["eventTitle"] === undefined ||
@@ -688,7 +700,9 @@ const uploadPost = () => {
     </transition>
 
     <div class="calendar-wrapper wrapper">
-      <label>Post Date</label>
+      <label>{{
+        route.name == 'createpost' ? 'Post title' : 'Event Title'
+      }}</label>
       <Calendar id="calendar-24h"
                 v-model="showPostDateFormatted"
                 showTime
@@ -699,7 +713,9 @@ const uploadPost = () => {
     </div>
 
     <div class="cover-preview-wrapper" value="Preview Cover" key="1">
-      <label>Cover Image</label>
+      <label>{{
+        route.name == 'createpost' ? 'Cover Image' : 'Event Image'
+      }}</label>
       <div class="cover-image-wrapper">
         <transition name="autofill">
           <Modal v-if="showModalImage"
@@ -739,8 +755,7 @@ const uploadPost = () => {
       />
     </div>
 
-    <div class="excerpt-wrapper wrapper" v-if="props.postOrEvent === 'createpost'"
-    >
+    <div class="excerpt-wrapper wrapper" v-if="route.name === 'createpost'">
       <label>Excerpt</label>
       <textarea type="text"
                 class="excerpt-textarea"
