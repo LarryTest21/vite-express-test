@@ -125,7 +125,7 @@ const requestedUser = (user: any) => {
     requestedUserInfo: user,
     requestedBy: userData().data._id,
   };
-
+  console.log(data);
   props.socketIO!.emit('userAllRequests', data);
 };
 
@@ -356,6 +356,7 @@ const sendMessage = () => {
         .post("/api/user/privateMessage", messageData)
         .then((result) => {
           inputRef.value!.innerHTML = '';
+          messageInput.value = '';
         })
         .catch((error) => {});
     });
@@ -368,7 +369,6 @@ const sendMessage = () => {
   ) {
     Object.assign(messageData, { sendToSocket: sendTo });
     props.socketIO!.emit('privateMessage', messageData);
-    console.log("triggeredfirst");
 
     selfMessage.value = messageData;
     uploadMessage();
@@ -395,6 +395,14 @@ const emojiShow = ref();
 onMounted(() => {
   if (userData().data != undefined) {
     requestNotif.value = userData().data.friendsActions.requestUsers.length;
+
+    watch(
+      userData(),
+      () => {
+        requestNotif.value = userData().data.friendsActions.requestUsers.length;
+      },
+      { deep: true }
+    );
   } else {
     watch(userData(), () => {
       requestNotif.value = userData().data.friendsActions.requestUsers.length;
