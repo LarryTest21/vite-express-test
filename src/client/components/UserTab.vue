@@ -41,6 +41,7 @@ const checkUserData = () => {
     displayName.value = userD.firstName + userD.lastName;
     userActivated.value = userD.activated;
     userEmail.value = userD.email;
+    notifArray.value.push("asr");
     notifCounter.value = notifArray.value.length + 1;
     if (userD.clearance === "regular") {
       isAdminCheck.state = false;
