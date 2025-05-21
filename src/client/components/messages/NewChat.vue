@@ -4,12 +4,16 @@ import { userData } from "../../store/userData";
 import moment from "moment";
 import $ from "jquery";
 import axios from "axios";
+import { vElementVisibility } from '@vueuse/components';
+import { filter, last } from 'lodash';
 import readDotFunction from "./readDotFunction";
+import ß from "jquery";
 import { socketUsers } from "../../store/socketUsers";
 import isEqual from 'lodash/isEqual';
 import { vIntersectionObserver } from '@vueuse/components';
 import colorPickerButton from "./colorPickerButton.vue";
 import colorPicker from "./colorPicker.vue";
+import { ta } from 'date-fns/locale';
 
 const emit = defineEmits(['socketRoom']);
 
@@ -118,7 +122,6 @@ props.socket!.on("messageRead", function (data: any) {
       delete lastRead.read;
     }
 
-    console.log(messagesArray.value);
     messagesArray.value[data.messageID].read = true;
 
     newChange.value = false;
@@ -135,21 +138,16 @@ props.socket!.on("privateMessage", function (data: any) {
     read: false,
   };
 
-  if (messagesArray.value !== undefined) {
-    messagesArray.value.push(message);
-    if (messagesScrolledBottom.value === true) {
-      $('.msg-wrapper')
-        .stop()
-        .animate(
-          {
-            scrollTop: $('.msg-wrapper')[0].scrollHeight,
-          },
-          100
-        );
-    }
-  } else {
-    messagesArray.value = [];
-    messagesArray.value.push(message);
+  messagesArray.value.push(message);
+  if (messagesScrolledBottom.value === true) {
+    $('.msg-wrapper')
+      .stop()
+      .animate(
+        {
+          scrollTop: $('.msg-wrapper')[0].scrollHeight,
+        },
+        100
+      );
   }
 });
 
@@ -181,16 +179,11 @@ props.socket!.on("userIsTyping", function (data: any) {
 watch(
   () => props.selfMessage,
   (newvalue) => {
-    if (messagesArray.value !== undefined) {
-      messagesArray.value.findLast((message: any) => {
-        if (message.read === false) {
-          delete message.read;
-        }
-      });
-    } else {
-      messagesArray.value = [];
-    }
-
+    messagesArray.value.findLast((message: any) => {
+      if (message.read === false) {
+        delete message.read;
+      }
+    });
     const newMessage = { ...newvalue };
     messagesArray.value.push(newMessage);
 
@@ -232,13 +225,7 @@ onMounted(() => {
       axios
         .post("/api/user/getPrivateMessage", getData)
         .then((result) => {
-          console.log(result.data);
-          if (result.data !== null) {
-            messagesArray.value = result.data!.messages;
-          } else {
-            messagesArray.value = undefined;
-          }
-
+          messagesArray.value = result.data!.messages;
           readDotFunction(messagesArray.value, props.chatUserData, true);
         })
         .then(() => {

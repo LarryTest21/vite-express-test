@@ -14,13 +14,17 @@ import { userData } from "../../store/userData";
 import AcceptRequest from "./AcceptRequest.vue";
 import { socketUsers } from "../../store/socketUsers";
 
+
 const props = defineProps({
   userArray: Array,
-  searchUser: Array,
-});
+  searchUser: Array
+})
 
-const userArray = ref(props.userArray) as any;
-const searchUserArray = ref(props.searchUser) as any;
+
+
+const userArray = ref(props.userArray) as any
+const searchUserArray = ref(props.searchUser) as any
+
 
 const searchClicked = ref(false);
 
@@ -29,17 +33,20 @@ const cursor = ref(false) as any;
 
 const searchInput = ref() as any;
 
+
 const resultsUserName = ref();
 const resultsEmail = ref();
 
 const results = ref([]) as any;
 const resulstCheck = ref() as any;
 
+
 const searchStarted = ref(false);
 const isLoading = ref();
 watch(
   () => searchInput.value,
   (newValue: any) => {
+
     if (newValue === '') {
       searchStarted.value = false;
     }
@@ -56,6 +63,8 @@ watch(
 
       if (searchInput.value !== "") {
         resulstCheck.value = true;
+
+
 
         resultsUserName.value = searchUserArray.value!.filter(
           (item: any) =>
@@ -81,7 +90,7 @@ watch(
           const whereFound = { whereFound2: "username" };
           Object.assign(post, whereFound);
           const username = post;
-          results.value.push(username);
+          results.value.push(username); 
         });
 
         const ids = results.value.map((id: any) => id);
@@ -105,60 +114,56 @@ const requestPressed = ref();
 const userAddFn = (user: any) => {
   const currentUser = userData().data._id;
 
-  const addedUser = ref(userData().data.friendsActions.addedUsers);
-  const requestUsers = ref(userData().data.friendsActions.requestUsers);
-  const acceptedUsers = ref(userData().data.friendsActions.acceptedUsers);
-
   if (
-    addedUser.value != undefined &&
-    addedUser.value.some((e: any) => e === user._id)
+    userData().data.friendsActions.addedUsers.some((e: any) => e === user._id)
   ) {
   } else if (
-    requestUsers.value != undefined &&
-    requestUsers.value.some((e: any) => e === user._id)
+    userData().data.friendsActions.requestUsers.some((e: any) => e === user._id)
   ) {
-    console.log('requestUsers');
 
     requestPressed.value = true;
+
   } else if (
-    acceptedUsers.value != undefined &&
-    acceptedUsers.value.some((e: any) => e === user._id)
+    userData().data.friendsActions.acceptedUsers.some(
+      (e: any) => e === user._id
+    )
   ) {
     emit("sendMessage", user);
   } else {
 
-    if (
-      socketUsers().socketUsers.some((user2: any) => user2.userID === user._id)
-    ) {
 
-      emit("addedUser", user);
-    }
-    userData().data.friendsActions.addedUsers.push(user._id);
+if(socketUsers().socketUsers.some((user2:any) => user2.userID === user._id)){
+  emit("addedUser", user);
+}
 
-    // axios.post("api/user/refresh").then(() => {
-    //   axios
-    //     .post("api/user/addUser/" + currentUser, { id: user._id })
-    //     .then((ress) => {
-    //       if (ress.status == 200) {
-    //         userData().data.friendsActions.addedUsers.push(user._id);
-    //       }
-    //     })
-    //     .catch((error) => {
-    //       console.log(error.response);
-    //       console.log(results.value);
-    //     });
-    // });
+
+
+    axios.post("api/user/refresh").then(() => {
+      axios
+        .post("api/user/addUser/" + currentUser, { id: user._id })
+        .then((ress) => {
+          if (ress.status == 200) {
+            userData().data.friendsActions.addedUsers.push(user._id);
+          }
+        })
+        .catch((error) => {
+          console.log(error.response.data);
+          console.log(results.value);
+        });
+    });
   }
 };
 
 watch(
   () => socketUsers(),
   () => {
+
     var isConnected = userArray.value!.filter((arrayEl: any) =>
       socketUsers().socketUsers.some(
         (filterEl: any) => filterEl.userID === arrayEl._id
       )
-    ) as any;
+    ) as any
+
 
     if (isConnected.length != 0) {
       isConnected[0].isConnected = true;
@@ -170,7 +175,7 @@ watch(
     } else {
       var disConnected = userArray.value!.filter(function (user: any) {
         return user.isConnected === true;
-      }) as any;
+      }) as any
       if (disConnected.length != 0) {
         disConnected[0].isConnected = false;
         userArray.value = userArray.value!.filter(function (user: any) {
@@ -184,23 +189,16 @@ watch(
 );
 
 const addedCheck = (user: any) => {
-  const request = ref(userData().data.friendsActions.requestUsers);
-  const added = ref(userData().data.friendsActions.addedUsers);
-  const accepted = ref(userData().data.friendsActions.acceptedUsers);
-
   if (
-    request.value != undefined &&
-    request.value.find((obj: any) => obj == user)
+    userData().data.friendsActions.requestUsers.find((obj: any) => obj == user)
   ) {
     return 'requested';
   } else if (
-    added.value != undefined &&
-    added.value.find((obj: any) => obj == user)
+    userData().data.friendsActions.addedUsers.find((obj: any) => obj == user)
   ) {
     return 'added';
   } else if (
-    accepted.value != undefined &&
-    accepted.value.find((obj: any) => obj == user)
+    userData().data.friendsActions.acceptedUsers.find((obj: any) => obj == user)
   ) {
     return 'friend';
   }
@@ -222,7 +220,9 @@ const acceptedUser = (user: any) => {
   emit("acceptedUser", user);
 };
 onMounted(() => {
-  emit("selectedUser");
+
+emit("selectedUser", )
+
 });
 </script>
 
@@ -263,8 +263,7 @@ onMounted(() => {
             />
             <userRequestOutIcon v-if="(addedCheck(user._id) === 'requested')" class="request-icon out"
             />
-            <div class="online-checker" v-if="user.isConnected && (addedCheck(user._id) === 'friend')"
-            ></div>
+            <div class="online-checker" v-if="user.isConnected"></div>
           </div>
         </TransitionGroup>
       </div>
@@ -313,13 +312,13 @@ onMounted(() => {
     position: relative;
     width: 100%;
     height: 60px;
+    min-height: 60px;
     cursor: pointer;
     color: var(--color-nav-txt);
     font-size: 1rem;
     display: grid;
     grid-template-columns: 50px 1fr 50px;
     padding-left: 10px;
-    justify-self: center;
     gap: 20px;
     transition: all 0.3s ease-in-out;
 
@@ -373,11 +372,10 @@ onMounted(() => {
       opacity: 1;
     }
     .request-icon {
-      position: relative;
-      width: 50px;
       top: 0;
       bottom: 0;
       margin: auto;
+
       &.in {
         fill: var(--color-nav-txt-darker);
       }
@@ -389,7 +387,7 @@ onMounted(() => {
       opacity: 0;
       height: 100%;
       right: 10px;
-      position: relative;
+      position: absolute;
       fill: var(--color-nav-bg);
       transition: all 0.2s ease-in-out;
     }

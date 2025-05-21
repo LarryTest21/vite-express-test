@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser')
 
 const app = express();
+ViteExpress.config({ mode: "production" })
 
 const mongoURI = process.env.MONGO_URI;
 const database = mongoose.connection;
@@ -27,7 +28,7 @@ app.use(bodyParser.json({ limit: '100mb' }));
 app.use(cookieParser())
 
 
-app.use('/api', authRoutes)
+app.use('/api/', authRoutes)
 
 
 export const handler = serverless(app);
