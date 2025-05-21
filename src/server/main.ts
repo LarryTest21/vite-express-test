@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser')
 
 const app = express();
+ViteExpress.config({ mode: "production" })
 
 const mongoURI = process.env.MONGO_URI;
 const database = mongoose.connection;
