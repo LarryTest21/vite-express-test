@@ -1,7 +1,7 @@
 <script setup lang="ts">
 //BASIC
 import { RouterLink } from "vue-router";
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, computed, onMounted, onBeforeUnmount } from "vue";
 import $ from "jquery";
 import gsap from "gsap";
 import axios from "axios";
@@ -32,6 +32,8 @@ import notifSound from "./messages/notificationSounds/signedIn.mp3";
 //SCRIPTS
 import "../components/newAnalytics";
 import { io } from 'socket.io-client';
+
+
 
 const searchIcon2 = blogSearchIcon();
 const searchIconActive = ref(false);
@@ -84,6 +86,7 @@ const socketIoFn = () => {
   socket.value!.emit("userListRequest", "");
 
   socket.value!.on("userListRequest", function () {
+  
     socket.value!.emit("userListInitial", {
       socketID: socket.value!.id,
       userID: userData().data._id,
@@ -108,7 +111,6 @@ const socketIoFn = () => {
       );
   });
   socket.value!.on("userAccepted", function (acceptedBy: any) {
-    console.log(acceptedBy);
     userConnectedInfo.value = acceptedBy.acceptedUserInfo;
 
     socketAction.value = "userAccepted";
@@ -116,24 +118,20 @@ const socketIoFn = () => {
 
     setTimeout(() => {
       userSocketNotif.value = false;
-    }, 4000);
+    }, 2000);
 
     userData().data.friendsActions.acceptedUsers.push(acceptedBy);
-      userData().data.friendsActions.addedUsers =
-      userData().data.friendsActions.addedUsers .filter(
-        (user: any) => user != acceptedBy.acceptedBy
-      );
-      console.log(userData().data.friendsActions.addedUsers)
+    userData().data.friendsActions.requestUsers.push(acceptedBy);
   });
   socket.value!.on("userRequested", function (requestedBy: any) {
     userConnectedInfo.value = requestedBy.requestedUserInfo;
     socketAction.value = "userRequested";
     userData().data.friendsActions.requestUsers.push(requestedBy.requestedBy);
-    deleteMessagesNotif.value = true;
+
     userSocketNotif.value = true;
     setTimeout(() => {
       userSocketNotif.value = false;
-    }, 4000);
+    }, 2000);
   });
 
   socket.value!.on("userListInitial", function (value: any) {
@@ -157,30 +155,19 @@ const socketIoFn = () => {
 
   socket.value.on("userListUpdate", async function (value: any) {
     socketAction.value = "userConnected";
+    userConnectedInfo.value = {userName: value.userName, userProfilepic: value.userProfPic};
+    userSocketNotif.value = true;
 
-    var isFriend = userData().data.friendsActions.acceptedUsers.some(
-      (user2: any) => (user2._id = value.userID)
-    );
-
-    userConnectedInfo.value = {
-      userName: value.userName,
-      userProfilepic: value.userProfPic,
-    };
-
-    if (isFriend) {
-      userSocketNotif.value = true;
-
-      if (userData().data.userSettings.notifSounds) {
-        setTimeout(() => {
-          const audio = new Audio(notifSound);
-          audio.play();
-        }, 10);
-      }
-
+    if (userData().data.userSettings.notifSounds) {
       setTimeout(() => {
-        userSocketNotif.value = false;
-      }, 2000);
+        const audio = new Audio(notifSound);
+        audio.play();
+      }, 10);
     }
+
+    setTimeout(() => {
+      userSocketNotif.value = false;
+    }, 2000);
 
     if (socketUsers().socketUsers != undefined) {
       var isPresent = socketUsers().socketUsers.some(function (user: any) {
@@ -202,6 +189,7 @@ const socketIoFn = () => {
 
   if (userD.value.data != undefined) {
     socket.value.on('connect', function () {
+
       socket.value.emit("userConnected", {
         socketID: socket.value.id,
         userID: userData().data._id,
@@ -361,6 +349,7 @@ const activateLoginTab = ref(false);
 
 const userTabClicked = userTabClick();
 
+
 watch(
   userTabClicked,
   () => {
@@ -388,13 +377,13 @@ const closeLoginTab = () => {
 };
 
 const closeProfileTab = () => {
-  console.log("closed");
+  console.log("closed")
   if (userTabClicked) {
     userTabClicked.state = false;
   }
 };
 function closeModal() {
-  userTabClicked.state = false;
+  userTabClicked.state = false
 }
 
 //THEME SCRIPT
@@ -519,17 +508,13 @@ const notifClickedRef = ref(false);
 const notifClicked = (value: any) => {
   notifClickedRef.value = true;
 };
-const deleteMessagesNotif = ref(true) as any;
-const deleteMesagesNotifFn = () => {
-  deleteMessagesNotif.value = false;
-};
 </script>
 
 <template>
   <header class="fullNav" ref="navRef">
     <div class="wrapper">
       <transition name="modal">
-        <Modal  class="modal" v-if="userSocketNotif" :socketAction="socketAction" :userInfo="userConnectedInfo" :position="'absolute'"
+        <Modal v-if="userSocketNotif"  class="modal" :socketAction="socketAction" :userInfo="userConnectedInfo" :position="'absolute'"
         />
       </transition>
       <nav>
@@ -540,8 +525,7 @@ const deleteMesagesNotifFn = () => {
                 <img class="logo" :src="Logo" />
               </div>
             </RouterLink>
-            <TransitionGroup name="user" tag="a" class="user-wrapper" key="user"
-            >
+            <TransitionGroup name="user" tag="a" class="user-wrapper" key="2">
               <div class="user-outer" key="1" v-if="signedInCheck.state!">
                 <a class="user"
                    @click.native.prevent="userTabClicked.state = !userTabClicked.state; showMessagesTab = false"
@@ -554,9 +538,9 @@ const deleteMesagesNotifFn = () => {
                   </div>
                 </a>
                 <div class="messages">
-                  <messageIcon @click="showMessagesTab = !showMessagesTab; userIsInChat=false; userTabClicked.state = false; deleteMesagesNotifFn()"
+                  <messageIcon @click="showMessagesTab = !showMessagesTab; userIsInChat=false; userTabClicked.state = false"
                   />
-                  <div class="message-request-notif" v-if="userData().data.friendsActions.requestUsers.length != 0 && deleteMessagesNotif"
+                  <div class="message-request-notif" v-if="userData().data.friendsActions.requestUsers.length != 0"
                   >
                     {{ messageNotifCount }}
                   </div>
@@ -638,6 +622,7 @@ const deleteMesagesNotifFn = () => {
         </transition>
         <transition name="userTab">
           <UserTab class="usertab"
+                   :userData="userData"
                    ref="UserTabHeight"
                    v-if="signedInCheck.state && userTabClicked.state"
                    @notifClicked="notifClicked"
@@ -679,10 +664,13 @@ const deleteMesagesNotifFn = () => {
     left: 0;
     right: 0;
     margin: auto;
-    width: 210px;
+    width: 250px;
     box-shadow: 4px 8px 5px 0px rgba(0, 0, 0, 0.24);
     border-radius: 20px;
     overflow: hidden;
+  }
+  .notif-wrapper {
+    position: absolute;
   }
 
   .wrapper {
@@ -898,7 +886,7 @@ const deleteMesagesNotifFn = () => {
                 cursor: pointer;
                 fill: var(--color-nav-txt-lighter);
               }
-              .message-request-notif {
+              .message-notif {
                 position: absolute;
                 background-color: green;
                 box-shadow: 1px 1px 3px 1px rgba(32, 32, 32, 0.664);
@@ -1118,13 +1106,11 @@ const deleteMesagesNotifFn = () => {
     }
   }
 }
+.user-move,
 .user-enter-active,
 .user-leave-active {
   transition: all 0.3s ease-in-out;
   opacity: 1;
-}
-.user-move {
-  transition: none !important;
 }
 .user-enter-from,
 .user-leave-to {
@@ -1179,7 +1165,7 @@ const deleteMesagesNotifFn = () => {
 
 .modal-enter-from,
 .modal-leave-to {
-  transform: translateY(-200px);
+  transform: translateY(-100px);
 }
 
 .hey-move,

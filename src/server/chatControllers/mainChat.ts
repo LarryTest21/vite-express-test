@@ -23,6 +23,7 @@ const chatRouter = (server: any) => {
     });
 
     socket.on('userIsTyping', function (data: any) {
+      console.log(data)
       io.to(data.userSendTo[0].socketID).emit("userIsTyping", data);
       
     });

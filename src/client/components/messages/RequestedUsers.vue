@@ -7,13 +7,14 @@ import AcceptRequest from "./AcceptRequest.vue";
 const requestedUsersArray = ref() as any;
 const isLoading = ref();
 
-const requestPressedUser = ref();
+const requestPressedUser = ref()
 
-const requestPressed = (user: any) => {
-  requestPressedUser.value = user;
+const requestPressed = (user:any) => {
+    requestPressedUser.value = user
 };
 
 const emit = defineEmits(['deniedUser', 'acceptedUser', 'requestUsersEmpty']);
+
 
 axios.post("api/user/refresh").then(() => {
   isLoading.value = true;
@@ -22,9 +23,12 @@ axios.post("api/user/refresh").then(() => {
     const userArray = res.data;
     const requestedUsers = userData().data.friendsActions.requestUsers;
 
-    requestedUsersArray.value = userArray.filter((item: any) =>
-      requestedUsers.includes(item._id)
-    );
+
+
+    requestedUsersArray.value = userArray.filter((item:any) => requestedUsers.includes(item._id));
+
+    console.log(requestedUsers)
+    console.log(userArray)
     isLoading.value = false;
   });
 });
@@ -34,10 +38,11 @@ const deniedUser = (user: any) => {
     (val: any) => val._id !== user
   );
 
-  userData().data.friendsActions.requestUsers =
-    userData().data.friendsActions.requestUsers.filter((user: any) => {
+  userData().data.friendsActions.requestUsers = userData().data.friendsActions.requestUsers.filter(
+    (user: any) => {
       !(user != user);
-    });
+    }
+  );
   if (userData().data.friendsActions.requestUsers.length === 0) {
     emit('requestUsersEmpty');
   }
@@ -45,9 +50,16 @@ const deniedUser = (user: any) => {
 };
 
 const acceptedUser = (user: any) => {
-  userData().data.friendsActions.requestUsers = userData().data.friendsActions.requestUsers.filter((user2:any) => user2 != user._id )
-  requestedUsersArray.value = requestedUsersArray.value.filter((user2:any) => user2 == user._id )
+  console.log(user);
+
+  userData().data.friendsActions.acceptedUsers.push(user);
+  userData().data.friendsActions.requestUsers.splice(userData().data.friendsActions.addedUsers.indexOf(user), 1);
+
+  if (userData().data.friendsActions.requestUsers.length === 0) {
+    emit('requestUsersEmpty');
+  }
   emit("acceptedUser", user);
+
 };
 </script>
 

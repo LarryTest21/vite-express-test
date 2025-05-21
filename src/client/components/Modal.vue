@@ -23,6 +23,7 @@ const props = defineProps({
   userInfo: Object,
 });
 
+
 const spinnerColor = ref(props.spinnerColor || 'var(--color-nav-txt)');
 const modalLoadingMessageColor = ref(
   props.modalLoadingMessageColor || 'var(--color-nav-txt)'
@@ -41,35 +42,27 @@ const emitAnswer = (target: any) => {
 const emitSaved = (target: any) => {
   emit("emitSaved", target);
 };
-
-console.log(props.userInfo);
 </script>
 
 <template>
   <div class="modal" @click="closeModal" v-click-away="closeModal">
-    <div class="user-action" v-if="props.socketAction != undefined">
+    <div class="user-connected" v-if="props.socketAction != undefined">
       <div class="text" v-if="props.socketAction === 'userConnected'">
         Connected
       </div>
-      <div class="usera denied">
-        <div class="text" v-if="props.socketAction === 'userDenied'">
-          Denied Friend Request
-        </div>
+      <div class="text" v-if="props.socketAction === 'userDenied'">
+        Denied Friend Request
       </div>
-      <div class="usera requested">
-        <div class="text" v-if="props.socketAction === 'userRequested'">
-          Friend Request
-        </div>
+      <div class="text" v-if="props.socketAction === 'userRequested'">
+        Friend Request
       </div>
-      <div class="usera accepted">
-        <div class="text" v-if="props.socketAction === 'userAccepted'">
-          Friend Request Accepted
-        </div>
+      <div class="text" v-if="props.socketAction === 'userAccepted'">
+        Friend Request Accepted
       </div>
-      <div class="name">
-        {{ props.userInfo!.displayName }}
+      <div class="user">
+        <img :src="props.userInfo!.userProfilepic" />
+        <div class="user-name">{{ props.userInfo!.userName }}</div>
       </div>
-      <img class="pfp" :src="props.userInfo!.profilePic" />
     </div>
     <TransitionGroup name="fade">
       <div class="wrapper" key="lorem1" v-if="modalLoadingMessage">
@@ -141,10 +134,10 @@ console.log(props.userInfo);
 
 <style lang="scss" scoped>
 .modal::before {
-  position: absolute;
   content: "";
   height: 100%;
   width: 100%;
+  position: absolute;
   background-color: var(--color-nav-bg);
   opacity: 0.9;
   opacity: v-bind(backgroundOpacity);
@@ -179,6 +172,7 @@ button:active {
 
 .modal {
   width: 100%;
+  height: 100%;
   position: v-bind(position);
   justify-content: center;
   align-items: center;
@@ -187,36 +181,29 @@ button:active {
   flex-direction: column;
   z-index: 70;
   font-size: v-bind(fontSize);
-  .user-action {
-    position: relative;
+  .user-connected {
     width: 100%;
-    padding:10px;
-    display:flex;
+    height: 100%;
+    display: flex;
     flex-direction: column;
+    justify-content: space-between;
+    padding: 5px;
     align-items: center;
+    gap: 10px;
     font-size: 1rem;
     font-weight: 900;
-    gap:7px;
     .text {
       text-align: center;
       font-family: Chango;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
     }
-
-    .usera {
+    .user {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
       gap: 10px;
-      align-self: center;
-    }
-    .name {
-      font-size: 1rem;
-      font-family: Roboto Condensed;
-    }
-    .pfp {
-      height: 40px;
+      img {
+        width: 40px;
+      }
     }
   }
   .wrapper {
