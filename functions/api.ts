@@ -10,12 +10,16 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 
 const app = express();
+app.use('/api', appRoutes);
+
+export const handler = serverless(app);
 
 const mongoURI = process.env.MONGO_URI;
 const database = mongoose.connection;
 database.on('error', (error: any) => {
   console.log(error);
 });
+console.log("Mongo URI:", mongoURI);
 
 database.once('connected', () => {
   console.log('Database Connected');
@@ -33,6 +37,3 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(cookieParser());
 
-app.use('/api', appRoutes);
-
-export const handler = serverless(app);
