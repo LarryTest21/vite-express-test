@@ -1,7 +1,7 @@
 [dev]
 command = "npm run dev"
-  targetPort = 3333 # The port for your application server, framework or site generator
-  port = 3334 # The port that the netlify dev will be accessible on
+targetPort = 3000  # Must match your environment variable
+port = 3334  # Netlify Dev port
   directory = "functions/"
 
 [serve]
