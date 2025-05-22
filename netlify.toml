@@ -19,3 +19,4 @@ command = "npm run dev"
   status = 200
 [build]
   node_version = "18"
+    functions = "netlify/functions"
