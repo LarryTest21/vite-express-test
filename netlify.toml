@@ -19,4 +19,4 @@ port = 3334  # Netlify Dev port
   status = 200
 [build]
   node_version = "18"
-    functions = "netlify/functions"
+    functions = "functions"
