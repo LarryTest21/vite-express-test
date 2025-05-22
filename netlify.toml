@@ -13,6 +13,7 @@ port = 3334  # Netlify Dev port
   from = "/api/*"
   to = "/functions/api/:splat"
   status = 200
+  [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
