@@ -9,5 +9,8 @@ export default defineConfig({
       util: "util",
     },
   },
+  server: {
+    port: 5173,
+  },
   plugins: [vue()],
 });
