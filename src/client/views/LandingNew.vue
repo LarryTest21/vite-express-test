@@ -16,7 +16,7 @@ const checkMobile = ref(isMobile().state);
       <div class="section-wrapper">
         <div class="title-wrapper">
           <img src="../assets/images/events2.png" alt="" />
-          <h1>Upcoming events</h1>
+          <h1>Upcoming events test</h1>
         </div>
 
         <EventsModule class="events-module" />
