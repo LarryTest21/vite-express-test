@@ -712,7 +712,7 @@ const uploadPost = () => {
       />
     </div>
 
-    <div class="cover-preview-wrapper" value="Preview Cover" key="1">
+    <div class="cover-preview-wrapper wrapper" value="Preview Cover" key="1">
       <label>{{
         route.name == 'createpost' ? 'Cover Image' : 'Event Image'
       }}</label>
@@ -814,7 +814,7 @@ const uploadPost = () => {
                  @click="uploadPost"
           />
         </div>
-        <div class="button" key="3">
+        <div class="button" key="3" v-if="route.name === 'createpost'">
           <input type="button"
                  class="saved"
                  :value="props.postOrEvent === 'createpost' ? 'Saved Posts' : 'Saved Events'"
@@ -903,6 +903,7 @@ input[type="button"] {
   color: var(--color-nav-txt);
   box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.363);
   padding: 5px;
+  transition: all 200ms;
 }
 
 input[type="button"]:hover {
@@ -926,6 +927,25 @@ input[type="button"].saved:hover {
   gap: 20px;
   display: grid;
 
+  &.event {
+    display: grid;
+    grid-template-rows: 1fr 3fr 1fr;
+    gap: 30px;
+    height: 100%;
+    align-items: flex-start;
+
+    .cover-preview-wrapper {
+      display: grid;
+      grid-template-rows: 1fr 2fr 1fr;
+      grid-template-columns: 1fr;
+      height: 260px;
+
+      .cover-image-wrapper {
+        position: relative;
+        place-self: center;
+      }
+    }
+  }
   .author {
     font-family: Roboto;
     font-weight: 700;
@@ -958,7 +978,7 @@ input[type="button"].saved:hover {
   .calendar-wrapper {
     display: flex;
     justify-content: flex-start;
-    width: 300px;
+    width: 100%;
   }
 
   .cover-preview-wrapper {
@@ -966,8 +986,8 @@ input[type="button"].saved:hover {
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 100%;
     gap: 10px;
+
     .btn-close {
       position: absolute;
       background: var(--color-nav-bg);
@@ -1016,18 +1036,17 @@ input[type="button"].saved:hover {
     }
 
     .cover-image-wrapper {
-      padding: 3px;
-      border-radius: 5px;
       border: solid 2px var(--color-nav-txt);
-      border-radius: 10px;
+      border-radius: 20px;
       overflow: hidden;
-      height: 120px;
-      width: 70%;
+      max-width: 90%;
+      height: 200px;
+
+      max-height: 200px;
 
       img {
-        border-radius: 5px;
-        width: 100%;
-        height: 100%;
+        width: 120%;
+        height: 120%;
       }
     }
   }
@@ -1105,16 +1124,12 @@ input[type="button"].saved:hover {
   }
 
   .buttons {
-    position: relative;
     width: 100%;
-    height: 100%;
 
     .button {
       width: 100%;
       input {
         width: 100%;
-        font-size: 2rem;
-        transition: all 0.2s;
       }
 
       input:active {
@@ -1251,7 +1266,7 @@ input[type="button"].saved:hover {
     &.event {
       .cover-preview-wrapper {
         .cover-image-wrapper {
-          height: 50px;
+          height: 100%;
         }
       }
     }

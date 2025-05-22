@@ -392,40 +392,70 @@ export async function addUserChat(req: Request, res: Response) {
   const user = { _id: req.params.id };
   const addOtherUserID = req.body.id;
 
-  const findAdded = await User.findOne(user).then(async (result: any) => {
-    const addedUser = result.friendsActions.addedUsers;
-    const isObjectPresent = addedUser.find((o: any) => o === addOtherUserID);
-    if (isObjectPresent) {
-      res
-        .status(410)
-        .json({ data: "User already added", userId: addOtherUserID });
-    } else {
-      try {
-        const doc = await User.updateOne(
-          user,
-          {
-            $push: {
-              "friendsActions.addedUsers": req.body.id,
-            },
-          },
-          { returnOriginal: false }
-        ).then(async () => {
-          const requestUser = { _id: req.body.id };
+  console.log(user);
 
-          const doc = await User.updateOne(
-            requestUser,
+  console.log(addOtherUserID);
+
+  User.findOne(user).then(async (result: any) => {
+    const addedUser = result.friendsActions.addedUsers;
+
+    if (addedUser != undefined) {
+      const isObjectPresent = addedUser.find((o: any) => o === addOtherUserID);
+      if (isObjectPresent) {
+        res
+          .status(410)
+          .json({ data: "User already added", userId: addOtherUserID });
+      } else {
+        try {
+          await User.updateOne(
+            user,
             {
               $push: {
-                "friendsActions.requestUsers": req.params.id,
+                "friendsActions.addedUsers": req.body.id,
               },
             },
             { returnOriginal: false }
-          );
-          res.status(200).json({ data: doc });
-        });
-      } catch (err: any) {
-        res.status(410).json({ success: false, message: err.message });
+          ).then(async () => {
+            const requestUser = { _id: req.body.id };
+
+            const doc = await User.updateOne(
+              requestUser,
+              {
+                $push: {
+                  "friendsActions.requestUsers": req.params.id,
+                },
+              },
+              { returnOriginal: false }
+            );
+            res.status(200).json({ data: doc });
+          });
+        } catch (err: any) {
+          res.status(410).json({ success: false, message: err.message });
+        }
       }
+    } else {
+      await User.updateOne(
+        user,
+        {
+          $push: {
+            "friendsActions.addedUsers": req.body.id,
+          },
+        },
+        { returnOriginal: false }
+      ).then(async () => {
+        const requestUser = { _id: req.body.id };
+
+        const doc = await User.updateOne(
+          requestUser,
+          {
+            $push: {
+              "friendsActions.requestUsers": req.params.id,
+            },
+          },
+          { returnOriginal: false }
+        );
+        res.status(200).json({ data: doc });
+      });
     }
   });
 }
@@ -459,92 +489,53 @@ export async function denyUserRequest(req: Request, res: Response) {
 }
 
 export async function acceptUserRequest(req: Request, res: Response) {
-  const userData = { _id: req.params.id };
-  const user = req.params.id;
+  const userWhoAccepts = req.params.id;
+  const userToBeAccepted = req.body.id;
 
-  const acceptedUserData = { _id: req.body.id };
-  const acceptUser = req.body.id;
 
   try {
-    const doc = await User.findOne(userData)
-      .then((result) => {
-        console.log(result!.friendsActions);
-        const friendsActions = result!.friendsActions;
+    // Find the user and modify the 'addedUsers' array
+    const user = await User.findOne({ _id: userWhoAccepts });
 
-        friendsActions.acceptedUsers.push(acceptUser);
-        friendsActions.requestUsers.splice(
-          friendsActions.requestUsers.indexOf(acceptUser),
-          1
-        );
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
 
-        return friendsActions;
-      })
-      .then(async (friendsActions) => {
-        const doc = await User.findOneAndUpdate(userData, {
-          $set: {
-            friendsActions: friendsActions,
-          },
-        });
-      })
-      .then(async () => {
-        const doc = await User.findOne(acceptedUserData)
-          .then((result) => {
-            const friendsActions = result!.friendsActions;
+    // Update the document to remove from addedUsers and push to acceptedUsers
+    await User.updateOne(
+      { _id: userWhoAccepts },
+      {
+        $pull: { "friendsActions.requestUsers": userToBeAccepted },
+        $push: { "friendsActions.acceptedUsers": userToBeAccepted },
+      }
+    );
 
-            friendsActions.acceptedUsers.push(user);
-            friendsActions.addedUsers.splice(
-              friendsActions.addedUsers.indexOf(user),
-              1
-            );
+    const otherUser = await User.findOne({ _id: userToBeAccepted });
 
-            return friendsActions;
-          })
-          .then(async (friendsActions) => {
-            const doc = await User.findOneAndUpdate(acceptedUserData, {
-              $set: {
-                friendsActions: friendsActions,
-              },
-            });
-          })
-          .then(() => {
-            res.status(200).json({ success: true });
-          });
-      });
+    if (!otherUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Update the document to remove from addedUsers and push to acceptedUsers
+    await User.updateOne(
+      { _id: userToBeAccepted },
+      {
+        $pull: { "friendsActions.addedUsers": userWhoAccepts },
+        $push: { "friendsActions.acceptedUsers": userWhoAccepts },
+      }
+    );
+
+    res.status(200).json({ success: true });
   } catch (err: any) {
-    res.status(410).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
-
-  // const findRequestedUser = await User.updateOne(
-  //   { _id: req.params.id },
-  //   {
-  //     $push: {
-  //       "friendsActions.acceptedUsers": req.body.id,
-  //       "friendsActions.requestUsers": req.body.id,
-  //     },
-  //   }
-  // )
-  //   .then(async () => {
-  //     const findRequestedUser = await User.updateOne(
-  //       { _id: req.body.id },
-  //       {
-  //         $push: {
-  //           "friendsActions.acceptedUsers": req.params.id,
-  //           "friendsActions.addedUsers": req.params.id,
-  //         },
-  //       }
-  //     ).then(() => {
-  //       res
-  //         .status(200)
-  //         .json({ success: true, message: "User accepted as friend" });
-  //     });
-  //   })
-  //   .catch((err) => {
-  //     res.status(400).json({ success: false, message: err.message });
-  //   });
 }
 
 export async function privateMessage(req: Request, res: Response) {
-  console.log("checking first privatemessage");
   const senderID = req.body.senderID;
   const sendTo = req.body.sendTo;
   const message = req.body.message;
@@ -556,7 +547,6 @@ export async function privateMessage(req: Request, res: Response) {
     date: date,
     message: message,
   };
-  console.log(messageData);
 
   try {
     messagesParent
@@ -582,6 +572,21 @@ export async function privateMessage(req: Request, res: Response) {
 }
 
 export async function getPrivateMessage(req: Request, res: Response) {
+  const senderID = req.body.senderID;
+  const getFrom = req.body.getFrom;
+
+  try {
+    messagesParent
+      .findOne({ convParticipants: { $all: [senderID, getFrom] } })
+      .then((result) => {
+        res.status(200).json(result);
+      });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err });
+  }
+}
+
+export async function getLastMessage(req: Request, res: Response) {
   const senderID = req.body.senderID;
   const getFrom = req.body.getFrom;
 

@@ -9,41 +9,43 @@ const readDotFunction = (
   ifNewChat: boolean
 ) => {
   if (ifNewChat) {
-    const lastRead = messageArray.findLast(
-      (message: any) =>
-        message.read === true && message.senderID != chatUserData._id
-    );
-    if (lastRead != undefined) {
-      lastRead.lastMsg = true;
-    }
+    if (messageArray !== undefined) {
+      const lastRead = messageArray.findLast(
+        (message: any) =>
+          message.read === true && message.senderID != chatUserData._id
+      );
 
-    const deleteReads = messageArray.forEach((message: any) => {
-      if (
-        message.read &&
-        message.senderID != chatUserData._id &&
-        message.lastMsg != true
-      ) {
-        delete message.read;
+      if (lastRead != undefined) {
+        lastRead.lastMsg = true;
       }
-    });
 
-    const lastUnread = messageArray.findLast(
-      (message: any) =>
-        message.read === false && message.senderID != chatUserData._id
-    );
-    if (lastUnread != undefined) {
-      lastUnread.lastMsg = true;
-    }
-    const deleteUnreads = messageArray.forEach((message: any) => {
-      if (
-        message.read === false &&
-        message.senderID != chatUserData._id &&
-        message.lastMsg != true
-      ) {
-        delete message.read;
+      const deleteReads = messageArray.forEach((message: any) => {
+        if (
+          message.read &&
+          message.senderID != chatUserData._id &&
+          message.lastMsg != true
+        ) {
+          delete message.read;
+        }
+      });
+
+      const lastUnread = messageArray.findLast(
+        (message: any) =>
+          message.read === false && message.senderID != chatUserData._id
+      );
+      if (lastUnread != undefined) {
+        lastUnread.lastMsg = true;
       }
-    });
-
+      const deleteUnreads = messageArray.forEach((message: any) => {
+        if (
+          message.read === false &&
+          message.senderID != chatUserData._id &&
+          message.lastMsg != true
+        ) {
+          delete message.read;
+        }
+      });
+    }
   } else if (!ifNewChat) {
     // if (isItRunning.value == false) {
     //   isItRunning.value = true;

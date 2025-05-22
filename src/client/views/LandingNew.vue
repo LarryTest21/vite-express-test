@@ -44,7 +44,6 @@ const checkMobile = ref(isMobile().state);
   height: 100%;
   width: 100%;
 
-
   .section-landing {
     height: 100vh;
     font-size: 70px;
@@ -67,7 +66,9 @@ const checkMobile = ref(isMobile().state);
   }
   .section1 {
     position: relative;
-
+    .events-module {
+      
+    }
     .title-wrapper {
       z-index: 10;
       position: relative;

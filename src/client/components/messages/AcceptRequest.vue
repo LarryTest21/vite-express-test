@@ -2,50 +2,54 @@
 import { ref } from 'vue';
 import acceptIcon from "../../components/icons/checkmark.vue";
 import denyIcon from "../../components/icons/deny.vue";
-import axios from "axios"
-import {userData} from "../../store/userData"
+import axios from "axios";
+import { userData } from "../../store/userData";
 
 const emit = defineEmits(["close", "denied", "accepted"]);
 
-const props =  defineProps({user: Object})
-
+const props = defineProps({ user: Object });
 
 const closeFN = () => {
   emit("close");
 };
 
-
 const accepted = ref('inbetween') as any;
 
 const acceptUser = () => {
   accepted.value = true;
-  
+
   accepted.value = false;
-  axios.post("api/user/refresh").then(() => {
-      axios
-        .post("api/user/acceptUser/" + userData().data._id.toString(), { id: props.user!._id })
-       
-    }).then(()=> {
-      emit("accepted", props.user)
-    });
-  
+  // axios
+  //   .post("api/user/refresh")
+  //   .then(() => {
+  //     axios.post("api/user/acceptUser/" + userData().data._id.toString(), {
+  //       id: props.user!._id,
+  //     });
+  //   })
+    // .then(() => {
+      emit("accepted", props.user);
+    // });
+
   setTimeout(() => {
-    closeFN()
+    closeFN();
   }, 1500);
 };
 
 const denyUser = () => {
   accepted.value = false;
-  axios.post("api/user/refresh").then(() => {
-      axios
-        .post("api/user/denyUser/" + userData().data._id.toString(), { id: props.user!._id })
-       
-    }).then(()=> {
-      emit("denied", props.user)
+  axios
+    .post("api/user/refresh")
+    .then(() => {
+      axios.post("api/user/denyUser/" + userData().data._id.toString(), {
+        id: props.user!._id,
+      });
+    })
+    .then(() => {
+      emit("denied", props.user);
     });
 
   setTimeout(() => {
-    closeFN()
+    closeFN();
   }, 1500);
 };
 </script>
@@ -85,7 +89,7 @@ const denyUser = () => {
   .icons {
     position: relative;
     height: 100%;
-    width:150px;
+    width: 150px;
     display: flex;
     gap: 10px;
     .icon {
@@ -137,7 +141,7 @@ const denyUser = () => {
   transform: translateX(100px) rotateZ(0.01deg);
 }
 
-.request-leave-active{
+.request-leave-active {
   position: absolute;
 }
 </style>
