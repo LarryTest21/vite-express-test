@@ -1,8 +1,8 @@
 [dev]
 command = "npm run dev"
-targetPort = 5173  # Must match your environment variable
+targetPort = 3333  # Must match your environment variable
 port = 3334  # Netlify Dev port
-  directory = "functions/"
+  directory = "netlify/functions/"
 
 [serve]
 
@@ -18,5 +18,8 @@ port = 3334  # Netlify Dev port
   to = "/index.html"
   status = 200
 [build]
+targetPort = 3333  # Must match your environment variable
+port = 3334  # Netlify Dev port
+
   node_version = "18"
     functions = "netlify/functions"
