@@ -66,9 +66,7 @@ const checkMobile = ref(isMobile().state);
   }
   .section1 {
     position: relative;
-    .events-module {
-      
-    }
+
     .title-wrapper {
       z-index: 10;
       position: relative;
