@@ -3,6 +3,7 @@ command = "npm run dev"
 targetPort = 5173  # Must match your environment variable
 port = 3334  # Netlify Dev port
   directory = "netlify/functions/"
+
 [functions]
   external_node_modules = ["express", "esbuild", "lightningcss"]
   node_bundler = "esbuild"
@@ -14,3 +15,6 @@ port = 3334  # Netlify Dev port
   from = "/*"
   to = "/index.html"
   status = 200
+  
+  [build]
+  functions = "functions/"
