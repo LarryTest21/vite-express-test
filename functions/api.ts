@@ -4,16 +4,14 @@ import ViteExpress from "vite-express";
 import 'dotenv/config';
 import appRoutes from "../src/server/routes/appRoutes";
 import chatRouter from "../src/server/chatControllers/mainChat";
+
 import bodyParser from "body-parser";
-import mongoose from 'mongoose';
-
-
+const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 
 const app = express();
 
-const mongoURI = process.env.MONGO_URI ?? "";
-
+const mongoURI = process.env.MONGO_URI;
 const database = mongoose.connection;
 database.on('error', (error: any) => {
   console.log(error);
@@ -23,7 +21,6 @@ database.once('connected', () => {
   console.log('Database Connected');
 });
 mongoose.connect(mongoURI);
-
 
 const viteServer = ViteExpress.listen(app, 3333, () => {
   console.log("Server started");
