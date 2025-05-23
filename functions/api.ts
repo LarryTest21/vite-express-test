@@ -24,12 +24,7 @@ database.once('connected', () => {
 });
 mongoose.connect(mongoURI);
 
-
-const viteServer = ViteExpress.listen(app, 3333, () => {
-  console.log("Server started");
-});
-
-chatRouter(viteServer);
+chatRouter(app);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
