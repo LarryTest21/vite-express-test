@@ -29,8 +29,5 @@ app.use(cookieParser())
 
 
 app.use('/api', authRoutes)
-app.get("/", (req, res) => {
-  res.send("Serverless Express working!");
-});
 
 export const handler = serverless(app);
