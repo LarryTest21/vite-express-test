@@ -25,14 +25,23 @@ async function connectToDatabase() {
     throw err;
   }
 }
-await connectToDatabase();
 
+// ✅ Middleware to safely connect to DB before handling requests
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await connectToDatabase();
+    } catch (err) {
+      return res.status(500).send("Database connection error");
+    }
+  }
+  next();
+});
 
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(bodyParser.json({ limit: "10mb" }));
-const cookieParser = require("cookie-parser");
 
+const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 app.use("/api", authRoutes);
