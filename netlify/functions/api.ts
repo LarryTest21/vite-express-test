@@ -3,7 +3,8 @@ import express, { Router } from "express";
 import 'dotenv/config'
 import authRoutes from "../../src/server/routes/appRoutes"
 import bodyParser from "body-parser"
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
+
 
 
 console.log('API function started');
