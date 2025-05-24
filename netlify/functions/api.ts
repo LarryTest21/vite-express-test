@@ -1,10 +1,12 @@
-const express = require("express");
 const serverless = require("serverless-http");
-const mongoose = require("mongoose");
+const express = require("express");
+import "dotenv/config";
+import authRoutes from "../../src/server/routes/appRoutes";
+import bodyParser from "body-parser";
+import mongoose from "mongoose";
 
-let isConnected = false;
 const app = express();
-
+let isConnected = false;
 const mongoURI = process.env.MONGO_URI;
 
 async function connectToDatabase() {
@@ -24,10 +26,20 @@ async function connectToDatabase() {
   }
 }
 
-// Define routes after DB connects
-app.get("/", async (req, res) => {
-  await connectToDatabase();
-  res.send("API is running with MongoDB");
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(bodyParser.json({ limit: "10mb" }));
+const cookieParser = require("cookie-parser");
+
+app.use(cookieParser());
+
+app.use("/api", authRoutes);
+app.get("/api/test", (_, res) => {
+  res.json({ message: "Function is working!" });
+});
+app.get("/api", (req, res) => {
+  res.send("API root is ww!");
 });
 
 module.exports.handler = serverless(app);
