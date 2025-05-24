@@ -5,6 +5,9 @@ import authRoutes from "../../src/server/routes/appRoutes"
 import bodyParser from "body-parser"
 import mongoose from "mongoose";
 
+
+console.log('API function started');
+
 const cookieParser = require('cookie-parser')
 
 const app = express();
