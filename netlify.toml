@@ -2,19 +2,15 @@
   command = "npm run dev"
   targetPort = 5173
   port = 3333
-
-[serve]
 [functions]
   directory = "netlify/functions"
   external_node_modules = ["express", "esbuild", "lightningcss"]
   node_bundler = "esbuild"
-
-
 [[redirects]]
-  force = true
   from = "/api/*"
-  status = 200
   to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
 [[redirects]]
   from = "/*"
   to = "/index.html"
