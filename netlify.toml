@@ -1,12 +1,14 @@
 [dev]
 command = "npm run dev"
-  targetPort = 5173 # The port for your application server, framework or site generator
-  port = 3333 # The port that the netlify dev will be accessible on
-    directory = "functions/"
+targetPort = 5173
+port = 3333
+
 [serve]
 [functions]
   external_node_modules = ["express", "esbuild", "lightningcss"]
   node_bundler = "esbuild"
+    directory = "netlify/functions"
+
 [[redirects]]
   force = true
   from = "/api/*"
@@ -16,3 +18,6 @@ command = "npm run dev"
   from = "/*"
   to = "/index.html"
   status = 200
+[build]
+  command = "npm run build"
+  publish = "dist"
