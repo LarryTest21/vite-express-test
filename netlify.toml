@@ -1,13 +1,14 @@
 [dev]
-command = "npm run dev"
-targetPort = 5173
-port = 3333
+  command = "npm run dev"
+  targetPort = 5173
+  port = 3333
 
 [serve]
 [functions]
+  directory = "netlify/functions"
   external_node_modules = ["express", "esbuild", "lightningcss"]
   node_bundler = "esbuild"
-    directory = "netlify/functions"
+
 
 [[redirects]]
   force = true
