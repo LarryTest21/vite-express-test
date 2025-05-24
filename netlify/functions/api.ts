@@ -32,6 +32,14 @@ app.use('/', authRoutes)
 app.get('/test', (_, res) => {
   res.json({ message: 'Function is working!' });
 });
+app.get('/', (req, res) => {
+  res.send('API root is working!');
+});
 
 
-export const handler = serverless(app);
+export const handler = async () => {
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: 'Hello from Netlify!' }),
+  };
+};
