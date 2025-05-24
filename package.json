@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "nodemon functions/api.ts -w functions",
+    "dev": "vite",
     "start": "SET NODE_ENV=production & ts-node netlify/functions/api.ts",
     "build": "vite build",
     "ionic:build": "npm run build",
@@ -21,7 +21,7 @@
     "@ckeditor/ckeditor5-vue": "^5.1.0",
     "@emailjs/browser": "^3.11.0",
     "@google-analytics/data": "^4.0.1",
-    "@netlify/functions": "^2.3.0",
+    "@netlify/functions": "^2.8.2",
     "@tinymce/tinymce-vue": "^5.1.1",
     "@tiptap/core": "^2.1.12",
     "@tiptap/extension-color": "^2.1.12",

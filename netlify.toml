@@ -1,20 +1,15 @@
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["express", "serverless-http"]
+
 [dev]
   command = "npm run dev"
   targetPort = 5173
   port = 3333
-[functions]
-  directory = "netlify/functions"
-  external_node_modules = ["express", "esbuild", "lightningcss"]
-  node_bundler = "esbuild"
+
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  to = "/.netlify/functions/api"
   status = 200
   force = true
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-[build]
-  command = "npm run build"
-  publish = "dist"
