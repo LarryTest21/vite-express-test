@@ -45,11 +45,11 @@ const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 app.use("/", authRoutes);
+app.get("/", (_, res) => {
+  res.send("Hello from root of Express function!");
+});
+
 app.get("/test", (_, res) => {
   res.json({ message: "Function is working!" });
 });
-app.get("/", (req, res) => {
-  res.send("API root is ww!");
-});
-
 module.exports.handler = serverless(app);
