@@ -45,17 +45,19 @@
 // };
 
 
-import serverless from "serverless-http";
-import express from "express";
+import express from 'express';
+import serverless from 'serverless-http';
 
 const app = express();
 
+// This handles the root of the function URL
 app.get('/', (req, res) => {
-  res.send('API root is working!');
+  res.send('✅ API root is working!');
 });
 
+// This handles /test
 app.get('/test', (req, res) => {
-  res.json({ message: "Test route works!" });
+  res.json({ message: '✅ Test route works!' });
 });
 
 export const handler = serverless(app);
