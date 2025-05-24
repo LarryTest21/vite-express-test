@@ -2,15 +2,10 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
   external_node_modules = ["express", "serverless-http"]
-
 [dev]
   command = "npm run dev"
   targetPort = 5173
   port = 3333
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
-
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api"
