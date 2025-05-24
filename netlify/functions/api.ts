@@ -44,11 +44,11 @@ app.use(bodyParser.json({ limit: "10mb" }));
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
-app.use("/api", authRoutes);
-app.get("/api/test", (_, res) => {
+app.use("/", authRoutes);
+app.get("/test", (_, res) => {
   res.json({ message: "Function is working!" });
 });
-app.get("/api", (req, res) => {
+app.get("/", (req, res) => {
   res.send("API root is ww!");
 });
 
