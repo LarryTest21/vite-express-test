@@ -1,43 +1,33 @@
-import serverless from "serverless-http";
-import express, { Router } from "express";
-import 'dotenv/config'
-import authRoutes from "../../src/server/routes/appRoutes"
-import bodyParser from "body-parser"
-const mongoose = require('mongoose');
+const express = require("express");
+const serverless = require("serverless-http");
+const mongoose = require("mongoose");
 
-
-
-console.log('API function started');
-
-const cookieParser = require('cookie-parser')
-
+let isConnected = false;
 const app = express();
 
 const mongoURI = process.env.MONGO_URI;
-if (!mongoURI) {
-  throw new Error('Missing MONGO_URI in environment variables');
+
+async function connectToDatabase() {
+  if (isConnected) return;
+  if (!mongoURI) throw new Error("Missing MONGO_URI");
+
+  console.log("🔌 Attempting to connect to MongoDB...");
+  try {
+    await mongoose.connect(mongoURI, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    isConnected = true;
+    console.log("✅ MongoDB connected");
+  } catch (err) {
+    console.error("❌ MongoDB connection error:", err.message);
+    throw err;
+  }
 }
 
-const database = mongoose.connection;
-database.on('error', console.error);
-database.once('connected', () => {
-    console.log('Database Connected');
+// Define routes after DB connects
+app.get("/", async (req, res) => {
+  await connectToDatabase();
+  res.send("API is running with MongoDB");
 });
 
-
-mongoose.connect(mongoURI)
-app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(cookieParser())
-
-
-app.use('/api', authRoutes)
-app.get('/api/test', (_, res) => {
-  res.json({ message: 'Function is working!' });
-});
-app.get('/api', (req, res) => {
-  res.send('API root is working!');
-});
-
-export const handler = serverless(app)
+module.exports.handler = serverless(app);
