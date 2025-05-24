@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "nodemon functions/api.ts -w functions",
-    "start": "SET NODE_ENV=production & ts-node netlify/functions/api.ts -w functions",
+    "start": "nodemon functions/api.ts -w functions",
     "build": "vite build",
     "ionic:build": "npm run build",
     "ionic:serve": "npm run start"
