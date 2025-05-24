@@ -25,6 +25,7 @@ async function connectToDatabase() {
     throw err;
   }
 }
+await connectToDatabase();
 
 
 app.use(bodyParser.urlencoded({ extended: true }));

@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite",
     "start": "SET NODE_ENV=production & ts-node netlify/functions/api.ts",
-    "build": "vite build",
+    "build:functions": "esbuild netlify/functions/api.ts --bundle --platform=node --target=node18 --outfile=netlify/functions/api.js",
+    "build": "vite build && npm run build:functions",
     "ionic:build": "npm run build",
     "ionic:serve": "npm run start"
   },
