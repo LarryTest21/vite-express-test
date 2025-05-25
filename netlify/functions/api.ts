@@ -44,12 +44,12 @@ app.use(bodyParser.json({ limit: "10mb" }));
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
-app.use("/", authRoutes);
-app.get("/", (_, res) => {
+app.use("/api/", authRoutes);
+app.get("/api", (_, res) => {
   res.send("Hello from root of Express function!");
 });
 
-app.get("/test", (_, res) => {
+app.get("/api/test", (_, res) => {
   res.json({ message: "Function is working!" });
 });
 module.exports.handler = serverless(app);
