@@ -1,11 +1,13 @@
-const serverless = require("serverless-http");
-const express = require("express");
+import serverless from "serverless-http";
+import express from "express";
 import "dotenv/config";
 import authRoutes from "../../src/server/routes/appRoutes";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
 
 const app = express();
+
 let isConnected = false;
 const mongoURI = process.env.MONGO_URI;
 
@@ -20,13 +22,12 @@ async function connectToDatabase() {
     });
     isConnected = true;
     console.log("✅ MongoDB connected");
-  } catch (err) {
+  } catch (err: any) {
     console.error("❌ MongoDB connection error:", err.message);
     throw err;
   }
 }
 
-// ✅ Middleware to safely connect to DB before handling requests
 app.use(async (req, res, next) => {
   if (mongoose.connection.readyState !== 1) {
     try {
@@ -40,11 +41,10 @@ app.use(async (req, res, next) => {
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: "10mb" }));
-
-const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
-app.use("/api/", authRoutes);
+app.use("/api", authRoutes);
+
 app.get("/api", (_, res) => {
   res.send("Hello from root of Express function!");
 });
@@ -52,4 +52,6 @@ app.get("/api", (_, res) => {
 app.get("/api/test", (_, res) => {
   res.json({ message: "Function is working!" });
 });
-module.exports.handler = serverless(app);
+
+// ✅ Proper Netlify Function export
+export const handler = serverless(app);
