@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "netlify dev & vite",
     "start": "SET NODE_ENV=production & ts-node netlify/functions/api.ts",
     "build": "vite build",
     "ionic:build": "npm run build",
