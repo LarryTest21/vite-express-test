@@ -3,11 +3,17 @@
   node_bundler = "esbuild"
   external_node_modules = ["express", "serverless-http"]
 [dev]
-  command = "npm run dev"
-  targetPort = 5173
+  command = "vite"
   port = 3333
+  targetPort = 5173
+  publish = "dist"
+  autoLaunch = true
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api"
   status = 200
   force = true
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
