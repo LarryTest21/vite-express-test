@@ -49,7 +49,7 @@ app.get("/api", (_, res) => {
   res.send("Hello from root of Express function!");
 });
 
-app.get("/test", (_, res) => {
+app.get("/api/test", (_, res) => {
   res.json({ message: "Function is working!" });
 });
 
