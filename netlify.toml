@@ -1,7 +1,6 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-  external_node_modules = ["express", "serverless-http"]
 [dev]
   command = "vite"
   port = 3333
@@ -10,9 +9,8 @@
   autoLaunch = true
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api"
+to = "/.netlify/functions/api/api/:splat"
   status = 200
-  force = true
 [[redirects]]
   from = "/*"
   to = "/index.html"

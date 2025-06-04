@@ -43,9 +43,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(cookieParser());
 
-app.use("/", authRoutes);
+app.use("/api", authRoutes);
 
-app.get("/", (_, res) => {
+app.get("/api", (_, res) => {
   res.send("Hello from root of Express function!");
 });
 
