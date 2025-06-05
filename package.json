@@ -20,6 +20,7 @@
     "@ckeditor/ckeditor5-build-classic": "^39.0.2",
     "@ckeditor/ckeditor5-vue": "^5.1.0",
     "@emailjs/browser": "^3.11.0",
+    "@emreerdogan/vite-plugin-node-stdlib-browser": "^0.2.1",
     "@google-analytics/data": "^4.0.1",
     "@netlify/functions": "^2.8.2",
     "@tinymce/tinymce-vue": "^6.1.0",
