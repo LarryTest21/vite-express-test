@@ -1,6 +1,5 @@
 import serverless from "serverless-http";
 import express, { Router } from "express";
-import ViteExpress from "vite-express";
 import 'dotenv/config'
 import authRoutes from "../../src/server/routes/appRoutes"
 import bodyParser from "body-parser"

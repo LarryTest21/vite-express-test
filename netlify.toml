@@ -4,7 +4,7 @@
   command = "vite"
   port = 3333
   targetPort = 5173
-  publish = "dist"
+  publish = "public"
 [[redirects]]
  from = "/api/*"
  to = "/.netlify/functions/api/:splat"

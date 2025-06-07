@@ -3,9 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "netlify dev & vite",
-    "start": "SET NODE_ENV=production & ts-node netlify/functions/api.ts",
+    "dev": "netlify dev",
     "build": "vite build",
+    "start": "cross-env NODE_ENV=production ts-node netlify/functions/api.ts",
     "ionic:build": "npm run build",
     "ionic:serve": "npm run start"
   },
