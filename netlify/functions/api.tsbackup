@@ -47,7 +47,7 @@ app.use(cookieParser());
 app.use("/api", authRoutes);
 
 app.use("/test", (_, res) => {
-  res.json({ message: "✅ Works in dev + prod" });
+  res.json({ message: " Works in dev + prod" });
 });
 
 // ✅ Proper Netlify Function export
