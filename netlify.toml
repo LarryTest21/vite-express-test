@@ -1,5 +1,8 @@
 [functions]
 directory = "netlify/functions"
+  external_node_modules = ["express"]
+  node_bundler = "esbuild"
+
 [dev]
   command = "vite"
   port = 3333
