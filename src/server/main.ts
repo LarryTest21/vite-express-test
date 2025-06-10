@@ -28,5 +28,10 @@ app.use(cookieParser())
 
 app.use('/api', authRoutes)
 
+app.get("/test", (_, res) => {
+  res.json({ message: "✅ Works in dev + prod" });
+});
+
+
 
 export const handler = serverless(app);

@@ -18,7 +18,7 @@ async function connectToDatabase() {
   console.log("🔌 Attempting to connect to MongoDB...");
   try {
     await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 2000,
     });
     isConnected = true;
     console.log("✅ MongoDB connected");
@@ -46,7 +46,7 @@ app.use(cookieParser());
 
 app.use("/api", authRoutes);
 
-app.get("/test", (_, res) => {
+app.use("/test", (_, res) => {
   res.json({ message: "✅ Works in dev + prod" });
 });
 

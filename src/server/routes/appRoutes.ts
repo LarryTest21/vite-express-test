@@ -43,6 +43,8 @@ import { setCookie, readCookie } from "../controllers/cookieController";
 
 const router = Router();
 
+
+
 //USER ROUTES
 
 //SignUp
@@ -87,6 +89,10 @@ router.get("/user/set-cookies", setCookie);
 router.get("/user/read-cookies", readCookie);
 
 //CONTENT ROUTES
+
+
+
+
 
 //Get posts Blog
 router.get("/content/blogposts", getAllBlog);

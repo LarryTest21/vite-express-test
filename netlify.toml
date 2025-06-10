@@ -1,5 +1,5 @@
 [functions]
-  directory = "netlify/functions"
+directory = "netlify/functions"
 [dev]
   command = "vite"
   port = 3333
@@ -12,4 +12,8 @@
 [[redirects]]
   from = "/*"
   to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/test"
+  to = "/.netlify/functions/api/test"
   status = 200
