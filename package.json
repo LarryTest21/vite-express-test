@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "netlify dev",
-    "build": "vite build",
+    "build": "npm run build",
     "start": "cross-env NODE_ENV=production ts-node netlify/functions/api.ts",
     "ionic:build": "npm run build",
     "ionic:serve": "npm run start"
