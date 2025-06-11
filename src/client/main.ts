@@ -19,11 +19,9 @@ app.use(VueClickAway);
 
 app.component("VueMultiselect", VueMultiselect);
 
-
-
-
 app.directive("visible", function (el, binding) {
   el.style.visibility = !!binding.value ? "visible" : "hidden";
 });
 
 app.mount("body");
+

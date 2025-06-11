@@ -53,18 +53,5 @@
 // });
 
 // export const handler = serverless(app);
-exports.handler = async (event) => {
-  console.log("PATH:", event.path);
-
-  if (event.path.endsWith("/test")) {
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: "🎯 You hit /api/test!" }),
-    };
-  }
-
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ message: "✅ You are seeing the NEW version" }),
-  };
-};
+import { handler } from "../../src/server/main";
+export { handler };
