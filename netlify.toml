@@ -20,7 +20,6 @@ from = "/test"
 to = "/.netlify/functions/api/test"
 status = 200
 
-# ❗ Wildcard should always come last
 [[redirects]]
 from = "/*"
 to = "/index.html"
