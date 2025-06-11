@@ -26,7 +26,7 @@ app.use(bodyParser.json({ limit: '100mb' }));
 app.use(cookieParser())
 
 
-app.use('/api', authRoutes)
+app.use('/', authRoutes)
 
 
 
