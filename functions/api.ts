@@ -1,6 +1,6 @@
 import express from "express";
 import serverless from "serverless-http";
-import appRoutes from "../../src/server/routes/appRoutes";
+import appRoutes from "../src/server/routes/appRoutes";
 import bodyParser from "body-parser"
 
 

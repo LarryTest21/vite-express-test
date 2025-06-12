@@ -1,7 +1,7 @@
 import serverless from "serverless-http";
 import express, { Router } from "express";
 import 'dotenv/config'
-import authRoutes from "../../src/server/routes/appRoutes"
+import appRoutes from "../../src/server/routes/appRoutes"
 import bodyParser from "body-parser"
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser')
@@ -26,7 +26,7 @@ app.use(bodyParser.json({ limit: '100mb' }));
 app.use(cookieParser())
 
 
-app.use('/api', authRoutes)
+app.use('/api', appRoutes)
 
 
 
