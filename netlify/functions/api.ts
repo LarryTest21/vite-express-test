@@ -45,7 +45,7 @@ router.use("/", appRoutes);
 
 // Dynamic base path
 const isNetlify = process.env.NETLIFY === "true";
-const basePath = isNetlify ? "/.netlify/functions/api" : "/api";
+const basePath = "/api"; // ✅ Always use /api
 
 app.use(basePath, router);
 
