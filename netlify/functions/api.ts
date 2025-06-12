@@ -41,9 +41,15 @@ app.use(async (req, res, next) => {
 });
 
 // Mount routes
-app.use("/api", appRoutes);
+router.use("/", appRoutes);
 
-// Test route
+// Dynamic base path
+const isNetlify = process.env.NETLIFY === "true";
+const basePath = isNetlify ? "/.netlify/functions/api" : "/api";
+
+app.use(basePath, router);
+
+// Test route (still accessible at /api/test locally)
 app.get("/test", (_, res) => {
   res.json({ message: "✅ Works in dev + prod" });
 });
@@ -53,5 +59,4 @@ app.use("*", (req, res) => {
   res.status(404).json({ error: "Not found", path: req.path });
 });
 
-// Export Netlify handler
 export const handler = serverless(app);
