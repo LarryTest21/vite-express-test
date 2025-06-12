@@ -42,6 +42,5 @@ app.use(async (req, res, next) => {
 
 router.get("/test", (_, res) => { res.json({ message: "✅ Express function works!" }); });
 
-app.use('/.netlify/functions/api', router);
-router.use("/api", appRoutes);
+app.use('/.netlify/functions/api', appRoutes);
 export const handler = serverless(app);
