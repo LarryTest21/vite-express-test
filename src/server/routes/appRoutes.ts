@@ -89,13 +89,9 @@ router.get("/user/set-cookies", setCookie);
 router.get("/user/read-cookies", readCookie);
 
 //CONTENT ROUTES
-
 router.get("/test", (_, res) => {
-  res.json({ message: "✅ Works in dev + prod" });
+  res.json({ message: "✅ Works in dev + prdsfod" });
 });
-
-
-
 
 
 //Get posts Blog
