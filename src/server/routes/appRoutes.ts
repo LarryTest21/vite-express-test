@@ -90,7 +90,7 @@ router.get("/user/read-cookies", readCookie);
 
 //CONTENT ROUTES
 router.get("/test", (_, res) => {
-  res.json({ message: "✅ Works in dev + prdsfod" });
+  res.json({ message: "✅ Works in dev + prdsdsaadfod" });
 });
 
 
