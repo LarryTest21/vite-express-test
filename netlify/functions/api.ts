@@ -1,4 +1,4 @@
-// api.ts
+// netlify/functions/api.ts
 import express from "express";
 import serverless from "serverless-http";
 import mongoose from "mongoose";
@@ -9,13 +9,7 @@ import appRoutes from "../../src/server/routes/appRoutes";
 
 const app = express();
 const router = express.Router();
-router.get("/", (_, res) => {
-  res.json({
-    message: "🎉 Hello from Netlify Functions!",
-    timestamp: new Date().toISOString(),
-    tip: "You're successfully hitting your serverless API. Now plug in your routes!"
-  });
-});
+
 const MONGO_URI = process.env.MONGO_URI;
 let isConnected = false;
 
@@ -25,7 +19,12 @@ app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// MongoDB connection
+app.use((req, res, next) => {
+  console.log("🔎 Incoming:", req.method, req.url);
+  next();
+});
+
+// MongoDB connection logic
 async function connectToDatabase() {
   if (isConnected) return;
   if (!MONGO_URI) throw new Error("Missing MONGO_URI");
@@ -46,22 +45,25 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Health check route
-router.get("/test", (_, res) => {
-  res.json({ message: "✅ Express API is live on Netlify!" });
+// 🔹 Root route - confirms API is alive
+router.get("/", (_, res) => {
+  res.json({
+    message: "🎉 Hello from Netlify Functions!",
+    timestamp: new Date().toISOString(),
+    tip: "You're successfully hitting your serverless API. Now plug in your routes!"
+  });
 });
-router.get("/ping", (_, res) => {
-  res.json({ ok: true });
-});
-// Mount your actual API routes
+
+// 🔹 Test routes
+router.get("/test", (_, res) => res.json({ message: "✅ API working!" }));
+router.get("/ping", (_, res) => res.json({ pong: true }));
+
+// 🔹 App routes
 router.use("/api", appRoutes);
-app.use((req, res, next) => {
-  console.log("🔎 Incoming:", req.method, req.url);
-  next();
-});
-// Netlify-compatible base path
+
+// 🔹 Set base path for Netlify
 const basePath = process.env.NETLIFY ? "/.netlify/functions/api" : "/api";
 app.use(basePath, router);
 
-// Export the handler
+// 🔹 Export the Netlify function handler
 export const handler = serverless(app);
