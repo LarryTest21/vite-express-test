@@ -48,7 +48,10 @@ router.get("/ping", (_, res) => {
   res.json({ ok: true });
 });
 // Mount your actual API routes
-router.use("/", appRoutes);
+router.get("/", (_, res) => {
+  res.json({ message: "🎉 API root is reachable!" });
+});
+router.use("/api", appRoutes);
 app.use((req, res, next) => {
   console.log("🔎 Incoming:", req.method, req.url);
   next();
