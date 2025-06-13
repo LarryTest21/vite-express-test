@@ -1,7 +1,0 @@
-{
-  "name": "vite-vue-typescript-starter",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "custom"
-}
