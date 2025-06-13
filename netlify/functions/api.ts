@@ -49,7 +49,10 @@ router.get("/ping", (_, res) => {
 });
 // Mount your actual API routes
 router.use("/", appRoutes);
-
+app.use((req, res, next) => {
+  console.log("🔎 Incoming:", req.method, req.url);
+  next();
+});
 // Netlify-compatible base path
 const basePath = process.env.NETLIFY ? "/.netlify/functions/api" : "/api";
 app.use(basePath, router);
