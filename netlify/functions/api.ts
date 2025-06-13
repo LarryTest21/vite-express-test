@@ -9,6 +9,9 @@ import appRoutes from "../../src/server/routes/appRoutes";
 
 const app = express();
 const router = express.Router();
+router.get("/", (_, res) => {
+  res.json({ message: "🎉 API root is reachable!" });
+});
 
 const MONGO_URI = process.env.MONGO_URI;
 let isConnected = false;
@@ -48,9 +51,6 @@ router.get("/ping", (_, res) => {
   res.json({ ok: true });
 });
 // Mount your actual API routes
-router.get("/", (_, res) => {
-  res.json({ message: "🎉 API root is reachable!" });
-});
 router.use("/api", appRoutes);
 app.use((req, res, next) => {
   console.log("🔎 Incoming:", req.method, req.url);
