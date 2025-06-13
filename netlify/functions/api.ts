@@ -44,7 +44,9 @@ app.use(async (req, res, next) => {
 router.get("/test", (_, res) => {
   res.json({ message: "✅ Express API is live on Netlify!" });
 });
-
+router.get("/ping", (_, res) => {
+  res.json({ ok: true });
+});
 // Mount your actual API routes
 router.use("/", appRoutes);
 
