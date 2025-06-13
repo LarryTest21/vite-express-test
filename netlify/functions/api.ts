@@ -6,10 +6,10 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import appRoutes from "../../src/server/routes/appRoutes";
+console.log("✨ API function handler running");
 
 const app = express();
 const router = express.Router();
-
 const MONGO_URI = process.env.MONGO_URI;
 let isConnected = false;
 
