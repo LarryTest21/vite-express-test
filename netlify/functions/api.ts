@@ -60,7 +60,10 @@ router.get("/ping", (_, res) => res.json({ pong: true }));
 
 // 🔹 App routes
 router.use("/api", appRoutes);
-
+router.use((req, res) => {
+  console.log("❌ No matching route:", req.url);
+  res.status(404).json({ error: "Route not found" });
+});
 // 🔹 Set base path for Netlify
 const basePath = process.env.NETLIFY ? "/.netlify/functions/api" : "/api";
 app.use(basePath, router);
