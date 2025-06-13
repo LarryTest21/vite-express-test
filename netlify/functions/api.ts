@@ -50,22 +50,26 @@ router.get("/", (_, res) => {
   res.json({
     message: "🎉 Hello from Netlify Functions!",
     timestamp: new Date().toISOString(),
-    tip: "You're successfully hitting your serverless API. Now plug in your routes!"
+    tip: "You're successfully hitting your serverless API. Now plug in your routes!",
   });
 });
+const basePath = process.env.NETLIFY ? "/.netlify/functions/api" : "/api";
 
 // 🔹 Test routes
-router.get("/test", (_, res) => res.json({ message: "✅ API working!" }));
-router.get("/ping", (_, res) => res.json({ pong: true }));
+app.get(`${basePath}/test`, (req, res) => {
+  res.json({ message: "✅ /test route is working!" });
+});
 
 // 🔹 App routes
-router.use("/api", appRoutes);
+app.use(`${basePath}/api`, appRoutes);
+router.stack.forEach((r) => {
+  if (r.route) console.log("📌 Route registered:", r.route.path);
+});
 app.use((req, res) => {
   console.log("❌ No matching route:", req.url);
   res.status(404).json({ error: "Route not found" });
 });
 // 🔹 Set base path for Netlify
-const basePath = process.env.NETLIFY ? "/.netlify/functions/api" : "/api";
 app.use(basePath, router);
 
 // 🔹 Export the Netlify function handler
