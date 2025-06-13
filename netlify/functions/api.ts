@@ -60,7 +60,7 @@ router.get("/ping", (_, res) => res.json({ pong: true }));
 
 // 🔹 App routes
 router.use("/api", appRoutes);
-router.use((req, res) => {
+app.use((req, res) => {
   console.log("❌ No matching route:", req.url);
   res.status(404).json({ error: "Route not found" });
 });
