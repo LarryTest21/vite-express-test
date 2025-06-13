@@ -10,9 +10,12 @@ import appRoutes from "../../src/server/routes/appRoutes";
 const app = express();
 const router = express.Router();
 router.get("/", (_, res) => {
-  res.json({ message: "🎉 API root is reachable!" });
+  res.json({
+    message: "🎉 Hello from Netlify Functions!",
+    timestamp: new Date().toISOString(),
+    tip: "You're successfully hitting your serverless API. Now plug in your routes!"
+  });
 });
-
 const MONGO_URI = process.env.MONGO_URI;
 let isConnected = false;
 
