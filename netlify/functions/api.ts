@@ -3,31 +3,17 @@ import express from "express";
 import serverless from "serverless-http";
 import mongoose from "mongoose";
 import cors from "cors";
-import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 import appRoutes from "../../src/server/routes/appRoutes";
-console.log("✨ API function handler running");
 
-const app = express();
-const router = express.Router();
 const MONGO_URI = process.env.MONGO_URI;
 let isConnected = false;
+let cachedHandler: ReturnType<typeof serverless> | null = null;
 
-// Middleware
-app.use(cors({ origin: "*", credentials: true }));
-app.use(bodyParser.json({ limit: "100mb" }));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-app.use((req, res, next) => {
-  console.log("🔎 Incoming:", req.method, req.url);
-  next();
-});
-
-// MongoDB connection logic
 async function connectToDatabase() {
   if (isConnected) return;
-  if (!MONGO_URI) throw new Error("Missing MONGO_URI");
+  if (!MONGO_URI) throw new Error("❌ Missing MONGO_URI");
 
   console.log("🔌 Connecting to MongoDB...");
   await mongoose.connect(MONGO_URI);
@@ -35,42 +21,62 @@ async function connectToDatabase() {
   console.log("✅ Connected to MongoDB");
 }
 
-app.use(async (req, res, next) => {
-  try {
-    await connectToDatabase();
-    next();
-  } catch (err) {
-    console.error("❌ MongoDB error:", err);
-    res.status(500).send("Database connection error");
-  }
-});
+async function getHandler() {
+  if (cachedHandler) return cachedHandler;
 
-// 🔹 Root route - confirms API is alive
-router.get("/", (_, res) => {
-  res.json({
-    message: "🎉 Hello from Netlify Functions!",
-    timestamp: new Date().toISOString(),
-    tip: "You're successfully hitting your serverless API. Now plug in your routes!",
+  console.log("🚀 Bootstrapping API handler...");
+  const app = express();
+  const router = express.Router();
+  const basePath = process.env.NETLIFY ? "/.netlify/functions/api" : "/api";
+
+  // Middleware
+  app.use(cors({ origin: "*", credentials: true }));
+  app.use(bodyParser.json({ limit: "100mb" }));
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(cookieParser());
+
+  app.use(async (req, res, next) => {
+    console.log("🔎 Incoming:", req.method, req.url);
+    try {
+      await connectToDatabase();
+      next();
+    } catch (err) {
+      console.error("❌ MongoDB error:", err);
+      res.status(500).send("Database connection error");
+    }
   });
-});
-const basePath = process.env.NETLIFY ? "/.netlify/functions/api" : "/api";
 
-// 🔹 Test routes
-app.get(`${basePath}/test`, (req, res) => {
-  res.json({ message: "✅ /test route is working!" });
-});
+  // Root route confirmation
+  router.get("/", (_, res) => {
+    console.log("🎯 Root route hit");
+    res.json({
+      message: "🎉 Hello from Netlify Functions!",
+      timestamp: new Date().toISOString(),
+      tip: "You're successfully hitting your serverless API!"
+    });
+  });
 
-// 🔹 App routes
-app.use(`${basePath}/api`, appRoutes);
-router.stack.forEach((r) => {
-  if (r.route) console.log("📌 Route registered:", r.route.path);
-});
-app.use((req, res) => {
-  console.log("❌ No matching route:", req.url);
-  res.status(404).json({ error: "Route not found" });
-});
-// 🔹 Set base path for Netlify
-app.use(basePath, router);
+  // Health checks
+  router.get("/ping", (_, res) => res.json({ pong: true }));
+  router.get("/test", (_, res) => res.json({ status: "✅ API is alive" }));
 
-// 🔹 Export the Netlify function handler
-export const handler = serverless(app);
+  // Mount actual API routes
+  router.use("/api", appRoutes);
+
+  // Fallback for unmatched routes
+  router.use((req, res) => {
+    console.log("❌ No matching route:", req.method, req.url);
+    res.status(404).json({ error: "Route not found" });
+  });
+
+  app.use(basePath, router);
+
+  cachedHandler = serverless(app);
+  return cachedHandler;
+}
+
+// Export Netlify Function handler
+export const handler = async (event:any, context:any) => {
+  const handler = await getHandler();
+  return handler(event, context);
+};
