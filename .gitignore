@@ -30,3 +30,4 @@ dist-ssr
 .android
 ionic.config.json
 capacitor.config.ts
+vite-express-test.zip
