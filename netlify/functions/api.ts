@@ -44,7 +44,7 @@ router.get("/test", (_, res) => {
   res.json({ status: "✅ Test route through router works" });
 });
 
-router.use("/api", appRoutes);
+router.use("/", appRoutes);
 
 router.use((req, res) => {
   console.log("❌ No matching route:", req.method, req.url);
