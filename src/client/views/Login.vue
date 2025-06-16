@@ -73,6 +73,10 @@ const signIn = () => {
     localStorage.setItem('loggedIn', "true")
     localStorage.setItem('email', res.data.data.email)
     localStorage.setItem("loggedInBefore", "true")
+    if(res.data.data.autoLogin != undefined)
+  {
+    localStorage.setItem("autoLogin", res.data.data.autoLogin)
+  }
     admin.state = res.data.clearance
     modalAnimation.value = false
     modalActivation.value = true

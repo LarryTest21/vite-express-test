@@ -46,12 +46,12 @@ const activeLogin = () => {
 if (currentTheme === "theme-dark") {
   theme_checked.value = false;
   const changeTheme = useTheme();
-  const { changeStateDark } = changeTheme;
+  const { changeStateDark } = changeTheme as any;
   changeStateDark();
 } else if (currentTheme === "theme-light") {
   theme_checked.value = true;
   const changeTheme = useTheme();
-  const { changeStateLight } = changeTheme;
+  const { changeStateLight } = changeTheme as any;
   changeStateLight();
 } else {
   localStorage.setItem("theme-color", "theme-dark");
@@ -63,19 +63,19 @@ const themechange = () => {
     theme_checked.value = false;
     currentTheme = "theme-light";
     const changeTheme = useTheme();
-    const { changeStateLight } = changeTheme;
+    const { changeStateLight } = changeTheme as any;
     changeStateLight();
     localStorage.setItem("theme-color", "theme-light");
   } else if (currentTheme === "theme-light") {
     theme_checked.value = true;
     currentTheme = "theme-dark";
     const changeTheme = useTheme();
-    const { changeStateDark } = changeTheme;
+    const { changeStateDark } = changeTheme as any;
     changeStateDark();
     localStorage.setItem("theme-color", "theme-dark");
   } else {
     const changeTheme = useTheme();
-    const { changeStateLight } = changeTheme;
+    const { changeStateLight } = changeTheme as any;
     theme_checked.value = true;
     changeStateLight();
     localStorage.setItem("theme-color", "theme-light");
@@ -195,7 +195,6 @@ onMounted(() => {
   height: 100vh;
   width: 100vw;
   position: fixed;
-  z-index: 100;
 
   .wrapper {
     height: 100%;

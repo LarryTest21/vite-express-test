@@ -14,7 +14,6 @@ import { userData } from "./store/userData";
 import { getUser } from "./views/user";
 import "./assets/datepicker.scss";
 import { isMobile } from "./store/isMobile";
-import axios from "axios";
 import { storeRouterAnalytics } from "./components/newAnalytics";
 import { signedIn } from "./store/signedIn";
 

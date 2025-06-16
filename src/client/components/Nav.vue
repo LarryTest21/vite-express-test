@@ -2,7 +2,7 @@
 //BASIC
 import { RouterLink } from "vue-router";
 import { ref, watch, onMounted } from "vue";
-import $ from "jquery";
+import $, { data } from "jquery";
 import gsap from "gsap";
 import axios from "axios";
 //MODULES
@@ -31,7 +31,7 @@ import messageIcon from "../components/icons/message.vue";
 import notifSound from "./messages/notificationSounds/signedIn.mp3";
 //SCRIPTS
 import "../components/newAnalytics";
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
 
 const searchIcon2 = blogSearchIcon();
 const searchIconActive = ref(false);
@@ -119,11 +119,11 @@ const socketIoFn = () => {
     }, 4000);
 
     userData().data.friendsActions.acceptedUsers.push(acceptedBy);
-      userData().data.friendsActions.addedUsers =
-      userData().data.friendsActions.addedUsers .filter(
+    userData().data.friendsActions.addedUsers =
+      userData().data.friendsActions.addedUsers.filter(
         (user: any) => user != acceptedBy.acceptedBy
       );
-      console.log(userData().data.friendsActions.addedUsers)
+    console.log(userData().data.friendsActions.addedUsers);
   });
   socket.value!.on("userRequested", function (requestedBy: any) {
     userConnectedInfo.value = requestedBy.requestedUserInfo;
@@ -201,7 +201,7 @@ const socketIoFn = () => {
   });
 
   if (userD.value.data != undefined) {
-    socket.value.on('connect', function () {
+    socket.value.on("connect", function () {
       socket.value.emit("userConnected", {
         socketID: socket.value.id,
         userID: userData().data._id,
@@ -214,7 +214,7 @@ const socketIoFn = () => {
       () => userD.value.data,
       () => {
         if (userD.value.data != undefined) {
-          socket.value.on('connect', function () {
+          socket.value.on("connect", function () {
             socket.value.emit("userConnected", {
               socketID: socket.value.id,
               userID: userData().data._id,
@@ -340,13 +340,13 @@ const Logo = new URL("../assets/logos/logo.svg", import.meta.url).href;
 
 //FETCHING LOCATION FOR LANGUAGE
 
-var requestUrl = "https://geolocation-db.com/json/";
+var requestUrl = "https://ipinfo.io/json";
 
 $.ajax({
   url: requestUrl,
   type: "GET",
   success: function (json) {
-    if (json.country_name == "Hungary") {
+    if (json.country == "HU") {
       langHu.value = true;
     } else {
       langEn.value = true;
@@ -508,11 +508,13 @@ onMounted(async () => {
     }, 2000);
   }, 15000);
 
-  axios.post("/api/user/refresh").then((result) => {
-    if (result.data === 'success') {
-      axios.post("/api/user/getPrivateMessage").then((result) => {});
-    }
-  });
+  if (userData().data != undefined) {
+    axios.post("/api/user/refresh").then((result) => {
+      if (result.data === "success") {
+        axios.post("/api/user/getPrivateMessage").then((result) => {});
+      }
+    });
+  }
 });
 
 const notifClickedRef = ref(false);
@@ -529,7 +531,12 @@ const deleteMesagesNotifFn = () => {
   <header class="fullNav" ref="navRef">
     <div class="wrapper">
       <transition name="modal">
-        <Modal  class="modal" v-if="userSocketNotif" :socketAction="socketAction" :userInfo="userConnectedInfo" :position="'absolute'"
+        <Modal
+          class="modal"
+          v-if="userSocketNotif"
+          :socketAction="socketAction"
+          :userInfo="userConnectedInfo"
+          :position="'absolute'"
         />
       </transition>
       <nav>
@@ -540,37 +547,61 @@ const deleteMesagesNotifFn = () => {
                 <img class="logo" :src="Logo" />
               </div>
             </RouterLink>
-            <TransitionGroup name="user" tag="a" class="user-wrapper" key="user"
+            <TransitionGroup
+              name="user"
+              tag="a"
+              class="user-wrapper"
+              key="user"
             >
               <div class="user-outer" key="1" v-if="signedInCheck.state!">
-                <a class="user"
-                   @click.native.prevent="userTabClicked.state = !userTabClicked.state; showMessagesTab = false"
+                <a
+                  class="user"
+                  @click.native.prevent="
+                    userTabClicked.state = !userTabClicked.state;
+                    showMessagesTab = false;
+                  "
                 >
                   {{ displayName }}
-                  <div class="notif-counter" v-if="showNotif && notificationArray.length != 0"
-                       @click="notifClicked"
+                  <div
+                    class="notif-counter"
+                    v-if="showNotif && notificationArray.length != 0"
+                    @click="notifClicked"
                   >
                     {{ notifCounter }}
                   </div>
                 </a>
                 <div class="messages">
-                  <messageIcon @click="showMessagesTab = !showMessagesTab; userIsInChat=false; userTabClicked.state = false; deleteMesagesNotifFn()"
+                  <messageIcon
+                    @click="
+                      showMessagesTab = !showMessagesTab;
+                      userIsInChat = false;
+                      userTabClicked.state = false;
+                      deleteMesagesNotifFn();
+                    "
                   />
-                  <div class="message-request-notif" v-if="userData().data.friendsActions.requestUsers.length != 0 && deleteMessagesNotif"
+                  <div
+                    class="message-request-notif"
+                    v-if="
+                      userData().data.friendsActions.requestUsers.length != 0 &&
+                      deleteMessagesNotif
+                    "
                   >
                     {{ messageNotifCount }}
                   </div>
-                  <div class="message-notif" v-if="messageGottenNotifCount != 0"
+                  <div
+                    class="message-notif"
+                    v-if="messageGottenNotifCount != 0"
                   >
                     {{ messageGottenNotifCount }}
                   </div>
                 </div>
               </div>
-              <div key="2"
-                   v-if="!signedInCheck.state && loginActivated"
-                   to="/login"
-                   class="login"
-                   @click.stop.prevent="activeLogin()"
+              <div
+                key="2"
+                v-if="!signedInCheck.state && loginActivated"
+                to="/login"
+                class="login"
+                @click.stop.prevent="activeLogin()"
               >
                 <li>Login</li>
               </div>
@@ -586,9 +617,10 @@ const deleteMesagesNotifFn = () => {
               <li>BSL</li>
             </RouterLink>
             <div class="search" v-if="searchIconActive" key="6">
-              <searchIcon class="searchIcon"
-                          @click="searchActive.state = !searchActive.state"
-                          key="2"
+              <searchIcon
+                class="searchIcon"
+                @click="searchActive.state = !searchActive.state"
+                key="2"
               />
             </div>
             <RouterLink to="/custom-teams" key="7">
@@ -601,9 +633,10 @@ const deleteMesagesNotifFn = () => {
         </ul>
 
         <div class="wt-wrapper">
-          <div @mouseover="weatherHovered"
-               @mouseleave="weatherUnHovered"
-               :class="[
+          <div
+            @mouseover="weatherHovered"
+            @mouseleave="weatherUnHovered"
+            :class="[
               'weather-time',
               { active: weatherHov },
               timeWeatherUp ? 'up' : 'down',
@@ -620,10 +653,11 @@ const deleteMesagesNotifFn = () => {
         <transition name="fadeLogin">
           <div class="theme-changer-wrapper" v-if="themeCheck">
             <label class="theme-changer">
-              <input v-model="themeButtonChecked"
-                     type="checkbox"
-                     class="button"
-                     @click="themechange()"
+              <input
+                v-model="themeButtonChecked"
+                type="checkbox"
+                class="button"
+                @click="themechange()"
               />
               <span class="slider round"></span>
             </label>
@@ -631,25 +665,32 @@ const deleteMesagesNotifFn = () => {
         </transition>
 
         <transition name="fadeLogin">
-          <LoginTab v-if="activateLoginTab && !signedInCheck.state"
-                    v-click-away="closeLoginTab"
-                    @emitRegister="activateLoginTab = !activateLoginTab"
+          <LoginTab
+            v-if="activateLoginTab && !signedInCheck.state"
+            v-click-away="closeLoginTab"
+            @emitRegister="activateLoginTab = !activateLoginTab"
           />
         </transition>
         <transition name="userTab">
-          <UserTab class="usertab"
-                   ref="UserTabHeight"
-                   v-if="signedInCheck.state && userTabClicked.state"
-                   @notifClicked="notifClicked"
-                   v-click-away="closeProfileTab"
-                   :isAdminCheck="isAdminCheck.state"
-                   :notifCounter="notifCounter"
-                   :notificationArray="notificationArray"
-                   :closeTab="closeTab"
+          <UserTab
+            class="usertab"
+            ref="UserTabHeight"
+            v-if="signedInCheck.state && userTabClicked.state"
+            @notifClicked="notifClicked"
+            v-click-away="closeProfileTab"
+            :isAdminCheck="isAdminCheck.state"
+            :notifCounter="notifCounter"
+            :notificationArray="notificationArray"
+            :closeTab="closeTab"
           />
         </transition>
         <transition name="userTab">
-          <Messages :socketIO="socket" v-if="showMessagesTab" :isTyping="userIsTyping" @chatViewOpened="messageTabOpened" @seledctedUser="seledctedUser"
+          <Messages
+            :socketIO="socket"
+            v-if="showMessagesTab"
+            :isTyping="userIsTyping"
+            @chatViewOpened="messageTabOpened"
+            @seledctedUser="seledctedUser"
           />
         </transition>
       </nav>
@@ -942,6 +983,7 @@ const deleteMesagesNotifFn = () => {
     display: flex;
     justify-content: center;
     .weather-time {
+      width:200px;
       top: -35px;
       height: 200%;
       display: flex;
@@ -955,9 +997,11 @@ const deleteMesagesNotifFn = () => {
         text-align: center;
         display: flex;
         flex-direction: column;
-        align-items: center;
         justify-content: center;
-        align-content: center;
+        .city{
+          font-size: 1rem;
+
+        }
       }
 
       .time {
@@ -1196,4 +1240,6 @@ const deleteMesagesNotifFn = () => {
 .hey-leave-active {
   position: absolute !important;
 }
+
+
 </style>
