@@ -1,40 +1,33 @@
-import { ref } from "vue";
-import $ from "jquery";
-import axios from "axios";
+// weather.ts
+import axios from 'axios';
 
-var getIP = "https://ipinfo.io/json";
-var openWeatherMap = "https://api.openweathermap.org/data/2.5/weather/";
+const API_KEY = '20fd3e315880d30f3beed6621ed06ee1';
 
-export const getweather = () => {
-  const city = ref();
-  const temp = ref();
-  const latitude = ref();
-  const longitude = ref();
+export async function getWeatherInfo() {
+  try {
+    // Get user location by IP
+    const ipResponse = await axios.get('https://ipinfo.io/json');
+    const [lat, lon] = ipResponse.data.loc.split(',');
 
-  axios
-    .get(getIP)
-    .then((res) => {
-      const data = res.data;
-      const [reslatitude, reslongitude] = data.loc.split(",");
-      var lat = parseFloat(reslatitude);
-      var lon = parseFloat(reslongitude);
-
-      latitude.value = lat;
-      longitude.value = lon;
-      city.value = data.city;
-    })
-    .then(() => {
-      $.getJSON(openWeatherMap, {
-        lat: latitude.value,
-        lon: longitude.value,
-        units: "metric",
-        APPID: "20fd3e315880d30f3beed6621ed06ee1",
-      }).done(function (weather) {
-        console.log(weather);
-        city.value = city.value;
-        temp.value = Math.round(weather.main.temp);
-      });
+    // Get weather data
+    const weatherResponse = await axios.get('https://api.openweathermap.org/data/2.5/weather', {
+      params: {
+        lat: lat,
+        lon: lon,
+        units: 'metric',
+        appid: API_KEY
+      }
     });
 
-  return { city, temp };
-};
+    const weatherData = weatherResponse.data;
+    return {
+      city: weatherData.name,
+      temp: Math.round(weatherData.main.temp),
+      description: weatherData.weather[0].description,
+      icon: weatherData.weather[0].icon
+    };
+  } catch (error) {
+    console.error('Error fetching weather info:', error);
+    return null;
+  }
+}

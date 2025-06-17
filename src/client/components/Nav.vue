@@ -1,7 +1,7 @@
 <script setup lang="ts">
 //BASIC
 import { RouterLink } from "vue-router";
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import $, { data } from "jquery";
 import gsap from "gsap";
 import axios from "axios";
@@ -16,7 +16,7 @@ import { modalActive } from "../store/modalActive";
 import { signedIn } from "../store/signedIn";
 import { userTabClick } from "../store/userTabClick";
 import { isAdmin } from "../store/isAdmin";
-import { getweather } from "./Nav/weather";
+import { getWeatherInfo } from "./Nav/weather";
 import { timeCurrent } from "./Nav/time";
 import { userData } from "../store/userData";
 import { useRouter } from "vue-router";
@@ -460,7 +460,20 @@ const UserTabHeight = ref();
 
 const showMessagesTab = ref();
 
+let weatherInterval: ReturnType<typeof setInterval>;
+
+async function loadWeather() {
+  const weather = await getWeatherInfo();
+  if (weather) {
+    city.value = weather.city;
+    temp.value = weather.temp;
+  }
+}
+
 onMounted(async () => {
+  loadWeather(); // run immediately on mount
+  weatherInterval = setInterval(loadWeather, 10 * 60 * 1000);
+
   setTimeout(() => {
     watch(
       () => router.currentRoute.value.path,
@@ -473,13 +486,6 @@ onMounted(async () => {
       }
     );
   }, 100);
-
-  const weather = getweather();
-
-  setTimeout(() => {
-    city.value = weather.city.value;
-    temp.value = weather.temp.value;
-  }, 1000);
 
   gsap
     .from([".nav-links>a, .nav-links>div"], {
@@ -525,6 +531,11 @@ const deleteMessagesNotif = ref(true) as any;
 const deleteMesagesNotifFn = () => {
   deleteMessagesNotif.value = false;
 };
+
+onBeforeUnmount(() => {
+  clearInterval(weatherInterval);
+});
+
 </script>
 
 <template>
@@ -983,7 +994,7 @@ const deleteMesagesNotifFn = () => {
     display: flex;
     justify-content: center;
     .weather-time {
-      width:200px;
+      width: 200px;
       top: -35px;
       height: 200%;
       display: flex;
@@ -998,9 +1009,8 @@ const deleteMesagesNotifFn = () => {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        .city{
+        .city {
           font-size: 1rem;
-
         }
       }
 
@@ -1240,6 +1250,4 @@ const deleteMesagesNotifFn = () => {
 .hey-leave-active {
   position: absolute !important;
 }
-
-
 </style>

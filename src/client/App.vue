@@ -353,8 +353,114 @@ onMounted(() => {
   font-size: 2rem;
   color: red;
 }
-
-#app.mobile {
+/* Reset and basic mobile-friendly layout */
+#app {
   width: 100vw;
+  overflow-x: hidden; /* prevent horizontal scroll */
 }
+
+/* Mobile nav icon fix */
+.mobilenavicon {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+/* Scroll indicator */
+.scrollLineTop {
+  height: 5px; /* reduce height on mobile */
+  top: 0;
+  left: 0;
+  border-radius: 0;
+  width: 0;
+  box-shadow: none;
+}
+
+/* Mobile top bar */
+.mobile-top {
+  height: 50px;
+  width: 100%;
+  background-color: var(--color-nav-bg);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  opacity: 1 !important; /* override opacity bindings for clarity */
+  border-radius: 0;
+  transition: height 0.3s ease;
+}
+
+.mobile-top.active {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Landing wrapper mobile fixes */
+.landing-wrapper.mobile {
+  font-size: 16px !important; /* reasonable font size for mobile */
+}
+
+.landing-wrapper.mobile .section-landing {
+  height: auto !important; /* don’t force full viewport height on mobile */
+  padding: 20px !important;
+}
+
+.landing-wrapper.mobile .section-wrapper {
+  padding: 10px !important;
+  flex-direction: column !important;
+  height: auto !important;
+}
+
+/* Fix images-wrapper */
+.landing-wrapper.mobile .section2 .images-wrapper {
+  width: 100% !important;
+  overflow-x: auto;
+  display: block !important;
+  padding: 0 10px;
+}
+
+.landing-wrapper.mobile .image-carousel {
+  position: relative !important;
+  width: 100% !important;
+  height: auto !important;
+  transform: none !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  margin-bottom: 15px;
+}
+
+.landing-wrapper.mobile .image-carousel img {
+  width: 100% !important;
+  height: auto !important;
+  transform: none !important;
+}
+
+/* Smaller font sizes for titles */
+.landing-wrapper.mobile .section1 .title-wrapper h1 {
+  font-size: 2rem !important;
+  text-align: center;
+  padding: 0 10px;
+  line-height: 1.2;
+}
+
+/* General paddings for all sections */
+.landing-wrapper.mobile .section-landing .section-wrapper {
+  padding: 20px 10px !important;
+  box-sizing: border-box;
+}
+
+/* Responsive font scaling */
+@media (max-width: 400px) {
+  .landing-wrapper.mobile .section1 .title-wrapper h1 {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* Prevent horizontal overflow on body */
+body {
+  overflow-x: hidden !important;
+}
+
 </style>

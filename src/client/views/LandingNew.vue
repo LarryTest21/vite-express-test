@@ -10,7 +10,10 @@ const checkMobile = ref(isMobile().state);
 </script>
 
 <template>
-  <div class="landing-wrapper" :class="checkMobile ? 'mobile' : 'desktop'" ref="landing"
+  <div
+    class="landing-wrapper"
+    :class="checkMobile ? 'mobile' : 'desktop'"
+    ref="landing"
   >
     <div id="section1" class="section-landing section1">
       <div class="section-wrapper">
@@ -68,7 +71,6 @@ const checkMobile = ref(isMobile().state);
     position: relative;
 
     .title-wrapper {
-      z-index: 10;
       position: relative;
       width: 100%;
       height: 100%;
@@ -189,10 +191,23 @@ const checkMobile = ref(isMobile().state);
   }
 }
 
-@media (max-width:1200px) {
-  .landing-wrapper .section-landing .section-wrapper {
-    display:grid;
+@media (max-width: 768px) {
+  .section-wrapper {
+    padding: 10px;
   }
+
+  .images-wrapper {
+    width: 100% !important;
+    overflow-x: auto; // optional, if you want scroll on overflow
+  }
+
+  .image-carousel img {
+    width: 100vw; // or less, adjust to fit better
+    height: auto;
+  }
+  .landing-wrapper.mobile .section-landing {
+  font-size: 16px;
 }
 
+}
 </style>
