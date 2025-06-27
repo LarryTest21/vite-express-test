@@ -1,21 +1,20 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import moment from "moment";
-
+import { userData } from "../../store/userData";
 const props = defineProps({
   interPost: Object,
   showPreview: Boolean,
 });
-
+console.log(props.interPost)
 const emit = defineEmits(["showPreview"]);
 
-const previewPostTitle = ref(props.interPost?.postTitle);
-const previewPostContent = ref(props.interPost?.postContent);
-
+const previewPostTitle = ref(props.interPost?.interTitle);
+const previewPostContent = ref(props.interPost?.interContent);
 const previewPostDate = ref(
-  moment(new Date(props.interPost?.postDate)).format("MMM DD YYYY,  HH:mm")
+  moment(new Date(props.interPost?.interDate)).format("MMM DD YYYY,  HH:mm")
 );
-const previewPostAuthor = ref(props.interPost?.postAuthor);
+const previewPostAuthor = ref(userData().data.firstName + " " + userData().data.lastName);
 
 onMounted(() => {
 if(previewPostContent.value == undefined){

@@ -22,14 +22,15 @@ import Imager from "../components/tiptapimage";
 import axios from "axios";
 //STORES
 import { userData } from "../store/userData";
-import { useRoute } from 'vue-router';
-import { useRouter } from 'vue-router';
+import { useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 //VIEW IMPORTS
 import Modal from "../components/Modal.vue";
 import createPostSide from "../components/newCreatePost/CreatePostSide.vue";
 import MultiSelect from "../components/MultiSelect.vue";
 import PostPreview from "../components/newCreatePost/CreatePostPreview.vue";
 import SavedPosts from "../components/newCreatePost/CreatePostSavedPosts.vue";
+import { event } from "jquery";
 
 //STYLING
 var shadowStyle = " 2px 1px 5px 2px rgba(0, 0, 0, 0.404)";
@@ -37,9 +38,16 @@ var shadowStyle = " 2px 1px 5px 2px rgba(0, 0, 0, 0.404)";
 const route = useRoute();
 const router = useRouter();
 const currentRouteName = ref(route.name) as any;
-watch(route, (newv)=> {
-  currentRouteName.value = newv.name
-}, {deep:true})
+
+const postID = ref(new Date().getTime());
+
+watch(
+  route,
+  (newv) => {
+    currentRouteName.value = newv.name;
+  },
+  { deep: true }
+);
 const editPost = ref(route.params);
 const editorKey = ref(0);
 const editEvent = ref();
@@ -49,15 +57,13 @@ if (userD != undefined) {
   userID.value = userD._id;
 }
 
-const coverImage = ref() as any
-
-const postAuthor = ref(
-  userData().data.firstName + " " + userData().data.lastName
-);
+const coverImage = ref() as any;
 
 const postTitle = ref();
 const postContent = ref();
 const showPreview = ref();
+
+const emittedEventCategory = ref();
 
 const showPreviewFn = (e: any) => {
   showPreview.value = true;
@@ -71,7 +77,7 @@ const interPostFn = (post: any) => {
 
 const modalLoadingMessageColor = ref();
 const editor = ref() as any;
-if (currentRouteName.value === 'createpost') {
+if (currentRouteName.value === "createpost") {
   editor.value = new Editor({
     extensions: [
       StarterKit,
@@ -96,7 +102,7 @@ if (currentRouteName.value === 'createpost') {
       postContent.value = editor.getHTML();
     },
   });
-} else if (currentRouteName.value === 'createevent') {
+} else if (currentRouteName.value === "createevent") {
   editor.value = new Editor({
     extensions: [
       StarterKit,
@@ -319,14 +325,14 @@ const emittedMainCategory = ref();
 const emittedSubCategory = ref();
 const subCategoryShow = ref(true);
 
+const eventCategoryEmit = (value: any) => {
+  emittedEventCategory.value = value;
+};
+
 const mainCategoryEmit = (value: any) => {
   emittedMainCategory.value = value;
-  if (value[0] === "News") {
-    subCategoryShow.value = false;
-  } else {
-    subCategoryShow.value = true;
-  }
 };
+
 const subCategoryEmit = (value: any) => {
   emittedSubCategory.value = value;
 };
@@ -364,6 +370,17 @@ const postIncomplete = (e: any) => {
         modalUpload.value = false;
       }, 2000);
     }, 1000);
+  } else if (e === "exists") {
+    setTimeout(() => {
+      modalLoadingMessageColor.value = "red";
+      showModal.value = true;
+      modalAnim.value = false;
+      modalMessage.value = "Post already exists";
+      modalSaved.value = false;
+      setTimeout(() => {
+        showModal.value = false;
+      }, 2000);
+    }, 1000);
   } else if (!e) {
     modalLoadingMessageColor.value = "red";
     showModal.value = true;
@@ -393,8 +410,9 @@ const eventIncomplete = (e: any) => {
       }, 2000);
     }, 1000);
   } else if (!e) {
-    modalLoadingMessageColor.value = "red";
     showModal.value = true;
+
+    modalLoadingMessageColor.value = "red";
     modalMessage.value =
       "Not all parts of your event is filled, please check every input";
     modalSaved.value = false;
@@ -405,10 +423,9 @@ const eventIncomplete = (e: any) => {
 };
 router.afterEach((to, from) => {
   if (to.name !== from.name) {
-    editorKey.value += 1
+    editorKey.value += 1;
   }
-})
-
+});
 
 const savedpostid = ref();
 const showSavedPostsB = ref(false);
@@ -433,12 +450,12 @@ if (currentRouteName.value === "createpost") {
   editor.value.commands.clearContent();
 }
 
-if (route.name === 'createevent') {
-  if (editPost.value['createEvent'] != 'newEvent') {
+if (route.name === "createevent") {
+  if (editPost.value["createEvent"] != "newEvent") {
     axios.post("/api/user/refresh").then((result) => {
-      if (result.data === 'success') {
+      if (result.data === "success") {
         axios
-          .get("/api/content/event/" + editPost.value['createEvent'])
+          .get("/api/content/event/" + editPost.value["createEvent"])
           .then((result) => {
             postTitle.value = result.data.eventTitle;
             postContent.value = result.data.eventContent;
@@ -475,13 +492,30 @@ const loadSaved = (loadpost: any) => {
 
   savedpostid.value = loadpost.savedpostid;
 
-  coverImage.value = loadpost.coverImage
+  coverImage.value = loadpost.coverImage;
   editor.value.commands.insertContent(postContent.value);
   savedMainCategory.value = loadpost.mainCategory;
   savedSubCategory.value = loadpost.subCategory;
-
-  console.log(interPost)
 };
+
+onMounted(() => {
+  const createSlug = route.params.createSlug;
+
+  if (createSlug != "newPost") {
+    axios.get("/api/content/blogpost/" + createSlug).then((res) => {
+      console.log(`output->res`, res);
+      postContent.value = res.data.postContent;
+      postTitle.value = res.data.postTitle;
+      savedSubCategory.value = res.data.subCategory;
+      savedMainCategory.value = [res.data.mainCategory];
+      editor.value.commands.insertContent(postContent.value);
+      postDate.value = res.data.postDate;
+      postExcerpt.value = res.data.postExcerpt;
+      postID.value = Number(res.data.postID);
+      coverImage.value = res.data.coverImage;
+    });
+  }
+});
 </script>
 
 <template>
@@ -495,74 +529,93 @@ const loadSaved = (loadpost: any) => {
         </transition>
       </keep-alive>
       <transition name="postPreview">
-        <PostPreview v-if="showPreview"
-                   :showPreview="showPreview"
-                   :interPost="interPost"
-                   @show-preview="showPreview=false"
+        <PostPreview
+          v-if="showPreview"
+          :showPreview="showPreview"
+          :interPost="interPost"
+          @show-preview="showPreview = false"
         />
       </transition>
 
       <transition name="savedPosts">
-        <SavedPosts v-if="showSavedPostsB"
-                  @closeSavedPosts="closeSavedPosts"
-                  @loadSaved="loadSaved"
+        <SavedPosts
+          v-if="showSavedPostsB"
+          @closeSavedPosts="closeSavedPosts"
+          @loadSaved="loadSaved"
         />
       </transition>
 
       <transition name="savedModal">
-        <Modal v-if="showModal"
-             :class="{ save: modalMessage != 'Post Saved', loading: modalUpload }"
-             class="modalComp"
-             :modalLoadingMessage="modalMessage"
-             :modalLoadingMessageColor="modalLoadingMessageColor"
-             :fontSize="'2rem'"
-             :position="'absolute'"
-             :backgroundOpacity="1"
-             :modalAnimation="modalAnim"
-             :modalSaved="modalSaved"
-             @emitSaved="emitSaved"
+        <Modal
+          v-if="showModal"
+          :class="{ save: modalMessage != 'Post Saved', loading: modalUpload }"
+          class="modalComp"
+          :modalLoadingMessage="modalMessage"
+          :modalLoadingMessageColor="modalLoadingMessageColor"
+          :fontSize="'2rem'"
+          :position="'absolute'"
+          :backgroundOpacity="1"
+          :modalAnimation="modalAnim"
+          :modalSaved="modalSaved"
+          @emitSaved="emitSaved"
         />
       </transition>
 
-      <div class="wrapper-inner" :class="route.name == 'createpost' ? 'post':'event' "
+      <div
+        class="wrapper-inner"
+        :class="route.name == 'createpost' ? 'post' : 'event'"
       >
         <div class="editor">
           <div class="buttons-editor">
             <div class="post-title-wrapper">
               <div class="post-title">
-                <label v-text="route.name == 'createpost' ? 'Post Title' : 'Event Title'"
+                <label
+                  v-text="
+                    route.name == 'createpost' ? 'Post Title' : 'Event Title'
+                  "
                 />
 
                 <input class="post-title" v-model="postTitle" />
               </div>
 
               <div class="selection-wrapper">
-                <label for="category" v-text="route.name == 'createpost' ? 'Post Category' : 'Type of Event'"
+                <label
+                  for="category"
+                  v-text="
+                    route.name == 'createpost'
+                      ? 'Post Category'
+                      : 'Type of Event'
+                  "
                 />
-                <MultiSelect :multiSelectOptions="eventCategory" v-if="route.name === 'createevent'"
-                           :fontSize="'1.5rem'"
-                           :savedValue="savedMainCategory"
-                           :deleteAble="false"
-                           @mainCategory="mainCategoryEmit"
-                           :shadowStyle="shadowStyle"
-                           :eventCategory="true"
+                <MultiSelect
+                  :multiSelectOptions="eventCategory"
+                  v-if="route.name === 'createevent'"
+                  :fontSize="'1.5rem'"
+                  :savedValue="savedMainCategory"
+                  :deleteAble="false"
+                  @eventCategory="eventCategoryEmit"
+                  :shadowStyle="shadowStyle"
+                  :eventCategory="true"
                 />
                 <div class="selects">
-                  <MultiSelect :multiSelectOptions="mainCategory" v-if="route.name === 'createpost'"
-                             :fontSize="'1.5rem'"
-                             :savedValue="savedMainCategory"
-                             :deleteAble="false"
-                             @mainCategory="mainCategoryEmit"
-                             :shadowStyle="shadowStyle"
+                  <MultiSelect
+                    :multiSelectOptions="mainCategory"
+                    v-if="route.name === 'createpost'"
+                    :fontSize="'1.5rem'"
+                    :savedValue="savedMainCategory"
+                    :deleteAble="false"
+                    @mainCategory="mainCategoryEmit"
+                    :shadowStyle="shadowStyle"
                   />
                   <transition name="subStyle">
-                    <MultiSelect v-if="subCategoryShow && route.name === 'createpost'"
-                               :multiSelectOptions="subCategory"
-                               :fontSize="'1.5rem'"
-                               :deleteAble="true"
-                               :savedValue="savedSubCategory"
-                               @subCategory="subCategoryEmit"
-                               :shadowStyle="shadowStyle"
+                    <MultiSelect
+                      v-if="subCategoryShow && route.name === 'createpost'"
+                      :multiSelectOptions="subCategory"
+                      :fontSize="'1.5rem'"
+                      :deleteAble="true"
+                      :savedValue="savedSubCategory"
+                      @subCategory="subCategoryEmit"
+                      :shadowStyle="shadowStyle"
                     />
                   </transition>
                 </div>
@@ -570,42 +623,51 @@ const loadSaved = (loadpost: any) => {
             </div>
             <div class="buttons" v-if="route.name === 'createpost'">
               <div class="character">
-                <button class="bold"
-                      :class="{ 'is-active': editor!.isActive('bold') }"
-                      @click="editor!.chain().focus().toggleBold().run()"
+                <button
+                  class="bold"
+                  :class="{ 'is-active': editor!.isActive('bold') }"
+                  @click="editor!.chain().focus().toggleBold().run()"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                     height="1em"
-                     viewBox="0 -40 384 524"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="1em"
+                    viewBox="0 -40 384 524"
                   >
                     <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M0 64C0 46.3 14.3 32 32 32H80 96 224c70.7 0 128 57.3 128 128c0 31.3-11.3 60.1-30 82.3c37.1 22.4 62 63.1 62 109.7c0 70.7-57.3 128-128 128H96 80 32c-17.7 0-32-14.3-32-32s14.3-32 32-32H48V256 96H32C14.3 96 0 81.7 0 64zM224 224c35.3 0 64-28.7 64-64s-28.7-64-64-64H112V224H224zM112 288V416H256c35.3 0 64-28.7 64-64s-28.7-64-64-64H224 112z"
+                    <path
+                      d="M0 64C0 46.3 14.3 32 32 32H80 96 224c70.7 0 128 57.3 128 128c0 31.3-11.3 60.1-30 82.3c37.1 22.4 62 63.1 62 109.7c0 70.7-57.3 128-128 128H96 80 32c-17.7 0-32-14.3-32-32s14.3-32 32-32H48V256 96H32C14.3 96 0 81.7 0 64zM224 224c35.3 0 64-28.7 64-64s-28.7-64-64-64H112V224H224zM112 288V416H256c35.3 0 64-28.7 64-64s-28.7-64-64-64H224 112z"
                     />
                   </svg>
                 </button>
-                <button class="italic"
-                      :class="{ 'is-active': editor!.isActive('italic') }"
-                      @click="editor!.chain().focus().toggleItalic().run()"
+                <button
+                  class="italic"
+                  :class="{ 'is-active': editor!.isActive('italic') }"
+                  @click="editor!.chain().focus().toggleItalic().run()"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                     height="1em"
-                     viewBox="0 0 384 512"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="1em"
+                    viewBox="0 0 384 512"
                   >
                     <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M128 64c0-17.7 14.3-32 32-32H352c17.7 0 32 14.3 32 32s-14.3 32-32 32H293.3L160 416h64c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H90.7L224 96H160c-17.7 0-32-14.3-32-32z"
+                    <path
+                      d="M128 64c0-17.7 14.3-32 32-32H352c17.7 0 32 14.3 32 32s-14.3 32-32 32H293.3L160 416h64c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H90.7L224 96H160c-17.7 0-32-14.3-32-32z"
                     />
                   </svg>
                 </button>
-                <button class="strike"
-                      :class="{ 'is-active': editor!.isActive('strike') }"
-                      @click="editor!.chain().focus().toggleStrike().run()"
+                <button
+                  class="strike"
+                  :class="{ 'is-active': editor!.isActive('strike') }"
+                  @click="editor!.chain().focus().toggleStrike().run()"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                     height="1em"
-                     viewBox="0 0 512 512"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="1em"
+                    viewBox="0 0 512 512"
                   >
                     <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M161.3 144c3.2-17.2 14-30.1 33.7-38.6c21.1-9 51.8-12.3 88.6-6.5c11.9 1.9 48.8 9.1 60.1 12c17.1 4.5 34.6-5.6 39.2-22.7s-5.6-34.6-22.7-39.2c-14.3-3.8-53.6-11.4-66.6-13.4c-44.7-7-88.3-4.2-123.7 10.9c-36.5 15.6-64.4 44.8-71.8 87.3c-.1 .6-.2 1.1-.2 1.7c-2.8 23.9 .5 45.6 10.1 64.6c4.5 9 10.2 16.9 16.7 23.9H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H270.1c-.1 0-.3-.1-.4-.1l-1.1-.3c-36-10.8-65.2-19.6-85.2-33.1c-9.3-6.3-15-12.6-18.2-19.1c-3.1-6.1-5.2-14.6-3.8-27.4zM348.9 337.2c2.7 6.5 4.4 15.8 1.9 30.1c-3 17.6-13.8 30.8-33.9 39.4c-21.1 9-51.7 12.3-88.5 6.5c-18-2.9-49.1-13.5-74.4-22.1c-5.6-1.9-11-3.7-15.9-5.4c-16.8-5.6-34.9 3.5-40.5 20.3s3.5 34.9 20.3 40.5c3.6 1.2 7.9 2.7 12.7 4.3l0 0 0 0c24.9 8.5 63.6 21.7 87.6 25.6l0 0 .2 0c44.7 7 88.3 4.2 123.7-10.9c36.5-15.6 64.4-44.8 71.8-87.3c3.6-21 2.7-40.4-3.1-58.1H335.1c7 5.6 11.4 11.2 13.9 17.2z"
+                    <path
+                      d="M161.3 144c3.2-17.2 14-30.1 33.7-38.6c21.1-9 51.8-12.3 88.6-6.5c11.9 1.9 48.8 9.1 60.1 12c17.1 4.5 34.6-5.6 39.2-22.7s-5.6-34.6-22.7-39.2c-14.3-3.8-53.6-11.4-66.6-13.4c-44.7-7-88.3-4.2-123.7 10.9c-36.5 15.6-64.4 44.8-71.8 87.3c-.1 .6-.2 1.1-.2 1.7c-2.8 23.9 .5 45.6 10.1 64.6c4.5 9 10.2 16.9 16.7 23.9H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H270.1c-.1 0-.3-.1-.4-.1l-1.1-.3c-36-10.8-65.2-19.6-85.2-33.1c-9.3-6.3-15-12.6-18.2-19.1c-3.1-6.1-5.2-14.6-3.8-27.4zM348.9 337.2c2.7 6.5 4.4 15.8 1.9 30.1c-3 17.6-13.8 30.8-33.9 39.4c-21.1 9-51.7 12.3-88.5 6.5c-18-2.9-49.1-13.5-74.4-22.1c-5.6-1.9-11-3.7-15.9-5.4c-16.8-5.6-34.9 3.5-40.5 20.3s3.5 34.9 20.3 40.5c3.6 1.2 7.9 2.7 12.7 4.3l0 0 0 0c24.9 8.5 63.6 21.7 87.6 25.6l0 0 .2 0c44.7 7 88.3 4.2 123.7-10.9c36.5-15.6 64.4-44.8 71.8-87.3c3.6-21 2.7-40.4-3.1-58.1H335.1c7 5.6 11.4 11.2 13.9 17.2z"
                     />
                   </svg>
                 </button>
@@ -613,31 +675,35 @@ const loadSaved = (loadpost: any) => {
                   {{ FontSizeShow }}
 
                   <transition name="subStyle">
-                    <div class="sizes"
-                       v-if="sizesOpen"
-                       v-click-away="sizeClickAway"
+                    <div
+                      class="sizes"
+                      v-if="sizesOpen"
+                      v-click-away="sizeClickAway"
                     >
-                      <div @click="
-                        editor!.chain().focus().setFontSize('18pt').run();
-                        FontSizeShow = '18pt';
-                      "
-                         :class="{ 'is-active': editor!.isActive('textStyle', { fontSize: '18pt' }) }"
+                      <div
+                        @click="
+                          editor!.chain().focus().setFontSize('18pt').run();
+                          FontSizeShow = '18pt';
+                        "
+                        :class="{ 'is-active': editor!.isActive('textStyle', { fontSize: '18pt' }) }"
                       >
                         18pt
                       </div>
-                      <div @click="
-                        editor!.chain().focus().setFontSize('20pt').run();
-                        FontSizeShow = '20pt';
-                      "
-                         :class="{ 'is-active': editor!.isActive('textStyle', { fontSize: '20pt' }) }"
+                      <div
+                        @click="
+                          editor!.chain().focus().setFontSize('20pt').run();
+                          FontSizeShow = '20pt';
+                        "
+                        :class="{ 'is-active': editor!.isActive('textStyle', { fontSize: '20pt' }) }"
                       >
                         20pt
                       </div>
-                      <div @click="
-                        editor!.chain().focus().setFontSize('24pt').run();
-                        FontSizeShow = '24pt';
-                      "
-                         :class="{ 'is-active': editor!.isActive('textStyle', { fontSize: '24pt' }) }"
+                      <div
+                        @click="
+                          editor!.chain().focus().setFontSize('24pt').run();
+                          FontSizeShow = '24pt';
+                        "
+                        :class="{ 'is-active': editor!.isActive('textStyle', { fontSize: '24pt' }) }"
                       >
                         24pt
                       </div>
@@ -647,161 +713,193 @@ const loadSaved = (loadpost: any) => {
               </div>
 
               <div class="alignment">
-                <button @click="editor.chain().focus().setTextAlign('left').run()"
-                      :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }"
+                <button
+                  @click="editor.chain().focus().setTextAlign('left').run()"
+                  :class="{
+                    'is-active': editor.isActive({ textAlign: 'left' }),
+                  }"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                     height="1em"
-                     viewBox="0 0 448 512"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="1em"
+                    viewBox="0 0 448 512"
                   >
                     <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M288 64c0 17.7-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32H256c17.7 0 32 14.3 32 32zm0 256c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H256c17.7 0 32 14.3 32 32zM0 192c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 448c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"
+                    <path
+                      d="M288 64c0 17.7-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32H256c17.7 0 32 14.3 32 32zm0 256c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H256c17.7 0 32 14.3 32 32zM0 192c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 448c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"
                     />
                   </svg>
                 </button>
-                <button @click="editor.chain().focus().setTextAlign('center').run()"
-                      :class="{
-                  'is-active': editor.isActive({ textAlign: 'center' }),
-                }"
+                <button
+                  @click="editor.chain().focus().setTextAlign('center').run()"
+                  :class="{
+                    'is-active': editor.isActive({ textAlign: 'center' }),
+                  }"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                     height="1em"
-                     viewBox="0 0 448 512"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="1em"
+                    viewBox="0 0 448 512"
                   >
                     <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M352 64c0-17.7-14.3-32-32-32H128c-17.7 0-32 14.3-32 32s14.3 32 32 32H320c17.7 0 32-14.3 32-32zm96 128c0-17.7-14.3-32-32-32H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H416c17.7 0 32-14.3 32-32zM0 448c0 17.7 14.3 32 32 32H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H32c-17.7 0-32 14.3-32 32zM352 320c0-17.7-14.3-32-32-32H128c-17.7 0-32 14.3-32 32s14.3 32 32 32H320c17.7 0 32-14.3 32-32z"
+                    <path
+                      d="M352 64c0-17.7-14.3-32-32-32H128c-17.7 0-32 14.3-32 32s14.3 32 32 32H320c17.7 0 32-14.3 32-32zm96 128c0-17.7-14.3-32-32-32H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H416c17.7 0 32-14.3 32-32zM0 448c0 17.7 14.3 32 32 32H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H32c-17.7 0-32 14.3-32 32zM352 320c0-17.7-14.3-32-32-32H128c-17.7 0-32 14.3-32 32s14.3 32 32 32H320c17.7 0 32-14.3 32-32z"
                     />
                   </svg>
                 </button>
-                <button @click="editor.chain().focus().setTextAlign('right').run()"
-                      :class="{
-                  'is-active': editor.isActive({ textAlign: 'right' }),
-                }"
+                <button
+                  @click="editor.chain().focus().setTextAlign('right').run()"
+                  :class="{
+                    'is-active': editor.isActive({ textAlign: 'right' }),
+                  }"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                     height="1em"
-                     viewBox="0 0 448 512"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="1em"
+                    viewBox="0 0 448 512"
                   >
                     <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M288 64c0 17.7-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32H256c17.7 0 32 14.3 32 32zm0 256c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H256c17.7 0 32 14.3 32 32zM0 192c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 448c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"
+                    <path
+                      d="M288 64c0 17.7-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32H256c17.7 0 32 14.3 32 32zm0 256c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H256c17.7 0 32 14.3 32 32zM0 192c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 448c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"
                     />
                   </svg>
                 </button>
-                <button @click="editor.chain().focus().setTextAlign('justify').run()"
-                      :class="{
-                  'is-active': editor.isActive({ textAlign: 'justify' }),
-                }"
+                <button
+                  @click="editor.chain().focus().setTextAlign('justify').run()"
+                  :class="{
+                    'is-active': editor.isActive({ textAlign: 'justify' }),
+                  }"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                     height="1em"
-                     viewBox="0 0 448 512"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="1em"
+                    viewBox="0 0 448 512"
                   >
                     <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M448 64c0-17.7-14.3-32-32-32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32zm0 256c0-17.7-14.3-32-32-32H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H416c17.7 0 32-14.3 32-32zM0 192c0 17.7 14.3 32 32 32H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H32c-17.7 0-32 14.3-32 32zM448 448c0-17.7-14.3-32-32-32H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H416c17.7 0 32-14.3 32-32z"
+                    <path
+                      d="M448 64c0-17.7-14.3-32-32-32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32zm0 256c0-17.7-14.3-32-32-32H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H416c17.7 0 32-14.3 32-32zM0 192c0 17.7 14.3 32 32 32H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H32c-17.7 0-32 14.3-32 32zM448 448c0-17.7-14.3-32-32-32H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H416c17.7 0 32-14.3 32-32z"
                     />
                   </svg>
                 </button>
               </div>
 
               <div class="paragraph">
-                <button class="heading"
-                      :class="{ 'is-active': editor!.isActive('heading', { level: 1 }) }"
-                      @click="toggleHeading1"
+                <button
+                  class="heading"
+                  :class="{ 'is-active': editor!.isActive('heading', { level: 1 }) }"
+                  @click="toggleHeading1"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                     height="1em"
-                     viewBox="0 0 448 512"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="1em"
+                    viewBox="0 0 448 512"
                   >
                     <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M0 64C0 46.3 14.3 32 32 32H80h48c17.7 0 32 14.3 32 32s-14.3 32-32 32H112V208H336V96H320c-17.7 0-32-14.3-32-32s14.3-32 32-32h48 48c17.7 0 32 14.3 32 32s-14.3 32-32 32H400V240 416h16c17.7 0 32 14.3 32 32s-14.3 32-32 32H368 320c-17.7 0-32-14.3-32-32s14.3-32 32-32h16V272H112V416h16c17.7 0 32 14.3 32 32s-14.3 32-32 32H80 32c-17.7 0-32-14.3-32-32s14.3-32 32-32H48V240 96H32C14.3 96 0 81.7 0 64z"
+                    <path
+                      d="M0 64C0 46.3 14.3 32 32 32H80h48c17.7 0 32 14.3 32 32s-14.3 32-32 32H112V208H336V96H320c-17.7 0-32-14.3-32-32s14.3-32 32-32h48 48c17.7 0 32 14.3 32 32s-14.3 32-32 32H400V240 416h16c17.7 0 32 14.3 32 32s-14.3 32-32 32H368 320c-17.7 0-32-14.3-32-32s14.3-32 32-32h16V272H112V416h16c17.7 0 32 14.3 32 32s-14.3 32-32 32H80 32c-17.7 0-32-14.3-32-32s14.3-32 32-32H48V240 96H32C14.3 96 0 81.7 0 64z"
                     /></svg
                   >1
                 </button>
-                <button class="heading"
-                      :class="{ 'is-active': editor!.isActive('heading', { level: 2 }) }"
-                      @click="toggleHeading2"
+                <button
+                  class="heading"
+                  :class="{ 'is-active': editor!.isActive('heading', { level: 2 }) }"
+                  @click="toggleHeading2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                     height="1em"
-                     viewBox="0 0 448 512"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="1em"
+                    viewBox="0 0 448 512"
                   >
                     <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M0 64C0 46.3 14.3 32 32 32H80h48c17.7 0 32 14.3 32 32s-14.3 32-32 32H112V208H336V96H320c-17.7 0-32-14.3-32-32s14.3-32 32-32h48 48c17.7 0 32 14.3 32 32s-14.3 32-32 32H400V240 416h16c17.7 0 32 14.3 32 32s-14.3 32-32 32H368 320c-17.7 0-32-14.3-32-32s14.3-32 32-32h16V272H112V416h16c17.7 0 32 14.3 32 32s-14.3 32-32 32H80 32c-17.7 0-32-14.3-32-32s14.3-32 32-32H48V240 96H32C14.3 96 0 81.7 0 64z"
+                    <path
+                      d="M0 64C0 46.3 14.3 32 32 32H80h48c17.7 0 32 14.3 32 32s-14.3 32-32 32H112V208H336V96H320c-17.7 0-32-14.3-32-32s14.3-32 32-32h48 48c17.7 0 32 14.3 32 32s-14.3 32-32 32H400V240 416h16c17.7 0 32 14.3 32 32s-14.3 32-32 32H368 320c-17.7 0-32-14.3-32-32s14.3-32 32-32h16V272H112V416h16c17.7 0 32 14.3 32 32s-14.3 32-32 32H80 32c-17.7 0-32-14.3-32-32s14.3-32 32-32H48V240 96H32C14.3 96 0 81.7 0 64z"
                     /></svg
                   >2
                 </button>
-                <button class="parapgraph"
-                      :class="{ 'is-active': editor!.isActive('parapgraph') }"
-                      @click="editor!.chain().focus().setParagraph().run()"
+                <button
+                  class="parapgraph"
+                  :class="{ 'is-active': editor!.isActive('parapgraph') }"
+                  @click="editor!.chain().focus().setParagraph().run()"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                     height="1em"
-                     viewBox="0 0 448 512"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="1em"
+                    viewBox="0 0 448 512"
                   >
                     <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M192 32h64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H384l0 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-352H288V448c0 17.7-14.3 32-32 32s-32-14.3-32-32V352H192c-88.4 0-160-71.6-160-160s71.6-160 160-160z"
+                    <path
+                      d="M192 32h64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H384l0 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-352H288V448c0 17.7-14.3 32-32 32s-32-14.3-32-32V352H192c-88.4 0-160-71.6-160-160s71.6-160 160-160z"
                     />
                   </svg>
                 </button>
-                <button class="blockquote"
-                      :class="{ 'is-active': editor!.isActive('blockquote') }"
-                      @click="editor!.chain().focus().toggleBlockquote().run()"
+                <button
+                  class="blockquote"
+                  :class="{ 'is-active': editor!.isActive('blockquote') }"
+                  @click="editor!.chain().focus().toggleBlockquote().run()"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                     height="1em"
-                     viewBox="0 0 448 512"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="1em"
+                    viewBox="0 0 448 512"
                   >
                     <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M448 296c0 66.3-53.7 120-120 120h-8c-17.7 0-32-14.3-32-32s14.3-32 32-32h8c30.9 0 56-25.1 56-56v-8H320c-35.3 0-64-28.7-64-64V160c0-35.3 28.7-64 64-64h64c35.3 0 64 28.7 64 64v32 32 72zm-256 0c0 66.3-53.7 120-120 120H64c-17.7 0-32-14.3-32-32s14.3-32 32-32h8c30.9 0 56-25.1 56-56v-8H64c-35.3 0-64-28.7-64-64V160c0-35.3 28.7-64 64-64h64c35.3 0 64 28.7 64 64v32 32 72z"
+                    <path
+                      d="M448 296c0 66.3-53.7 120-120 120h-8c-17.7 0-32-14.3-32-32s14.3-32 32-32h8c30.9 0 56-25.1 56-56v-8H320c-35.3 0-64-28.7-64-64V160c0-35.3 28.7-64 64-64h64c35.3 0 64 28.7 64 64v32 32 72zm-256 0c0 66.3-53.7 120-120 120H64c-17.7 0-32-14.3-32-32s14.3-32 32-32h8c30.9 0 56-25.1 56-56v-8H64c-35.3 0-64-28.7-64-64V160c0-35.3 28.7-64 64-64h64c35.3 0 64 28.7 64 64v32 32 72z"
                     />
                   </svg>
                 </button>
               </div>
               <button @click="imageSelect.click()">
-                <input type="file"
-                     ref="imageSelect"
-                     hidden
-                     @change="onFileSelect"
+                <input
+                  type="file"
+                  ref="imageSelect"
+                  hidden
+                  @change="onFileSelect"
                 />
-                <svg xmlns="http://www.w3.org/2000/svg"
-                   height="1em"
-                   viewBox="0 0 512 512"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="1em"
+                  viewBox="0 0 512 512"
                 >
                   <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                  <path d="M0 96C0 60.7 28.7 32 64 32H448c35.3 0 64 28.7 64 64V416c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96zM323.8 202.5c-4.5-6.6-11.9-10.5-19.8-10.5s-15.4 3.9-19.8 10.5l-87 127.6L170.7 297c-4.6-5.7-11.5-9-18.7-9s-14.2 3.3-18.7 9l-64 80c-5.8 7.2-6.9 17.1-2.9 25.4s12.4 13.6 21.6 13.6h96 32H424c8.9 0 17.1-4.9 21.2-12.8s3.6-17.4-1.4-24.7l-120-176zM112 192a48 48 0 1 0 0-96 48 48 0 1 0 0 96z"
+                  <path
+                    d="M0 96C0 60.7 28.7 32 64 32H448c35.3 0 64 28.7 64 64V416c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96zM323.8 202.5c-4.5-6.6-11.9-10.5-19.8-10.5s-15.4 3.9-19.8 10.5l-87 127.6L170.7 297c-4.6-5.7-11.5-9-18.7-9s-14.2 3.3-18.7 9l-64 80c-5.8 7.2-6.9 17.1-2.9 25.4s12.4 13.6 21.6 13.6h96 32H424c8.9 0 17.1-4.9 21.2-12.8s3.6-17.4-1.4-24.7l-120-176zM112 192a48 48 0 1 0 0-96 48 48 0 1 0 0 96z"
                   />
                 </svg>
               </button>
             </div>
             <div class="editor">
-              <editor-content class="editor__tiptap"
-                            v-model="postContent"
-                            :editor="editor"
+              <editor-content
+                class="editor__tiptap"
+                v-model="postContent"
+                :editor="editor"
               />
             </div>
           </div>
-          <createPostSide :key="refreshCalendar"
-                        class="post-side"
-                        :userID="userID"
-                        :savedPost="savedPost"
-                        :editEvent="editEvent"
-                        :showSavedPost="showSavedPost"
-                        :postAuthor="postAuthor"
-                        :postTitle="postTitle"
-                        :postContent="postContent"
-                        :postExcerpt="postExcerpt"
-                        :postDate="postDate"
-                        :savedpostid="savedpostid"
-                        @postSaved="postSaved"
-                        @interPost="interPostFn"
-                        @showPreview="showPreviewFn"
-                        :emittedMainCategory="emittedMainCategory"
-                        :emittedSubCategory="emittedSubCategory"
-                        @postNotFullfilled="postIncomplete"
-                        @eventNotFullfilled="eventIncomplete"
-                        :postOrEvent="currentRouteName"
-                        @showSavedPosts="showSavedPosts"
-                        :coverImage="coverImage"
+          <createPostSide
+            :key="refreshCalendar"
+            class="post-side"
+            :userID="userID"
+            :savedPost="savedPost"
+            @postSaved="postSaved"
+            :editEvent="editEvent"
+            :showSavedPost="showSavedPost"
+            :postTitle="postTitle"
+            :postContent="postContent"
+            :postExcerpt="postExcerpt"
+            :postDate="postDate"
+            :savedpostid="savedpostid"
+            @interPost="interPostFn"
+            @showPreview="showPreviewFn"
+            :emittedMainCategory="emittedMainCategory"
+            :emittedSubCategory="emittedSubCategory"
+            :emittedEventCategory="emittedEventCategory"
+            @postNotFullfilled="postIncomplete"
+            @eventNotFullfilled="eventIncomplete"
+            :postOrEvent="currentRouteName"
+            @showSavedPosts="showSavedPosts"
+            :coverImage="coverImage"
+            :postID="postID"
           />
         </div>
       </div>
@@ -840,10 +938,10 @@ const loadSaved = (loadpost: any) => {
     top: 75px;
     overflow: hidden;
     border-radius: 5px;
-    height: 70px;
+    width: 500px;
+    height: 300px;
   }
   .modalComp.loading {
-    height: 300px;
     top: 0;
     bottom: 0;
     margin: auto;

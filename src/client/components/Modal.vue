@@ -41,8 +41,6 @@ const emitAnswer = (target: any) => {
 const emitSaved = (target: any) => {
   emit("emitSaved", target);
 };
-
-console.log(props.userInfo);
 </script>
 
 <template>

@@ -9,6 +9,8 @@ import { signedIn } from "../store/signedIn";
 import axios from "axios";
 import writerIcon from "../components/icons/writer.vue";
 import { createGlobalState } from "@vueuse/core";
+import postAuthorPanel from "../components/postAuthorPanel.vue";
+
 const signedInCheck = signedIn();
 
 const route = useRoute();
@@ -21,13 +23,18 @@ const postSlug = ref(route.params.blogSlug) as any;
 const postContent = ref();
 const coverImage = ref();
 const postCategory = ref([]) as any;
-
 const showSideBar = ref();
-
+const postAuthorName = ref();
 const postData = ref() as any;
+const postAuthorData = ref() as any;
+const openAuthorPanel = (author: object) => {
+  console.log(author);
+};
 
 postSlug.value = route.params.blogSlug;
 
+const postAuthorDivLength = ref();
+const postAuthorWidth = ref() as any;
 async function fetchPost() {
   isLoading.value = true;
   const API_URL = "/api/content/blogpost/" + postSlug.value;
@@ -43,7 +50,22 @@ async function fetchPost() {
     postContent.value = postData.postContent;
     coverImage.value = postData.coverImage;
     postCategory.value = postData.subCategory;
-    isLoading.value = false;
+    axios
+      .get("/api/postAuthor/" + res.data.postAuthorID)
+      .then((res) => {
+        postAuthorData.value = res.data;
+        postData.value.postAuthorName = {
+          firstName: res.data.firstName,
+          lastName: res.data.lastName,
+        };
+        isLoading.value = false;
+      })
+      .catch((err) => {
+        console.error("Error fetching post author:", err);
+      })
+      .then(() => {
+        postAuthorWidth.value = postAuthorDivLength.value?.offsetWidth;
+      });
   });
 }
 
@@ -63,21 +85,18 @@ function logScroll() {
     window.innerHeight + Math.round(window.scrollY) >=
     document.body.offsetHeight;
 
-    if (scrollTopp.value >= 280){
-      showSideBar.value = true;
-      sideBarTop.value = scrollTopp.value + 300 + "px";
-    }
+  if (scrollTopp.value >= 280) {
+    showSideBar.value = true;
+    sideBarTop.value = scrollTopp.value + 300 + "px";
+  }
 
-
-    if (scrollTopp.value <= 280){
-      sideBarTop.value = '250px';
-    }
-    if (toBottom) {
-      sideBarTop.value = scrollTopp.value + 400 + "px";
-    }
-  
+  if (scrollTopp.value <= 280) {
+    sideBarTop.value = "250px";
+  }
+  if (toBottom) {
+    sideBarTop.value = scrollTopp.value + 400 + "px";
+  }
 }
-
 onMounted(() => {
   fetchPost();
   window.addEventListener("scroll", logScroll);
@@ -88,8 +107,6 @@ onMounted(() => {
         blogPostID: postSlug.value,
         userID: signedInCheck.uid,
       })
-      .then((res) => {
-      });
   } else {
     watch(signedInCheck, () => {
       if (signedInCheck.state) {
@@ -97,14 +114,13 @@ onMounted(() => {
           .post("/api/user/updateRead", {
             blogPostID: postSlug.value,
             userID: signedInCheck.uid,
+          }).then((res)=> {
+            console.log(res)
           })
-          .then((res) => {
-          });
       }
     });
   }
 });
-
 watch(
   () => route.params.blogSlug,
   () => {
@@ -125,9 +141,17 @@ onBeforeUnmount(() => {
           <div class="data-wrapper">
             <div class="title">{{ postData.postTitle }}</div>
             <div class="author-date">
-              <div class="author-wrapper">
+              <postAuthorPanel :postAuthorData :postAuthorWidth />
+
+              <div class="author-wrapper" ref="postAuthorDivLength">
                 <writerIcon />
-                <div class="author">{{ postData.postAuthor }}</div>
+                <div class="author" @click="openAuthorPanel(postData)">
+                  {{
+                    postData.postAuthorName.firstName +
+                    " " +
+                    postData.postAuthorName.lastName
+                  }}
+                </div>
               </div>
 
               <div class="date">
@@ -135,7 +159,9 @@ onBeforeUnmount(() => {
                   moment(new Date(postData.postDate)).format("MMM DD, HH:mm")
                 }}
               </div>
-              <div class="post-category" v-for="category in postData.subCategory"
+              <div
+                class="post-category"
+                v-for="category in postData.subCategory"
               >
                 {{ category }}
               </div>
@@ -150,7 +176,12 @@ onBeforeUnmount(() => {
         <div class="post-content" v-html="postData.postContent"></div>
       </div>
       <transition name="sidebar">
-        <SideBar v-if="showSideBar" ref="sidebar" class="sidebar" :Posts="blogPosts" :Slug="postSlug"
+        <SideBar
+          v-if="showSideBar"
+          ref="sidebar"
+          class="sidebar"
+          :Posts="blogPosts"
+          :Slug="postSlug"
         />
       </transition>
     </div>

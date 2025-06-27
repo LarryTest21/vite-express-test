@@ -76,6 +76,7 @@ const checkMobile = ref(isMobile().state);
       height: 100%;
       display: flex;
       align-items: center;
+      z-index: 2;
       img {
         width: 100%;
         height: 100%;

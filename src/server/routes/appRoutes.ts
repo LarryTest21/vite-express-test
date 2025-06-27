@@ -21,7 +21,7 @@ import {
   saveRead,
   changeFriendColorChat,
   savePost,
-  deleteSavedPost
+  deleteSavedPost,
 } from "../controllers/authController";
 import { getAnalytics } from "../controllers/analyticsController";
 import {
@@ -32,7 +32,8 @@ import {
   uploadPost,
   getEvent,
   getAllEvents,
-  updateEvent
+  updateEvent,
+  getPostAuthorName,
 } from "../controllers/contentController";
 import {
   authenticateLogin,
@@ -42,8 +43,6 @@ import {
 import { setCookie, readCookie } from "../controllers/cookieController";
 
 const router = Router();
-
-
 
 //USER ROUTES
 
@@ -93,11 +92,10 @@ router.get("/test", (_, res) => {
   res.json({ message: "✅ Works in dev + prdsdsaadfod" });
 });
 
-
 //Get posts Blog
 router.get("/content/blogposts", getAllBlog);
 router.get("/content/blogpost/:id", getBlog);
-
+router.get("/postAuthor/:id", getPostAuthorName);
 //Get posts News
 router.get("/content/newsposts/", getAllNews);
 router.get("/content/newspost/:id", getNews);
@@ -106,18 +104,15 @@ router.get("/content/newspost/:id", getNews);
 router.get("/content/events/", getAllEvents);
 router.get("/content/event/:id", getEvent);
 
-
 //Upload Posts
 router.post("/uploadPost", authenticateRoutes, uploadPost);
 
 //Save Posts
-router.post("/user/savePost/", authenticateRoutes, savePost)
-router.post("/user/deleteSavedPost/", authenticateRoutes, deleteSavedPost)
+router.post("/user/savePost/", authenticateRoutes, savePost);
+router.post("/user/deleteSavedPost/", authenticateRoutes, deleteSavedPost);
 
 //Edit Event
 router.post("/editPost/:id", authenticateRoutes, updateEvent);
-
-
 
 //ANALYTICS
 router.post("/analytics/visitorCounting", getAnalytics);

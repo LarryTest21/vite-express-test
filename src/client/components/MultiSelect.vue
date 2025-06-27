@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { event } from "jquery";
+import { ref, watch, computed } from "vue";
 
-const selectedCategory = ref(['Choose category']) as any;
+const selectedCategory = ref(["Choose category"]) as any;
 const showSelectsTab = ref(false);
 
 const props = defineProps({
   multiSelectOptions: Array,
   deleteAble: Boolean,
   fontSize: String,
-  savedValue: Array,
+  savedValue: Object,
   shadowStyle: String,
   eventCategory: Boolean,
 });
@@ -17,18 +18,18 @@ const selectTab = ref();
 const shadowStyle = props.shadowStyle;
 const eventCategory = props.eventCategory;
 
-const animHeight = props.multiSelectOptions!.length * 45 + 10 + 'px';
+const animHeight = ref(props.multiSelectOptions!.length * 45 + 10 + "px");
+const initialOptionsLength = props.multiSelectOptions!.length;
 
-const emit = defineEmits(['mainCategory', 'subCategory']);
+const emit = defineEmits(["mainCategory", "subCategory", "eventCategory"]);
 
 const savedValue = computed(() => props.savedValue);
 
 watch(savedValue, (newv) => {
-  console.log(newv);
   if (newv != undefined) {
     selectedCategory.value = newv;
   } else {
-    selectedCategory.value = ['Choose category'];
+    selectedCategory.value = ["Choose category"];
   }
 });
 
@@ -60,12 +61,14 @@ const clickAway2 = () => {
 const showSelectedDeletable = (e: any) => {
   if (deleteAble.value) {
     selectedCategory.value = selectedCategory.value.filter(
-      (item: any) => item !== 'Choose category'
+      (item: any) => item !== "Choose category"
     );
-    var value = e.target.innerText;
 
+    var value = e.target.innerText;
     if (!selectedCategory.value.includes(value)) {
       selectedCategory.value.push(value);
+      animHeight.value =
+        (initialOptionsLength - selectedCategory.value.length) * 45 + 10 + "px";
       const index = multiSelectOptionsFiltered.value!.indexOf(value);
       if (index !== -1) {
         multiSelectOptionsFiltered.value!.splice(index, 1);
@@ -82,18 +85,22 @@ watch(
   (newvalue: any) => {
     if (newvalue === undefined || newvalue.length === 0) {
       if (deleteAble.value) {
-        selectedCategory.value = ['Choose category'];
+        selectedCategory.value = ["Choose category"];
         emit("subCategory", undefined);
       }
     } else {
       if (deleteAble.value) {
-        if (newvalue == 'Choose category') {
+        if (newvalue == "Choose category") {
           emit("subCategory", undefined);
         } else {
           emit("subCategory", newvalue);
         }
       } else if (!deleteAble.value) {
-        emit("mainCategory", newvalue);
+        if (eventCategory) {
+          emit("eventCategory", newvalue);
+        } else {
+          emit("mainCategory", newvalue);
+        }
       }
     }
   },
@@ -111,31 +118,41 @@ const deleteFn = (e: any) => {
       multiSelectOptionsFiltered.value!.push(e);
       multiSelectOptionsFiltered.value!.sort();
     }
+    animHeight.value =
+      multiSelectOptionsFiltered.value!.length * 45 + 10 + "px";
   }
 };
 </script>
 
 <template>
   <div class="multiselect-wrapper">
-    <div type="text" class="select" @click="showSelects" v-click-away="clickAway"
+    <div
+      type="text"
+      class="select"
+      @click="showSelects"
+      v-click-away="clickAway"
     >
       <div class="show-category" v-if="deleteAble">
         <TransitionGroup name="list">
           <div v-if="selectedCategory[0] === 'Choose category'">
-            {{ 'Choose category' }}
+            {{ "Choose category" }}
           </div>
-          <div v-if="selectedCategory[0] != 'Choose category'" class="deletable"
-               v-for="category in selectedCategory"
+          <div
+            v-if="selectedCategory[0] != 'Choose category'"
+            class="deletable"
+            v-for="category in selectedCategory"
           >
             <div class="category">{{ category }}</div>
-            <div class="delete-button" @click.stop.prevent="deleteFn(category)"
+            <div
+              class="delete-button"
+              @click.stop.prevent="deleteFn(category)"
             ></div>
           </div>
         </TransitionGroup>
       </div>
       <div class="show-category" v-if="!deleteAble">
         <div v-if="selectedCategory[0] === 'Choose category'">
-          {{ 'Choose category' }}
+          {{ "Choose category" }}
         </div>
         <div class="category" v-if="selectedCategory[0] != 'Choose category'">
           {{ selectedCategory[0] }}
@@ -143,8 +160,12 @@ const deleteFn = (e: any) => {
       </div>
     </div>
     <transition :name="'tab'">
-      <div class="select-tab" ref="selectTab" :class="eventCategory === true ? 'event': ''" v-if="showSelectsTab && multiSelectOptionsFiltered!.length != 0"
-           v-click-away="clickAway2"
+      <div
+        class="select-tab"
+        ref="selectTab"
+        :class="eventCategory === true ? 'event' : ''"
+        v-if="showSelectsTab && multiSelectOptionsFiltered!.length != 0"
+        v-click-away="clickAway2"
       >
         <div class="category" v-for="category in multiSelectOptionsFiltered">
           <div class="category-name" @click="showSelectedDeletable">
@@ -224,7 +245,7 @@ const deleteFn = (e: any) => {
           z-index: 10;
 
           &::after {
-            content: '';
+            content: "";
             position: absolute;
             width: 80%;
             height: 4px;
@@ -234,7 +255,7 @@ const deleteFn = (e: any) => {
           }
 
           &::before {
-            content: '';
+            content: "";
             position: absolute;
             width: 80%;
             height: 4px;
@@ -270,12 +291,11 @@ const deleteFn = (e: any) => {
       flex-wrap: wrap;
       border-radius: 3px;
       .category {
+        height: 45px;
         display: flex;
         align-items: center;
         border-radius: 4px;
         display: flex;
-        font-size: 1rem;
-
       }
     }
     .category {

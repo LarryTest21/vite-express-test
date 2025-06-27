@@ -7,12 +7,8 @@ import { useRoute } from "vue-router";
 import { userTabClick } from "../store/userTabClick";
 import Modal from "../components/Modal.vue";
 import { base64NoPFP } from "../components/icons/nopfpbase64";
-import bellIcon from "../components/icons/bell.vue";
 import axios from "axios";
 import { userData } from "../store/userData";
-
-
-
 
 const userPFP = ref();
 const noPFP = ref();
@@ -21,8 +17,6 @@ const userEmail = ref();
 const displayName = ref();
 const signedInCheck = signedIn();
 const userActivated = ref(false);
-const notifClicked = ref(false);
-const notifCounter = ref();
 const isAdminCheck = isAdmin();
 
 const emit = defineEmits(["closeTab"]);
@@ -34,14 +28,11 @@ if (localStorage.getItem("avatar") == base64NoPFP) {
 }
 const userD = userData().data;
 
-const notifArray = ref([]) as any;
-
 const checkUserData = () => {
   if (userD != undefined) {
     displayName.value = userD.firstName + userD.lastName;
     userActivated.value = userD.activated;
     userEmail.value = userD.email;
-    notifCounter.value = notifArray.value.length + 1;
     if (userD.clearance === "regular") {
       isAdminCheck.state = false;
     } else if (userD.clearance === "admin") {
@@ -52,12 +43,12 @@ const checkUserData = () => {
 checkUserData();
 
 if (
-  userPFP.value === 'null' ||
-  userPFP.value === '' ||
+  userPFP.value === "null" ||
+  userPFP.value === "" ||
   userPFP.value === undefined
 ) {
   userPFP.value = userD.profilePic;
-  if (userPFP.value === '' || userPFP.value === undefined) {
+  if (userPFP.value === "" || userPFP.value === undefined) {
     userPFP.value = base64NoPFP;
     localStorage.setItem("avatar", userPFP.value);
     noPFP.value = true;
@@ -87,7 +78,6 @@ const modalAnswer = (t: any) => {
   localStorage.removeItem("savedEvent");
   localStorage.removeItem("savedPost");
 
-
   if (t == 1) {
     axios
       .post("/api/user/refresh")
@@ -108,7 +98,6 @@ const modalAnswer = (t: any) => {
             localStorage.removeItem("loggedIn");
             localStorage.removeItem("savedEvent");
             localStorage.removeItem("savedPost");
-
           })
           .then(() => {
             axios
@@ -139,7 +128,7 @@ const modalAnswer = (t: any) => {
         localStorage.removeItem("loggedIn");
       });
   }
-  emit('closeTab');
+  emit("closeTab");
   if (
     route.name === "profile" ||
     route.name === "editposts" ||
@@ -156,7 +145,6 @@ const logOut = () => {
     modalActivationLogout.value = true;
     modalQuestion.value = "Disable Auto-Login?";
     modalButtonActive.value = true;
-
   } else {
     axios.post("/api/user/logout").then((res) => {});
     userD.data = undefined;
@@ -167,7 +155,6 @@ const logOut = () => {
     localStorage.removeItem("loggedIn");
     localStorage.removeItem("savedEvent");
     localStorage.removeItem("savedPost");
-
 
     if (
       route.name === "profile" ||
@@ -180,55 +167,45 @@ const logOut = () => {
   }
 };
 
-const closeActivatedNotif = () => {
-  userActivated.value = !userActivated.value;
-  notifCounter.value = notifArray.value.length;
-};
-const notiTargetfClicked = (s: any) => {
-  console.log(s);
-};
-
-onMounted(() => {
-  watch(
-    notifCounter,
-    () => {
-      console.log(`output->notifCounter`, notifCounter);
-    },
-    { deep: true }
-  );
-});
+onMounted(() => {});
 </script>
 
 <template>
   <div class="user-tab-wrapper">
     <div class="user-tab">
       <transition name="modal">
-        <Modal class="modal" v-if="modalActivationLogout" spinnerColor="var(--color-nav-txt)" :position="'absolute'"
-               :modalAnimation="false" :modalQuestion1="'Yes'" :modalQuestion2="'No'" :backgroundOpacity="0.9"
-               :modalQuestion="modalQuestion" @emitAnswer="modalAnswer"
+        <Modal
+          class="modal"
+          v-if="modalActivationLogout"
+          spinnerColor="var(--color-nav-txt)"
+          :position="'absolute'"
+          :modalAnimation="false"
+          :modalQuestion1="'Yes'"
+          :modalQuestion2="'No'"
+          :backgroundOpacity="0.9"
+          :modalQuestion="modalQuestion"
+          @emitAnswer="modalAnswer"
         />
       </transition>
       <div class="usertab-info">
         <div class="usertab-top">
           <div class="userPFP">
             <transition name="modal">
-              <Modal v-if="modalActivation" spinnerColor="var(--color-nav-txt)" :position="'absolute'"
-                     :modalAnimation="modalAnimation" :backgroundOpacity="1"
+              <Modal
+                v-if="modalActivation"
+                spinnerColor="var(--color-nav-txt)"
+                :position="'absolute'"
+                :modalAnimation="modalAnimation"
+                :backgroundOpacity="1"
               />
             </transition>
             <div class="img-wr">
-              <img class="userPFP-img" v-bind:src="userPFP" :class="noPFP ? 'nopfp' : ''"
+              <img
+                class="userPFP-img"
+                v-bind:src="userPFP"
+                :class="noPFP ? 'nopfp' : ''"
               />
               <div class="no-pfp" v-if="noPFP">no profile picture</div>
-            </div>
-            <div class="notif-wr" v-if="notifCounter != 0" @click="notifClicked = !notifClicked"
-            >
-              <div class="notif-counter">
-                {{ notifCounter }}
-              </div>
-              <div class="notif-counter-icon-wrapper">
-                <bellIcon />
-              </div>
             </div>
           </div>
           <div class="user-text">
@@ -240,38 +217,31 @@ onMounted(() => {
           <router-link @click.native.prevent="userClick" to="/profile"
             >Profile</router-link
           >
-          <router-link @click.native.prevent="userClick" to="/createpost/newPost"
+          <router-link
+            @click.native.prevent="userClick"
+            to="/createpost/newPost"
             >Create Post</router-link
           >
-          <router-link @click.native.prevent="userClick" to="/createevent/newEvent"
+          <router-link
+            @click.native.prevent="userClick"
+            to="/createevent/newEvent"
             >Create Event</router-link
           >
-          <router-link @click.native.prevent="userClick" to="/editpostslist" v-if="!isAdminCheck.state"
+          <router-link
+            @click.native.prevent="userClick"
+            to="/editpostslist"
+            v-if="!isAdminCheck.state"
             >Edit Posts</router-link
           >
-          <router-link @click.native.prevent="userClick" to="/adminpage" v-if="isAdminCheck.state"
+          <router-link
+            @click.native.prevent="userClick"
+            to="/adminpage"
+            v-if="isAdminCheck.state"
             >Admin Page</router-link
           >
           <a @click.stop.prevent="logOut()">Logout</a>
         </div>
       </div>
-      <transition name="notif">
-        <div class="notification-wrapper" v-if="notifClicked">
-          <transition name="activated">
-            <ul v-if="userActivated" class="notifications">
-              <li class="activate notif" @click="closeActivatedNotif">
-                Please activate your account
-              </li>
-            </ul>
-          </transition>
-
-          <ul class="notifications" v-for="notif in notifArray">
-            <li class="notif" @click="notiTargetfClicked(notif)">
-              {{ notif }}
-            </li>
-          </ul>
-        </div>
-      </transition>
     </div>
   </div>
 </template>
@@ -460,103 +430,13 @@ onMounted(() => {
           .img-wr {
             position: relative;
             width: 100%;
-            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 10px;
 
             img {
-              width: 100%;
-              height: 100%;
-            }
-          }
-
-          .notif-wr {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: all 0.1s ease-in-out;
-            border-radius: 10px;
-            display: flex;
-            justify-content: flex-end;
-            padding: 10px;
-
-            .notif-counter {
-              position: absolute;
-              background-color: rgb(32, 97, 1);
-              color: var(--color-nav-bg);
-              font-family: Roboto Condensed;
-              font-weight: 700;
-              font-size: 1.2rem;
-              z-index: 1;
-              right: 10px;
-              width: 28px;
-              height: 28px;
-              border-radius: 50%;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              transition: all 0.2s;
-            }
-
-            .notif-counter-icon-wrapper {
-              position: relative;
-              height: 100%;
-              width: 100%;
-              display: flex;
-              flex-direction: row;
-              justify-content: flex-end;
-              transition: all 0.1s ease-in-out;
-              border-radius: 10px;
-
-              &:hover {
-                cursor: pointer;
-                background-color: var(--color-nav-txt);
-                svg {
-                  stroke: var(--color-nav-bg);
-                }
-              }
-
-              svg {
-                position: relative;
-                fill: none;
-                stroke: var(--color-nav-txt);
-                stroke-width: 6px;
-                animation: bell 3s ease-in-out infinite;
-                transform-origin: top;
-                transition: all 0.1s ease-in-out;
-              }
-
-              @keyframes bell {
-                35% {
-                  transform: rotate(0);
-                }
-
-                40% {
-                  transform: rotate(-20deg);
-                }
-
-                45% {
-                  transform: rotate(20deg);
-                }
-
-                50% {
-                  transform: rotate(-20deg);
-                }
-
-                55% {
-                  transform: rotate(20deg);
-                }
-
-                60% {
-                  transform: rotate(-20deg);
-                }
-
-                65% {
-                  transform: rotate(0);
-                }
-              }
+              width: 40%;
             }
           }
         }
@@ -602,9 +482,7 @@ onMounted(() => {
         text-transform: uppercase;
         font-family: Chango;
         padding: 0 1rem;
-        transition:
-          font 0.1s,
-          background-color 0.3s;
+        transition: font 0.1s, background-color 0.3s;
         padding: 10px;
         height: 100%;
         color: var(--color-nav-txt);

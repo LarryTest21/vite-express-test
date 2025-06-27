@@ -106,12 +106,14 @@ export function updateReadBlog(req: Request, res: Response) {
   User.findOne({ _id: req.body.userID })
     .then((user) => {
       var readArray;
-
       readArray = user!.readBlog;
+      console.log("fist" + readArray);
+
       if (readArray.includes(req.body.blogPostID)) {
-        return;
+        res.status(200).json({ success: "updatedReadBlog" });
       } else {
         readArray.push(req.body.blogPostID);
+        console.log(readArray);
 
         User.findOneAndUpdate(
           { _id: req.body.userID },
@@ -491,7 +493,6 @@ export async function denyUserRequest(req: Request, res: Response) {
 export async function acceptUserRequest(req: Request, res: Response) {
   const userWhoAccepts = req.params.id;
   const userToBeAccepted = req.body.id;
-
 
   try {
     // Find the user and modify the 'addedUsers' array

@@ -10,6 +10,9 @@ import LoginTab from "../components/LoginTab.vue";
 import UserTab from "../components/UserTab.vue";
 import Messages from "../components/messages/Messages.vue";
 import Modal from "../components/Modal.vue";
+import NavNotif from "../components/NavNotif.vue";
+import NotifPanel from "../components/NavNotifPanel.vue";
+
 //STORES
 import { useTheme } from "../store/theme";
 import { modalActive } from "../store/modalActive";
@@ -59,6 +62,19 @@ const seledctedUser = (user: any) => {
 const userIsTyping = ref();
 
 const messageGottenNotifCount = ref(0);
+
+const notifPanelActivated = ref(false) as any;
+
+const notifArray = ref([]) as any;
+const notifPanelActive = ref(false);
+
+const closeNotifPanel = () => {
+  notifPanelActive.value = false;
+};
+
+const openNotifPanel = () => {
+  notifPanelActive.value = true;
+};
 
 const socketIoFn = () => {
   socket.value = io();
@@ -388,7 +404,6 @@ const closeLoginTab = () => {
 };
 
 const closeProfileTab = () => {
-  console.log("closed");
   if (userTabClicked) {
     userTabClicked.state = false;
   }
@@ -535,7 +550,6 @@ const deleteMesagesNotifFn = () => {
 onBeforeUnmount(() => {
   clearInterval(weatherInterval);
 });
-
 </script>
 
 <template>
@@ -606,6 +620,11 @@ onBeforeUnmount(() => {
                     {{ messageGottenNotifCount }}
                   </div>
                 </div>
+                <NavNotif
+                  @closeNotifPanel="closeNotifPanel"
+                  @openNotifPanel="openNotifPanel"
+                  :notifPanelActive="notifPanelActive"
+                />
               </div>
               <div
                 key="2"
@@ -675,7 +694,7 @@ onBeforeUnmount(() => {
           </div>
         </transition>
 
-        <transition name="fadeLogin">
+        <transition name="userTab">
           <LoginTab
             v-if="activateLoginTab && !signedInCheck.state"
             v-click-away="closeLoginTab"
@@ -702,6 +721,12 @@ onBeforeUnmount(() => {
             :isTyping="userIsTyping"
             @chatViewOpened="messageTabOpened"
             @seledctedUser="seledctedUser"
+          />
+        </transition>
+        <transition name="userTab">
+          <NotifPanel
+            v-if="notifPanelActive"
+            v-click-away="closeNotifPanel"
           />
         </transition>
       </nav>
@@ -877,11 +902,9 @@ onBeforeUnmount(() => {
           .user-outer {
             position: relative;
             display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100%;
             width: 100%;
-            gap: 20px;
+            gap: 10px;
 
             .user {
               cursor: pointer;
@@ -897,55 +920,14 @@ onBeforeUnmount(() => {
               color: var(--color-nav-user-txt);
               background: var(--color-nav-user);
               overflow: visible;
-              .notif-counter {
-                position: absolute;
-                background-color: var(--color-nav-txt-lighter);
-                box-shadow: 1px 1px 3px 1px rgba(32, 32, 32, 0.664);
-                color: var(--color-nav-bg);
-                font-family: Roboto Condensed;
-                font-weight: 700;
-                font-size: 1.3rem;
-                z-index: 1;
-                padding: 0 5px;
-                top: 0px;
-                right: 0;
-                border-radius: 10%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                animation: fading 2s ease-in-out infinite;
-              }
-              &:hover {
-                background: var(--color-nav-user-hover);
-              }
-
-              a {
-                position: absolute;
-              }
-            }
-            @keyframes fading {
-              0% {
-                opacity: 0;
-              }
-
-              10% {
-                opacity: 1;
-              }
-
-              90% {
-                opacity: 1;
-              }
-
-              100% {
-                opacity: 0;
-              }
             }
             .messages {
               position: relative;
               height: 100%;
               display: flex;
+              justify-content: center;
               svg {
-                width: 70%;
+                width: 80%;
                 min-width: 40px;
                 cursor: pointer;
                 fill: var(--color-nav-txt-lighter);
@@ -1172,6 +1154,7 @@ onBeforeUnmount(() => {
     }
   }
 }
+
 .user-enter-active,
 .user-leave-active {
   transition: all 0.3s ease-in-out;
@@ -1189,17 +1172,6 @@ onBeforeUnmount(() => {
   position: absolute;
 }
 
-.fadeLogin-enter-active,
-.fadeLogin-leave-active {
-  transform: translateY(0px);
-  transition: transform 0.3s;
-}
-
-.fadeLogin-enter-from,
-.fadeLogin-leave-to {
-  transform: translateY(-300px);
-}
-
 .userTab-enter-active,
 .userTab-leave-active {
   transform: translateY(0px);
@@ -1209,20 +1181,7 @@ onBeforeUnmount(() => {
 
 .userTab-enter-from,
 .userTab-leave-to {
-  transform: translateY(-120%);
-}
-
-.notif-enter-active,
-.notif-leave-active {
-  transform: translateY(0px);
-  opacity: 1;
-  overflow: hidden;
-  transition: transform 0.3s;
-}
-
-.notif-enter-from,
-.notif-leave-to {
-  transform: translateY(-400px);
+  transform: translateY(-180%);
 }
 
 .modal-enter-active,

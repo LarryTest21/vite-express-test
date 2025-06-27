@@ -7,7 +7,8 @@ import { userData } from "../../store/userData";
 import _ from "lodash";
 import Modal from "../../components/Modal.vue";
 import SpinnerChekMark from "../../components/icons/LoadingSpinnerCheckMark.vue";
-import { useRoute } from 'vue-router';
+import { useRoute } from "vue-router";
+import { resizeImage } from "../../components/newCreatePost/imageHandler";
 
 const route = useRoute();
 const currentRouteName = ref(route.name) as any;
@@ -15,7 +16,6 @@ const currentRouteName = ref(route.name) as any;
 const props = defineProps({
   postContent: String,
   postTitle: String,
-  postAuthor: String,
   postDate: String,
   postExcerpt: String,
   savedpostid: Number,
@@ -27,6 +27,8 @@ const props = defineProps({
   showSavedPosts: Boolean,
   editEvent: Object,
   coverImage: String,
+  emittedEventCategory: Array,
+  postID: Number,
 });
 const emit = defineEmits([
   "showPreview",
@@ -37,17 +39,41 @@ const emit = defineEmits([
   "showSavedPosts",
   "closeSavedPosts",
 ]);
+
+const interPost = ref({
+  interTitle: undefined,
+  interEventCategory: undefined,
+  interContent: undefined,
+  interDate: undefined,
+  interImage: undefined,
+  postAuthorID: userData().data._id,
+}) as any;
+
+//InterPost for Post
+
+//InterPost for Event
+
+interPost.value["postAuthorID"] = userData().data._id;
+interPost.value["_id"] = props.postID;
+watch(
+  () => props.emittedEventCategory,
+  (newv) => {
+    interPost.value["interEventCategory"] = newv;
+    console.log(interPost.value);
+  }
+);
+
 watch(
   () => props.emittedMainCategory,
   (newv) => {
-    interPost.value['interEventCategory'] = newv;
+    interPost.value["interMainCategory"] = newv;
   }
 );
 
 watch(
   () => props.coverImage,
   (newv) => {
-    if (newv != undefined || '') {
+    if (newv != undefined || "") {
       showCoverPreview.value = true;
       rawImg.value = newv;
     } else {
@@ -59,11 +85,45 @@ watch(
 );
 
 //Variables to show and save
-const postTitle = computed(() => props.postTitle);
-const postAuthor = computed(() => props.postAuthor);
-const savedpostid = computed(() => props.savedpostid);
 
+//Post Title
+const postTitle = computed(() => props.postTitle);
+watch(
+  postTitle,
+  (newv) => {
+    if (newv == "") {
+      interPost.value.interTitle = undefined;
+    } else {
+      interPost.value.interTitle = newv;
+    }
+  },
+  { deep: true }
+);
+
+//Post Author
+const postAuthor = computed(() => {
+  if (props.userID) {
+    return userData().data.firstName + " " + userData().data.lastName;
+  } else {
+    return "Anonymous";
+  }
+});
+
+//Post Content
 const postContent = computed(() => props.postContent);
+watch(
+  postContent,
+  (newv) => {
+    if (newv == "<p></p>") {
+      interPost.value.interContent = undefined;
+    } else {
+      interPost.value.interContent = newv;
+    }
+  },
+  { deep: true }
+);
+
+//Post Date
 const showPostDate = ref();
 watch(
   showPostDate,
@@ -76,53 +136,14 @@ watch(
 );
 const showPostDateFormatted = ref();
 
+//Saved Post ID
+const savedpostid = computed(() => props.savedpostid);
+
 const saveShow = ref(false);
 const isEventEdit = computed(() => props.editEvent);
 const isPostEdit = computed(() => props.savedPost);
-watch(isPostEdit, (newv) => {
-  console.log(newv);
-});
-
+//Main Category
 const mainCategory = computed(() => props.emittedMainCategory);
-const subCategory = computed(() => props.emittedSubCategory);
-
-//InterPost as undefined
-const interPost = ref({
-  postContent: undefined,
-  postTitle: undefined,
-  postExcerpt: undefined,
-  postDate: undefined,
-  coverImage: undefined,
-  mainCategory: undefined,
-  subCategory: undefined,
-}) as any;
-
-const postDate = computed(() => props.postDate);
-const postExcerpt = computed(() => props.postDate);
-
-watch(
-  postDate,
-  (newv) => {
-    if (newv === undefined) {
-      showPostDateFormatted.value = '';
-    } else {
-      interPost.value.postDate = newv;
-      showPostDateFormatted.value = moment(new Date(newv!)).format(
-        "MM/DD/YYYY HH:mm"
-      );
-    }
-  },
-  { deep: true }
-);
-
-watch(
-  postExcerpt,
-  (newv) => {
-    interPost.value.postExcerpt = newv;
-  },
-  { deep: true }
-);
-
 watch(
   mainCategory,
   (newv) => {
@@ -131,6 +152,8 @@ watch(
   { deep: true }
 );
 
+//Sub Category
+const subCategory = computed(() => props.emittedSubCategory);
 watch(
   subCategory,
   (newv) => {
@@ -139,36 +162,39 @@ watch(
   { deep: true }
 );
 
+const postDate = computed(() => props.postDate);
 watch(
-  postTitle,
+  postDate,
   (newv) => {
-    if (newv == "") {
-      interPost.value.postTitle = undefined;
+    if (newv === undefined) {
+      showPostDateFormatted.value = "";
     } else {
-      interPost.value.postTitle = newv;
+      interPost.value.interDate = newv;
+      showPostDateFormatted.value = moment(new Date(newv!)).format(
+        "MM/DD/YYYY HH:mm"
+      );
     }
   },
   { deep: true }
 );
 
+//Post Excerpt
+const postExcerpt = computed(() => props.postDate);
 watch(
-  postContent,
+  postExcerpt,
   (newv) => {
-    if (newv == "<p></p>") {
-      interPost.value.postContent = undefined;
-    } else {
-      interPost.value.postContent = newv;
-    }
+    interPost.value.interExcerpt = newv;
   },
   { deep: true }
 );
+
 watch(
   showPostDateFormatted,
   (newv) => {
     if (newv == null) {
-      interPost.value.postDate = undefined;
+      interPost.value.interDate = undefined;
     } else {
-      interPost.value.postDate = newv;
+      interPost.value.interDate = newv;
     }
   },
   { deep: true }
@@ -192,104 +218,27 @@ const onFileClick = (e: any) => {
   e.target.value = null;
 };
 const onFileSelect = (file: any) => {
-  coverFile.value = file.target.files[0];
-  changedImage.value = true;
-  saveShow.value = true;
-  const mime_type = ref();
-  mime_type.value = coverFile.value.type;
+  const selectedFile = file.target.files[0];
   const validImageTypes = ["image/jpeg", "image/png"];
+  const mimeType = selectedFile?.type;
 
-  if (validImageTypes.includes(mime_type.value)) {
-    if (typeof FileReader === "function") {
-      const reader = new FileReader();
+  if (validImageTypes.includes(mimeType)) {
+    changedImage.value = true;
+    saveShow.value = true;
 
-      reader.onload = (event) => {
-        if (coverFile.value) {
-        }
-        coverFile.value = event.target?.result;
-      };
-
-      reader.readAsDataURL(coverFile.value);
-      interface IResizeImageOptions {
-        maxSize: number;
-        file: File;
-      }
-      const resizeImage = (settings: IResizeImageOptions) => {
-        const file = settings.file;
-        const maxSize = settings.maxSize;
+    resizeImage({ file: selectedFile, maxSize: 300 })
+      .then((resizedBlob) => {
         const reader = new FileReader();
-        const image = new Image();
-        const canvas = document.createElement("canvas");
-        const dataURItoBlob = (dataURI: string) => {
-          const bytes =
-            dataURI.split(",")[0].indexOf("base64") >= 0
-              ? atob(dataURI.split(",")[1])
-              : unescape(dataURI.split(",")[1]);
-          const mime = dataURI.split(",")[0].split(":")[1].split(";")[0];
-          const max = bytes.length;
-          const ia = new Uint8Array(max);
-          for (var i = 0; i < max; i++) ia[i] = bytes.charCodeAt(i);
-          return new Blob([ia], { type: mime });
+        reader.readAsDataURL(resizedBlob);
+        reader.onloadend = () => {
+          rawImg.value = reader.result;
+          showCoverPreview.value = true;
         };
-        const resize = () => {
-          let width = image.width;
-          let height = image.height;
-
-          if (width > height) {
-            if (width > maxSize) {
-              height *= maxSize / width;
-              width = maxSize;
-            }
-          } else {
-            if (height > maxSize) {
-              width *= maxSize / height;
-              height = maxSize;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          canvas.getContext("2d")!.drawImage(image, 0, 0, width, height);
-          let dataUrl = canvas.toDataURL("image/png");
-          return dataURItoBlob(dataUrl);
-        };
-
-        return new Promise((ok, no) => {
-          if (!file.type.match(/image.*/)) {
-            no(new Error("Not an image"));
-            return;
-          }
-
-          reader.onload = (readerEvent: any) => {
-            image.onload = () => ok(resize());
-            image.src = readerEvent.target.result;
-          };
-          reader.readAsDataURL(file);
-        });
-      };
-
-      // START: preview resized
-      resizeImage({ file: coverFile.value, maxSize: 300 })
-        .then((resizedImage) => {
-          var blob = resizedImage;
-
-          var reader = new FileReader() as any;
-
-          reader.readAsDataURL(blob);
-          reader.onloadend = function () {
-            var base64data = reader.result;
-            rawImg.value = base64data;
-            showCoverPreview.value = true;
-            return;
-          };
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-      // END: preview resized
-    } else {
-      showModalImage.value = true;
-    }
+      })
+      .catch((err) => {
+        console.error(err);
+        showModalImage.value = true;
+      });
   } else {
     showModalImage.value = true;
   }
@@ -306,9 +255,9 @@ watch(
   rawImg,
   (newv) => {
     if (newv == null) {
-      interPost.value["coverImage"] = undefined;
+      interPost.value["interImage"] = undefined;
     } else {
-      interPost.value["coverImage"] = newv;
+      interPost.value["interImage"] = newv;
     }
   },
   { deep: true }
@@ -370,7 +319,7 @@ const showModalImage = ref();
 //Save Button
 const showSavedButton = ref();
 
-if (props.postOrEvent === 'createevent') {
+if (props.postOrEvent === "createevent") {
   showSavedButton.value = false;
 } else {
   watch(
@@ -449,7 +398,7 @@ watch(
       };
       eventEditDate.value = true;
       showPostDateFormatted.value = moment(
-        new Date(interPost.value['interDate'])
+        new Date(interPost.value["interDate"])
       ).format("MM/DD/YYYY HH:mm");
 
       rawImg.value = interPost.value.interImage;
@@ -479,9 +428,9 @@ watch(
   (newvalue) => {
     if (isEventEdit.value != undefined && eventEditDate.value) {
       if (newvalue === null) {
-        interPost.value['interDate'] = undefined;
+        interPost.value["interDate"] = undefined;
       } else {
-        interPost.value['interDate'] = newvalue;
+        interPost.value["interDate"] = newvalue;
       }
     }
   },
@@ -529,12 +478,14 @@ const savePost = () => {
   const currentDate = new Date();
   const timestamp = currentDate.getTime();
 
-  interPost.value["author"] = userData().data.firstName;
-  interPost.value['lastsaved'] = timestamp;
-  originalArray = JSON.parse(localStorage.getItem("savedPosts") || '') as any;
-  if (interPost.value['savedpostid'] === undefined) {
+  interPost.value["postAuthorID"] = userData().data._id;
+  interPost.value["lastsaved"] = timestamp;
+
+  console.log(interPost.value);
+  originalArray = JSON.parse(localStorage.getItem("savedPosts") || "") as any;
+  if (interPost.value["savedpostid"] === undefined) {
     //IF POST NOT SAVED YET
-    interPost.value['savedpostid'] = timestamp;
+    interPost.value["savedpostid"] = timestamp;
 
     //UPLOAD TO CLOUD
     axios.post("/api/user/refresh").then(() => {
@@ -560,10 +511,10 @@ const savePost = () => {
   } else {
     //IF POST ALREADY EXISTS
 
-    var newPostID = interPost.value['savedpostid'];
+    var newPostID = interPost.value["savedpostid"];
 
     const filteredArray = originalArray.filter(
-      (item: any) => item['savedpostid'] !== newPostID
+      (item: any) => item["savedpostid"] !== newPostID
     );
     console.log(originalArray);
     filteredArray.push(interPost.value);
@@ -590,7 +541,7 @@ watch(
   (newvalue) => {
     excerptCount(newvalue);
     console.log(interPost.value);
-    interPost.value.postExcerpt = newvalue;
+    interPost.value.interExcerpt = newvalue;
   }
 );
 
@@ -603,14 +554,14 @@ const uploadPost = () => {
   if (props.editEvent != undefined) {
     const eventData = {
       event: true,
-      eventTitle: interPost.value['postTitle'],
-      eventDate: interPost.value['interDate'],
-      eventCategory: interPost.value['interEventCategory'],
-      eventImage: interPost.value['interImage'],
+      eventID: interPost.value["_id"],
+      eventTitle: interPost.value["interTitle"],
+      eventDate: interPost.value["interDate"],
+      eventCategory: interPost.value["interEventCategory"],
+      eventImage: interPost.value["interImage"],
       eventContent: interPost.value.postContent,
+      postAuthorID: userData().data._id,
     };
-
-    console.log(eventData);
 
     if (
       eventData["eventTitle"] === undefined ||
@@ -638,36 +589,53 @@ const uploadPost = () => {
     return;
   }
 
-  if (props.postOrEvent === 'createpost') {
+  if (props.postOrEvent === "createpost") {
     if (
-      interPost.value["postTitle"] === undefined ||
-      interPost.value["postContent"] === undefined ||
-      interPost.value["postExcerpt"] === undefined ||
-      interPost.value["coverImage"] === undefined ||
-      interPost.value["postDate"] === undefined ||
+      interPost.value["interTitle"] === undefined ||
+      interPost.value["interContent"] === undefined ||
+      interPost.value["interExcerpt"] === undefined ||
+      interPost.value["interImage"] === undefined ||
+      interPost.value["interDate"] === undefined ||
       interPost.value["subCategory"] === undefined ||
-      interPost.value["mainCategory"] === undefined
+      interPost.value["interMainCategory"] === undefined
     ) {
       emit("postNotFullfilled", false);
     } else {
       emit("postNotFullfilled", "uploading");
       axios.post("/api/user/refresh").then((res) => {
-        axios.post("/api/uploadPost", interPost.value).then((res) => {
+        const postData = {
+          post: true,
+          postID: interPost.value["_id"],
+          postTitle: interPost.value["interTitle"],
+          postContent: interPost.value["interContent"],
+          postDate: interPost.value["interDate"],
+          postExcerpt: interPost.value["interExcerpt"],
+          postImage: interPost.value["interImage"],
+          mainCategory: interPost.value["mainCategory"],
+          subCategory: interPost.value["subCategory"],
+          postAuthorID: userData().data._id,
+        };
+        axios.post("/api/uploadPost", postData).then((res) => {
           if (res.status === 200) {
             emit("postNotFullfilled", "complete");
+          } else {
+            console.log(res);
+            emit("postNotFullfilled", "exists");
           }
         });
       });
     }
   }
-  if (props.postOrEvent === 'createevent') {
+  if (props.postOrEvent === "createevent") {
     const eventData = {
       event: true,
-      eventTitle: interPost.value['interTitle'],
-      eventDate: interPost.value['interDate'],
-      eventCategory: interPost.value['interEventCategory'],
-      eventImage: interPost.value['interImage'],
+      eventTitle: interPost.value["interTitle"],
+      eventDate: interPost.value["interDate"],
+      eventCategory: interPost.value["interEventCategory"],
+      eventImage: interPost.value["interImage"],
+      postAuthorID: userData().data._id,
     };
+    console.log(eventData);
     if (
       eventData["eventTitle"] === undefined ||
       eventData["eventDate"] === undefined ||
@@ -692,7 +660,9 @@ const uploadPost = () => {
 </script>
 
 <template>
-  <div class="post-side-wrapper" :class="props.postOrEvent === 'createpost' ? 'post' : 'event'"
+  <div
+    class="post-side-wrapper"
+    :class="props.postOrEvent === 'createpost' ? 'post' : 'event'"
   >
     <div class="author">{{ postAuthor }}</div>
     <transition name="autofill">
@@ -701,68 +671,74 @@ const uploadPost = () => {
 
     <div class="calendar-wrapper wrapper">
       <label>{{
-        route.name == 'createpost' ? 'Post title' : 'Event Title'
+        route.name == "createpost" ? "Post Date" : "Event Date"
       }}</label>
-      <Calendar id="calendar-24h"
-                v-model="showPostDateFormatted"
-                showTime
-                hourFormat="24"
-                showButtonBar
-                hideOnDateTimeSelect
+      <Calendar
+        id="calendar-24h"
+        v-model="showPostDateFormatted"
+        showTime
+        hourFormat="24"
+        showButtonBar
+        hideOnDateTimeSelect
       />
     </div>
 
     <div class="cover-preview-wrapper wrapper" value="Preview Cover" key="1">
       <label>{{
-        route.name == 'createpost' ? 'Cover Image' : 'Event Image'
+        route.name == "createpost" ? "Cover Image" : "Event Image"
       }}</label>
       <div class="cover-image-wrapper">
         <transition name="autofill">
-          <Modal v-if="showModalImage"
-                 class="modal"
-                 :modalLoadingMessageColor="'red'"
-                 :modalLoadingMessage="'Select an image file (png or jpeg)'"
-                 :fontSize="'1rem'"
-                 :position="'absolute'"
-                 :backgroundOpacity="1"
-                 @closeModal="showModalImage = false"
+          <Modal
+            v-if="showModalImage"
+            class="modal"
+            :modalLoadingMessageColor="'red'"
+            :modalLoadingMessage="'Select an image file (png or jpeg)'"
+            :fontSize="'1rem'"
+            :position="'absolute'"
+            :backgroundOpacity="1"
+            @closeModal="showModalImage = false"
           />
         </transition>
         <TransitionGroup name="autofill">
           <img :src="rawImg" alt="" key="2" v-if="showCoverPreview" />
         </TransitionGroup>
-        <div v-if="showCoverPreview"
-             type="button"
-             class="btn-close"
-             @click.prevent="btnClose"
+        <div
+          v-if="showCoverPreview"
+          type="button"
+          class="btn-close"
+          @click.prevent="btnClose"
         >
           <span class="icon-cross"></span>
           <span class="visually-hidden"></span>
         </div>
       </div>
-      <input type="button"
-             @click="fileUpload.click()"
-             class="custom-file-upload"
-             value="Select Image"
+      <input
+        type="button"
+        @click="fileUpload.click()"
+        class="custom-file-upload"
+        value="Select Image"
       />
-      <input type="file"
-             @change="onFileSelect"
-             @click="onFileClick"
-             name=""
-             ref="fileUpload"
-             id="file-upload"
-             style="display: none"
+      <input
+        type="file"
+        @change="onFileSelect"
+        @click="onFileClick"
+        name=""
+        ref="fileUpload"
+        id="file-upload"
+        style="display: none"
       />
     </div>
 
     <div class="excerpt-wrapper wrapper" v-if="route.name === 'createpost'">
       <label>Excerpt</label>
-      <textarea type="text"
-                class="excerpt-textarea"
-                v-model="excerpt"
-                maxlength="70"
-                ref="excerptText"
-                @input="handler"
+      <textarea
+        type="text"
+        class="excerpt-textarea"
+        v-model="excerpt"
+        maxlength="70"
+        ref="excerptText"
+        @input="handler"
       />
       <div class="excerpt-counter">
         <transition name="autofill">
@@ -771,15 +747,17 @@ const uploadPost = () => {
             the left
           </div>
         </transition>
-        <div ref="characterCounterRef"
-             v-text="characterCounter"
-             class="character-counter"
+        <div
+          ref="characterCounterRef"
+          v-text="characterCounter"
+          class="character-counter"
         />
-        <input type="button"
-               value="AutoFill"
-               @click="autoFillExcerpt"
-               @mouseover="autoFillHover"
-               @mouseleave="autoFillLeave"
+        <input
+          type="button"
+          value="AutoFill"
+          @click="autoFillExcerpt"
+          @mouseover="autoFillHover"
+          @mouseleave="autoFillLeave"
         />
       </div>
     </div>
@@ -787,39 +765,58 @@ const uploadPost = () => {
     <div class="buttons wrapper">
       <transition-group name="savedbutton">
         <div class="button" key="1">
-          <input type="button"
-                 class="preview"
-                 :value="props.postOrEvent === 'createpost' ? 'Preview Post' : 'Preview Event'"
-                 @click.prevent="previewPost"
+          <input
+            type="button"
+            class="preview"
+            :value="
+              props.postOrEvent === 'createpost'
+                ? 'Preview Post'
+                : 'Preview Event'
+            "
+            @click.prevent="previewPost"
           />
         </div>
         <div class="button" v-if="showSavedButton" key="2">
           <transition name="spinner">
             <div class="spinner-wrapper" v-if="saveingAnim">
-              <SpinnerChekMark class="spinner" :saveingCompleted="savingCompleted" @animationCompleted="animationCompleted"
+              <SpinnerChekMark
+                class="spinner"
+                :saveingCompleted="savingCompleted"
+                @animationCompleted="animationCompleted"
               />
             </div>
           </transition>
 
-          <input type="button"
-                 class="save"
-                 :value="props.postOrEvent === 'createpost' ? 'Save Post' : 'Save Event'"
-                 @click.prevent="savePost"
+          <input
+            type="button"
+            class="save"
+            :value="
+              props.postOrEvent === 'createpost' ? 'Save Post' : 'Save Event'
+            "
+            @click.prevent="savePost"
           />
         </div>
         <div class="button" key="3">
-          <input type="button"
-                 class="upload"
-                 :value="props.postOrEvent === 'createpost' ? 'Upload Post' : 'Post Event'"
-                 @click="uploadPost"
+          <input
+            type="button"
+            class="upload"
+            :value="
+              props.postOrEvent === 'createpost' ? 'Upload Post' : 'Post Event'
+            "
+            @click="uploadPost"
           />
         </div>
         <div class="button" key="3" v-if="route.name === 'createpost'">
-          <input type="button"
-                 class="saved"
-                 :value="props.postOrEvent === 'createpost' ? 'Saved Posts' : 'Saved Events'"
-                 @click="emit('showSavedPosts')"
-                 @closeSavedPosts="emit('closeSavedPosts')"
+          <input
+            type="button"
+            class="saved"
+            :value="
+              props.postOrEvent === 'createpost'
+                ? 'Saved Posts'
+                : 'Saved Events'
+            "
+            @click="emit('showSavedPosts')"
+            @closeSavedPosts="emit('closeSavedPosts')"
           />
         </div>
       </transition-group>

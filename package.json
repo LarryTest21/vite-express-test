@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "BROWSER=none netlify dev --port=8888",
     "build": "vite build",
     "start": "cross-env NODE_ENV=production ts-node netlify/functions/api.ts",
     "ionic:build": "npm run build",
