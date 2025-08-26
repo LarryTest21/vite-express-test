@@ -16,6 +16,7 @@ import "./assets/datepicker.scss";
 import { isMobile } from "./store/isMobile";
 import { storeRouterAnalytics } from "./components/newAnalytics";
 import { signedIn } from "./store/signedIn";
+import { subscribesFn } from "./components/Nav/subscribe";
 
 const router = useRoute();
 const path = computed(() => router.name);
@@ -201,27 +202,31 @@ onMounted(() => {
     <div class="background"></div>
 
     <transition name="nav">
-      <Nav v-if="
+      <Nav
+        v-if="
           (mobileNav === 'full' && showNav) ||
           (mobileNav === 'medium' && showNav)
         "
-           :class="mobileNav"
+        :class="mobileNav"
       />
     </transition>
     <transition name="scroll">
-      <div ref="scrollLineTop"
-           class="scrollLineTop"
-           id="scrollIndicator"
-           v-show="showScroll"
+      <div
+        ref="scrollLineTop"
+        class="scrollLineTop"
+        id="scrollIndicator"
+        v-show="showScroll"
       ></div>
     </transition>
-    <div class="mobile-top"
-         v-if="mobileNav === 'mobile'"
-         :class="mobileNavIconClicked.state ? 'active' : ''"
+    <div
+      class="mobile-top"
+      v-if="mobileNav === 'mobile'"
+      :class="mobileNavIconClicked.state ? 'active' : ''"
     ></div>
     <transition name="mobileNav">
-      <MobileNav v-if="mobileNav === 'mobile' && mobileNavIconClicked.state"
-                 :userData="usrData.data"
+      <MobileNav
+        v-if="mobileNav === 'mobile' && mobileNavIconClicked.state"
+        :userData="usrData.data"
       />
     </transition>
 
@@ -252,8 +257,6 @@ onMounted(() => {
     object-fit: cover;
     opacity: 0.1;
   }
-
-
 }
 
 .scrollLineTop {
@@ -462,5 +465,4 @@ onMounted(() => {
 body {
   overflow-x: hidden !important;
 }
-
 </style>

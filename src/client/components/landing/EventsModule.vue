@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch } from "vue";
 import axios from "axios";
 import router from "../../router";
 import editButton from "../../components/icons/edit.vue";
 import moment from "moment";
 import { userData } from "../../store/userData";
 import $ from "jquery";
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -30,7 +30,7 @@ if (userData().data != undefined) {
     () => userData(),
     (newvalue) => {
       if (newvalue.data != undefined) {
-        newvalue.data.clearance === 'admin'
+        newvalue.data.clearance === "admin"
           ? (showEditButton.value = true)
           : (showEditButton.value = false);
       } else {
@@ -46,171 +46,234 @@ const editEvent = (id: any) => {
 };
 const eventRef = ref(0) as any;
 
+// const onWheel = (e: any) => {
+//   if (isScrolling.value === false) {
+//     if (e.deltaY > 0) {
+//       isScrolling.value = true;
+
+//       eventTransition.value = "left";
+//       const index = eventsArray.value.findIndex(
+//         (event: any) => event.active === true
+//       );
+
+//       const eventElement = document.querySelector(".event");
+//       const eventWidth = eventElement?.clientWidth || 200;
+//       console.log("Event width:", eventWidth);
+//       if (index === eventsArray.value.length - 1) {
+//         isScrolling.value = false;
+//         delete eventsArray.value[index].active;
+//         eventsArray.value[0].active = true;
+//         gsap.to(".event", {
+//           duration: 0.8,
+//           ease: "back.out(1.7)",
+//           x: 0,
+//         });
+//         setTimeout(() => {
+//           gsap.to(".event.active", {
+//             duration: 0.6,
+//             scale: 1,
+//             webkitFilter: "blur(" + 0 + "px)",
+//             height: "80%",
+//             width: "60%",
+//           });
+//           gsap.to(".event:not(.active)", {
+//             duration: 0.6,
+//             scale: 1,
+//             webkitFilter: "blur(" + 10 + "px)",
+//             height: "50%",
+//             width: "30%",
+//           });
+//         }, 2);
+//       } else {
+//         delete eventsArray.value[index].active;
+//         eventsArray.value[index + 1].active = true;
+//         setTimeout(() => {
+//           gsap.to(".event.active", {
+//             duration: 0.6,
+//             scale: 1,
+//             webkitFilter: "blur(" + 0 + "px)",
+//             height: "80%",
+//             width: "60%",
+//           });
+//           gsap.to(".event:not(.active)", {
+//             duration: 0.6,
+//             scale: 1,
+//             webkitFilter: "blur(" + 10 + "px)",
+//             height: "50%",
+//             width: "30%",
+//           });
+//         }, 1);
+
+//         gsap.to(".event", {
+//           duration: 0.8,
+//           ease: "back.out(1.7)",
+//           x: -180 * (index + 1),
+//         });
+//         setTimeout(() => {
+//           isScrolling.value = false;
+//         }, 700);
+//       }
+//     } else if (e.deltaY < 0) {
+//       isScrolling.value = true;
+//       const index = eventsArray.value.findIndex(
+//         (event: any) => event.active === true
+//       );
+
+//       if (index === 0) {
+//         isScrolling.value = false;
+//         delete eventsArray.value[0].active;
+//         eventsArray.value[eventsArray.value.length - 1].active = true;
+//         gsap.to(".event", {
+//           duration: 0.8,
+//           ease: "back.out(1.7)",
+//           x: -400,
+//         });
+//         setTimeout(() => {
+//           gsap.to(".event.active", {
+//             duration: 0.6,
+
+//             scale: 1,
+//             webkitFilter: "blur(" + 0 + "px)",
+//             height: "80%",
+//             width: "60%",
+//           });
+
+//           gsap.to(".event:not(.active)", {
+//             duration: 0.6,
+//             scale: 1,
+//             webkitFilter: "blur(" + 10 + "px)",
+//             height: "50%",
+//             width: "30%",
+//           });
+//         }, 2);
+//       } else {
+//         delete eventsArray.value[index].active;
+//         eventsArray.value[index - 1].active = true;
+
+//         if (index === 2) {
+//           gsap.to(".event", {
+//             duration: 0.8,
+//             ease: "back.out(1.7)",
+//             x: -190,
+//           });
+//           setTimeout(() => {
+//             gsap.to(".event.active", {
+//               duration: 0.6,
+//               scale: 1,
+//               webkitFilter: "blur(" + 0 + "px)",
+//               height: "80%",
+//               width: "60%",
+//             });
+//             gsap.to(".event:not(.active)", {
+//               duration: 0.6,
+
+//               scale: 1,
+//               webkitFilter: "blur(" + 10 + "px)",
+//               height: "50%",
+//               width: "30%",
+//             });
+//           }, 1);
+//         } else if (index === 1) {
+//           gsap.to(".event", {
+//             duration: 0.8,
+//             ease: "back.out(1.7)",
+//             x: 0,
+//           });
+//           setTimeout(() => {
+//             gsap.to(".event.active", {
+//               duration: 0.6,
+
+//               scale: 1,
+//               webkitFilter: "blur(" + 0 + "px)",
+//               height: "80%",
+//               width: "60%",
+//             });
+//             gsap.to(".event:not(.active)", {
+//               duration: 0.6,
+
+//               scale: 1,
+//               webkitFilter: "blur(" + 10 + "px)",
+//               height: "50%",
+//               width: "30%",
+//             });
+//           }, 1);
+//         }
+
+//         setTimeout(() => {
+//           isScrolling.value = false;
+//         }, 700);
+//       }
+//     }
+//   } else {
+//     e.preventDefault();
+//   }
+// };
+
 const onWheel = (e: any) => {
-  if (isScrolling.value === false) {
-    if (e.deltaY > 0) {
-      isScrolling.value = true;
+  if (isScrolling.value || !eventsArray.value || eventsArray.value.length === 0)
+    return;
 
-      eventTransition.value = 'left';
-      const index = eventsArray.value.findIndex(
-        (event: any) => event.active === true
-      );
+  const direction = e.deltaY > 0 ? 1 : -1;
+  const activeIndex = eventsArray.value.findIndex((event: any) => event.active);
 
-      if (index === eventsArray.value.length - 1) {
-        isScrolling.value = false;
-        delete eventsArray.value[index].active;
-        eventsArray.value[0].active = true;
-        gsap.to('.event', {
-          duration: 0.8,
-          ease: "back.out(1.7)",
-          x: 0,
-        });
-        setTimeout(() => {
-          gsap.to('.event.active', {
-            duration: 0.6,
-            scale: 1,
-            webkitFilter: "blur(" + 0 + "px)",
-            height: '80%',
-            width: '60%',
-          });
-          gsap.to('.event:not(.active)', {
-            duration: 0.6,
-            scale: 1,
-            webkitFilter: "blur(" + 10 + "px)",
-            height: '50%',
-            width: '30%',
-          });
-        }, 2);
-      } else {
-        delete eventsArray.value[index].active;
-        eventsArray.value[index + 1].active = true;
-        setTimeout(() => {
-          gsap.to('.event.active', {
-            duration: 0.6,
-            scale: 1,
-            webkitFilter: "blur(" + 0 + "px)",
-            height: '80%',
-            width: '60%',
-          });
-          gsap.to('.event:not(.active)', {
-            duration: 0.6,
-            scale: 1,
-            webkitFilter: "blur(" + 10 + "px)",
-            height: '50%',
-            width: '30%',
-          });
-        }, 1);
+  // Wrap-around logic
+  let nextIndex = activeIndex + direction;
+  if (nextIndex < 0) nextIndex = eventsArray.value.length - 1;
+  if (nextIndex >= eventsArray.value.length) nextIndex = 0;
 
-        gsap.to('.event', {
-          duration: 0.8,
-          ease: "back.out(1.7)",
-          x: -180 * (index + 1),
-        });
-        setTimeout(() => {
-          isScrolling.value = false;
-        }, 700);
-      }
-    } else if (e.deltaY < 0) {
-      isScrolling.value = true;
-      const index = eventsArray.value.findIndex(
-        (event: any) => event.active === true
-      );
+  // Prevent scrolling during animation
+  isScrolling.value = true;
 
-      if (index === 0) {
-        isScrolling.value = false;
-        delete eventsArray.value[0].active;
-        eventsArray.value[eventsArray.value.length - 1].active = true;
-        gsap.to('.event', {
-          duration: 0.8,
-          ease: "back.out(1.7)",
-          x: -400,
-        });
-        setTimeout(() => {
-          gsap.to('.event.active', {
-            duration: 0.6,
+  // Update active states
+  eventsArray.value[activeIndex].active = false;
+  eventsArray.value[nextIndex].active = true;
 
-            scale: 1,
-            webkitFilter: "blur(" + 0 + "px)",
-            height: '80%',
-            width: '60%',
-          });
+  // Calculate new translateX offset
+  const offsetX = -(nextIndex * 200); // adjust 200 if your event element width is different
 
-          gsap.to('.event:not(.active)', {
-            duration: 0.6,
-            scale: 1,
-            webkitFilter: "blur(" + 10 + "px)",
-            height: '50%',
-            width: '30%',
-          });
-        }, 2);
-      } else {
-        delete eventsArray.value[index].active;
-        eventsArray.value[index - 1].active = true;
+  // Animate scroll
+  gsap.to(".event", {
+    duration: 0.8,
+    ease: "back.out(1.7)",
+    x: offsetX,
+  });
 
-        if (index === 2) {
-          gsap.to('.event', {
-            duration: 0.8,
-            ease: "back.out(1.7)",
-            x: -190,
-          });
-          setTimeout(() => {
-            gsap.to('.event.active', {
-              duration: 0.6,
-              scale: 1,
-              webkitFilter: "blur(" + 0 + "px)",
-              height: '80%',
-              width: '60%',
-            });
-            gsap.to('.event:not(.active)', {
-              duration: 0.6,
+  // Animate active vs non-active styles
+  setTimeout(() => {
+    gsap.to(".event.active", {
+      duration: 0.6,
+      scale: 1,
+      webkitFilter: "blur(0px)",
+      height: "80%",
+      width: "60%",
+    });
+    gsap.to(".event:not(.active)", {
+      duration: 0.6,
+      scale: 1,
+      webkitFilter: "blur(10px)",
+      height: "50%",
+      width: "30%",
+    });
+  }, 50);
 
-              scale: 1,
-              webkitFilter: "blur(" + 10 + "px)",
-              height: '50%',
-              width: '30%',
-            });
-          }, 1);
-        } else if (index === 1) {
-          gsap.to('.event', {
-            duration: 0.8,
-            ease: "back.out(1.7)",
-            x: 0,
-          });
-          setTimeout(() => {
-            gsap.to('.event.active', {
-              duration: 0.6,
-
-              scale: 1,
-              webkitFilter: "blur(" + 0 + "px)",
-              height: '80%',
-              width: '60%',
-            });
-            gsap.to('.event:not(.active)', {
-              duration: 0.6,
-
-              scale: 1,
-              webkitFilter: "blur(" + 10 + "px)",
-              height: '50%',
-              width: '30%',
-            });
-          }, 1);
-        }
-
-        setTimeout(() => {
-          isScrolling.value = false;
-        }, 700);
-      }
-    }
-  } else {
-    e.preventDefault();
-  }
+  // Re-enable scrolling after animation completes
+  setTimeout(() => {
+    isScrolling.value = false;
+  }, 700);
 };
+
+
+
+
+
 
 onMounted(() => {
   axios
     .get("/api/content/events/")
     .then((res) => {
-      eventsArray.value = [...res.data];
+      const topThreeEvents = [...res.data]
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .slice(0, 5); eventsArray.value = topThreeEvents;
     })
     .then(() => {
       eventsArray.value.sort(function compare(a: any, b: any) {
@@ -222,11 +285,11 @@ onMounted(() => {
       eventsArray.value[0].active = true;
     })
     .then(() => {
-      gsap.to('.event.active', {
+      gsap.to(".event.active", {
         scale: 1,
         webkitFilter: "blur(" + 0 + "px)",
-        height: '80%',
-        width: '60%',
+        height: "80%",
+        width: "60%",
       });
     });
 });
@@ -234,13 +297,11 @@ onMounted(() => {
 
 <template>
   <div class="outer-overflow" ref="eventsWrapper">
-    <transition-group :name="eventTransition" tag="div" class="events-wrapper" @wheel.prevent="onWheel" @mouseover="showScroll = true" @mouseleave="showScroll = false"
-    >
+    <transition-group :name="eventTransition" tag="div" class="events-wrapper" @wheel.prevent="onWheel"
+      @mouseover="showScroll = true" @mouseleave="showScroll = false">
       <template v-for="event in eventsArray" :key="event._id">
-        <div class="event" ref="eventRef" :class="(event.active ? 'active' : '') "
-        >
-          <div class="edit-button" v-if="showEditButton" @click="editEvent(event._id)"
-          >
+        <div class="event" ref="eventRef" :class="event.active ? 'active' : ''">
+          <div class="edit-button" v-if="showEditButton" @click="editEvent(event._id)">
             <editButton class="editButton" />
           </div>
 
@@ -282,11 +343,13 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   padding: 0px;
+
   .show-scroll {
     position: absolute;
     z-index: 10;
     color: var(--color-nav-bg);
   }
+
   .events-wrapper {
     scroll-behavior: none;
     z-index: 1;
@@ -332,6 +395,7 @@ onMounted(() => {
         background-color: var(--color-nav-bg);
         cursor: pointer;
         transition: all 0.1s ease-in-out;
+
         svg {
           transform: translateX(2px);
           fill: var(--color-nav-txt-darker);
@@ -344,10 +408,12 @@ onMounted(() => {
           box-shadow: 0px 0px 3px 3px rgba(228, 228, 228, 0.363);
         }
       }
+
       .img-wrapper {
         position: relative;
         width: 100%;
         height: 70%;
+
         .date-wrapper {
           width: 100px;
           height: 120px;
@@ -364,14 +430,17 @@ onMounted(() => {
           margin: 10px;
           bottom: 0;
           box-shadow: 0px 0px 3px 3px var(--color-nav-txt-darker);
+
           .month {
             text-transform: uppercase;
             padding: 2px;
             text-align: justify;
           }
+
           .day {
             text-align: justify;
           }
+
           .time {
             display: flex;
             align-items: center;
@@ -384,6 +453,7 @@ onMounted(() => {
             padding: 2px;
           }
         }
+
         .event-image {
           object-fit: cover;
           width: 100%;
@@ -391,6 +461,7 @@ onMounted(() => {
           border-radius: 5px 5px 0 0;
         }
       }
+
       .text-outer {
         position: relative;
         height: 100%;
@@ -405,17 +476,20 @@ onMounted(() => {
           align-items: center;
           gap: 20px;
           margin-left: 10px;
+
           .title {
             font-size: 2rem;
           }
         }
       }
+
       .rsvp-button {
         display: flex;
         bottom: 0;
         right: 0px;
         margin: 20px;
         position: absolute;
+
         button {
           font-size: 2rem;
           border-radius: 10px;
@@ -426,9 +500,11 @@ onMounted(() => {
           box-shadow: 1px 1px 3px 3px rgba(85, 85, 85, 0.445);
           cursor: pointer;
           transition: all 0.1s ease-in-out;
+
           &:hover {
             box-shadow: 0px 0px 10px 3px rgba(212, 212, 212, 0.363);
           }
+
           &:active {
             box-shadow: inset 1px 1px 5px 1px rgba(34, 34, 34, 0.363);
           }
@@ -437,15 +513,18 @@ onMounted(() => {
     }
   }
 }
+
 .left-enter-active,
 .left-leave-active {
   transition: all 0.7s ease-in-out;
   opacity: 1;
 }
+
 .left-enter-from {
   transform: translateX(100%);
   opacity: 0;
 }
+
 .left-leave-to {
   opacity: 0;
   transform: translateX(100%);
@@ -456,10 +535,12 @@ onMounted(() => {
   transition: all 0.7s ease-in-out;
   opacity: 1;
 }
+
 .right-enter-from {
   transform: translateX(-100%);
   opacity: 0;
 }
+
 .right-leave-to {
   opacity: 0;
   transform: translateX(-100%);

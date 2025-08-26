@@ -125,7 +125,6 @@ const requestedUser = (user: any) => {
     requestedUserInfo: user,
     requestedBy: userData().data._id,
   };
-  console.log(data);
   props.socketIO!.emit('userAllRequests', data);
 };
 

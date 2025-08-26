@@ -63,7 +63,7 @@ export async function getNews(req: Request, res: Response) {
 
 export async function uploadPost(req: Request, res: Response) {
   const postData = req.body;
-console.log(postData)
+  console.log(postData);
   if (postData.event === true) {
     const newsEventData = {
       eventID: req.body.id,
@@ -91,17 +91,17 @@ console.log(postData)
   } else {
     if (postData.mainCategory[0] === "News") {
       const newsPostData = {
-        coverImage: postData.coverImage,
+        postID: postData.postID,
+        coverImage: postData.postImage,
         lastUpload: new Date(),
         postAuthorID: postData.postAuthorID,
         mainCategory: postData.mainCategory[0],
-        subCategory: postData.subategory,
         postContent: postData.postContent,
         postDate: postData.postDate,
-        postExcerpt: postData.excerpt,
+        postExcerpt: postData.postExcerpt,
         postTitle: postData.postTitle,
       };
-
+      console.log(newsPostData);
       newsPost
         .create(newsPostData)
         .then((result) => {
@@ -114,8 +114,9 @@ console.log(postData)
       console.log("Blog post upload");
 
       try {
-
-        const existingPost = await blogPost.findOne({ postID: postData.postID });
+        const existingPost = await blogPost.findOne({
+          postID: postData.postID,
+        });
         console.log(postData.postID);
         const blogPostData = {
           postID: postData.postID,
@@ -216,5 +217,80 @@ export async function updateEvent(req: Request, res: Response) {
         res.status(404).json({ success: false, message: "Event wasn't found" });
       });
   } else if (req.body["type"] === "blogpost") {
+  }
+}
+
+export async function updateAuthor(req: Request, res: Response) {
+  const authorID = req.params.id;
+  const postID = req.body.postID;
+
+  User.find({ _id: authorID }).then((result) => {
+    const prevPosts = result[0].postsWritten;
+
+    if (prevPosts == null || undefined) {
+      User.findOneAndUpdate(
+        { _id: authorID },
+        {
+          $set: {
+            postsWritten: [postID],
+          },
+        }
+      )
+        .then((result) => {
+          res.status(200).json({ success: true, data: result });
+        })
+        .catch((err) => {
+          res.status(400).json({ success: false, error: err });
+        });
+    } else {
+      console.log();
+
+      User.findOneAndUpdate(
+        { _id: authorID },
+        { $push: { postsWritten: postID } }
+      )
+        .then((result) => {
+          res.status(200).json({ success: true, data: result });
+        })
+        .catch((err) => {
+          res.status(400).json({ success: false, error: err });
+        });
+    }
+  });
+}
+
+export async function updateSubscribers(req: Request, res: Response) {
+  try {
+    const postAuthorID = req.body.postAuthorID;
+    const postID = req.body.postID;
+
+    // Find user where the post is NOT already present
+    const user = await User.findOne({
+      "subscribes.subscribeTo": postAuthorID,
+      "subscribes.posts.postID": { $ne: postID },
+    });
+
+    if (!user) {
+      return res
+        .status(409)
+        .json({ error: "Duplicate postID for this subscription" });
+    }
+
+    // Update the user with the new post entry
+    const result = await User.updateOne(
+      { "subscribes.subscribeTo": postAuthorID },
+      {
+        $push: {
+          "subscribes.$.posts": {
+            postID: postID,
+            isRead: false,
+          },
+        },
+      }
+    );
+
+    return res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    return res.status(400).json({ success: false, error: err });
   }
 }

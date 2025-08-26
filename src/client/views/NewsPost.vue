@@ -4,17 +4,18 @@ import { useRoute } from "vue-router";
 import moment from "moment";
 import $ from "jquery";
 import "jquery";
-import firebase from "firebase/compat/app";
-import "firebase/compat/auth";
 import SideBar from "../components/PostSideBar.vue";
 import { postLoaded } from "../store/postLoaded";
+import axios from "axios"
+
 
 const route = useRoute();
-const colRef = firebase.firestore().collection("news");
+
+
+
+
 
 const postLoadedChange = postLoaded();
-const { postStateTrue } = postLoadedChange;
-const { postStateFalse } = postLoadedChange;
 
 const isLoading = ref(false);
 
@@ -33,38 +34,10 @@ const singlePost = ref([]) as any;
 postSlug.value = route.params.newsSlug;
 
 async function fetchData() {
-  isLoading.value = true;
-  postStateFalse();
-  postSlug.value = route.params.newsSlug;
-  colRef
-    .get()
-    .then((querySnapshot) =>
-      querySnapshot.forEach((post) => {
-        const check1 = post.data();
-        newsPosts.value.push(check1);
-      })
-    )
-    .then(() => {
-      singlePost.value = newsPosts.value.filter(
-        (item:any) => item.postID === postSlug.value
-      );
-
-      postTitle.value = singlePost.value[0].postTitle;
-      postAuthor.value = singlePost.value[0].postAuthor;
-      postDate.value = moment(
-        new Date(singlePost.value[0].postDate.toDate())
-      ).format("MMM, DD\xa0\xa0\xa0HH:mm");
-      postContent.value = singlePost.value[0].postContent;
-      coverImage.value = singlePost.value[0].coverImage;
-      postCategory.value = singlePost.value[0].postCategory[0];
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-    .then(() => {
-      isLoading.value = false; 
-      postStateTrue();
-    });
+axios.get("api/content/newspost"+ route.params.newsSlug).then((result)=> {
+  console.log(result)
+})
+  
 }
 fetchData();
 

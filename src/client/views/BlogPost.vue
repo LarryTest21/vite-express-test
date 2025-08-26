@@ -25,10 +25,15 @@ const coverImage = ref();
 const postCategory = ref([]) as any;
 const showSideBar = ref();
 const postAuthorName = ref();
+const postAuthorPanelTF = ref(false);
 const postData = ref() as any;
 const postAuthorData = ref() as any;
 const openAuthorPanel = (author: object) => {
-  console.log(author);
+  if (postAuthorPanelTF.value) {
+    postAuthorPanelTF.value = false;
+  } else {
+    postAuthorPanelTF.value = true;
+  }
 };
 
 postSlug.value = route.params.blogSlug;
@@ -102,11 +107,10 @@ onMounted(() => {
   window.addEventListener("scroll", logScroll);
 
   if (signedInCheck.state) {
-    axios
-      .post("/api/user/updateRead", {
-        blogPostID: postSlug.value,
-        userID: signedInCheck.uid,
-      })
+    axios.post("/api/user/updateRead", {
+      blogPostID: postSlug.value,
+      userID: signedInCheck.uid,
+    });
   } else {
     watch(signedInCheck, () => {
       if (signedInCheck.state) {
@@ -114,9 +118,10 @@ onMounted(() => {
           .post("/api/user/updateRead", {
             blogPostID: postSlug.value,
             userID: signedInCheck.uid,
-          }).then((res)=> {
-            console.log(res)
           })
+          .then((res) => {
+            console.log(res);
+          });
       }
     });
   }
@@ -141,7 +146,14 @@ onBeforeUnmount(() => {
           <div class="data-wrapper">
             <div class="title">{{ postData.postTitle }}</div>
             <div class="author-date">
-              <postAuthorPanel :postAuthorData :postAuthorWidth />
+              <Transition name="postAuthorPanel" mode="out-in">
+                <postAuthorPanel
+                  class="post-author-panel"
+                  v-if="postAuthorPanelTF"
+                  :postAuthorData
+                  :postAuthorWidth
+                />
+              </Transition>
 
               <div class="author-wrapper" ref="postAuthorDivLength">
                 <writerIcon />
@@ -226,6 +238,10 @@ onBeforeUnmount(() => {
           grid-template-columns: auto 2fr 1fr;
           align-items: center;
           gap: 20px;
+          .post-author-panel {
+            position: absolute;
+            left: 120px;
+          }
           .author-wrapper {
             display: flex;
             justify-content: center;
@@ -412,5 +428,35 @@ onBeforeUnmount(() => {
 .sidebar-leave-to {
   opacity: 0;
   transform: translateX(20vh);
+}
+
+.postAuthorPanel-enter-active,
+.postAuthorPanel-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease;
+  overflow: hidden;
+}
+
+.postAuthorPanel-enter-from {
+  opacity: 0;
+  transform: translateX(-20%);
+  max-height: 0;
+}
+
+.postAuthorPanel-enter-to {
+  opacity: 1;
+  transform: translateX(0);
+  max-height: 120px;
+}
+
+.postAuthorPanel-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+  max-height: 120px;
+}
+
+.postAuthorPanel-leave-to {
+  opacity: 0;
+  transform: translateX(-20%);
+  max-height: 0;
 }
 </style>

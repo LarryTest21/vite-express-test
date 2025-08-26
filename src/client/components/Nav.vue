@@ -2,7 +2,7 @@
 //BASIC
 import { RouterLink } from "vue-router";
 import { ref, watch, onMounted, onBeforeUnmount } from "vue";
-import $, { data } from "jquery";
+import $ from "jquery";
 import gsap from "gsap";
 import axios from "axios";
 //MODULES
@@ -10,8 +10,8 @@ import LoginTab from "../components/LoginTab.vue";
 import UserTab from "../components/UserTab.vue";
 import Messages from "../components/messages/Messages.vue";
 import Modal from "../components/Modal.vue";
-import NavNotif from "../components/NavNotif.vue";
-import NotifPanel from "../components/NavNotifPanel.vue";
+import NavNotif from "./Nav/NavNotif.vue";
+import NotifPanel from "./Nav/NavNotifPanel.vue";
 
 //STORES
 import { useTheme } from "../store/theme";
@@ -35,6 +35,7 @@ import notifSound from "./messages/notificationSounds/signedIn.mp3";
 //SCRIPTS
 import "../components/newAnalytics";
 import { io } from "socket.io-client";
+import { subscribesFn } from "../components/Nav/subscribe";
 
 const searchIcon2 = blogSearchIcon();
 const searchIconActive = ref(false);
@@ -252,15 +253,12 @@ const displayName = ref();
 
 const notificationArray = ref([]) as any;
 const notifCounter = ref(0);
-const isActivated = ref();
 const showNotif = ref(false);
 
 watch(notificationArray.value, (newValue) => {
-  if (!isActivated.value) {
-    notifCounter.value = notificationArray.value.length + 1;
-  } else {
-    notifCounter.value = notificationArray.value.length;
-  }
+
+
+  notifCounter.value = notificationArray.value.length;
 });
 
 const themeCheck = ref(true);
@@ -274,9 +272,9 @@ if (userD.value.data != undefined) {
   displayName.value =
     userD.value.data.firstName[0] + userD.value.data.lastName[0];
   if (userD.value.data.activated) {
-    notifCounter.value = userD.value.data.notificationArray.length + 1;
-  } else {
     notifCounter.value = userD.value.data.notificationArray.length;
+  } else {
+    notifCounter.value = userD.value.data.notificationArray.length+1;
   }
   if (userD.value.data.userSettings.themeCheck) {
     themeCheck.value = true;
@@ -325,9 +323,9 @@ watch(
       displayName.value =
         userD.value.data.firstName[0] + userD.value.data.lastName[0];
       if (userD.value.data.activated) {
-        notifCounter.value = userD.value.data.notificationArray.length + 1;
-      } else {
         notifCounter.value = userD.value.data.notificationArray.length;
+      } else {
+        notifCounter.value = userD.value.data.notificationArray.length+1;
       }
     } else {
       watch(
@@ -336,9 +334,9 @@ watch(
           displayName.value =
             userD.value.data.firstName[0] + userD.value.data.lastName[0];
           if (userD.value.data.activated) {
-            notifCounter.value = userD.value.data.notificationArray.length + 1;
-          } else {
             notifCounter.value = userD.value.data.notificationArray.length;
+          } else {
+            notifCounter.value = userD.value.data.notificationArray.length+1;
           }
         },
         { deep: true }
@@ -486,6 +484,17 @@ async function loadWeather() {
 }
 
 onMounted(async () => {
+  watch(
+    () => userData().data,
+    (newv) => {
+      if (newv != undefined) {
+        subscribesFn(userD.value.data).then(()=> {
+
+        })
+      }
+    }
+  );
+
   loadWeather(); // run immediately on mount
   weatherInterval = setInterval(loadWeather, 10 * 60 * 1000);
 
@@ -727,6 +736,7 @@ onBeforeUnmount(() => {
           <NotifPanel
             v-if="notifPanelActive"
             v-click-away="closeNotifPanel"
+            @closeNotifPanel="closeNotifPanel"
           />
         </transition>
       </nav>

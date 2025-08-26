@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
-import { userData } from "../store/userData";
-import bellIcon from "../components/icons/bell.vue";
+import { userData } from "../../store/userData";
+import bellIcon from "../../components/icons/bell.vue";
+
+watch(
+  () => userData().data,
+  (newv) => {
+    notifCounter.value = notifArray.value.length;
+  },
+  { deep: true }
+);
 
 const notifCounter = ref();
-
+const showNotifCounter = ref(true)
 const notifClicked = ref(false);
 
 const notifArray = ref([]) as any;
@@ -18,6 +26,8 @@ const notifIconClicked = () => {
     emit("closeNotifPanel");
   } else {
     emit("openNotifPanel");
+    bellIconAnim.value = "none";
+    showNotifCounter.value = false;
   }
 };
 
@@ -25,34 +35,27 @@ const bellIconAnim = ref("");
 
 onMounted(() => {
   notifArray.value = userData().data.notificationArray;
+
   const isEmpty = notifArray.value.every((item: any) => item === "");
   if (!isEmpty) {
     notifCounter.value = notifArray.value.length;
     bellIconAnim.value = "bell 1s ease-in-out infinite";
   } else {
-    notifCounter.value = 0;
+    showNotifCounter.value = false;
     bellIconAnim.value = "none";
   }
 
-  watch(
-    notifCounter,
-    () => {
-      console.log(`output->notifCounter`, notifCounter);
-    },
-    { deep: true }
-  );
+  watch(notifCounter, (newv) => {
+  }, { deep: true });
 });
 </script>
 
 <template>
   <div class="notif-wr" @click="notifClicked = !notifClicked">
-    <div class="notif-counter" v-if="notifCounter != 0">
+    <div class="notif-counter" v-if="showNotifCounter">
       {{ notifCounter }}
     </div>
-    <div
-      class="notif-counter-icon-wrapper"
-      :style="{ '--bellIconAnim': bellIconAnim }"
-    >
+    <div class="notif-counter-icon-wrapper" :style="{ '--bellIconAnim': bellIconAnim }">
       <bellIcon @click="notifIconClicked" :animation="bellIconAnim" />
     </div>
   </div>
@@ -127,10 +130,12 @@ a {
 }
 
 @keyframes fading {
+
   0%,
   100% {
     opacity: 0;
   }
+
   10%,
   90% {
     opacity: 1;

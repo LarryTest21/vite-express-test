@@ -66,6 +66,7 @@ watch(
 watch(
   () => props.emittedMainCategory,
   (newv) => {
+    console.log(newv);
     interPost.value["interMainCategory"] = newv;
   }
 );
@@ -179,11 +180,12 @@ watch(
 );
 
 //Post Excerpt
-const postExcerpt = computed(() => props.postDate);
+const postExcerpt = computed(() => props.postExcerpt);
 watch(
   postExcerpt,
   (newv) => {
     interPost.value.interExcerpt = newv;
+    excerpt.value = newv;
   },
   { deep: true }
 );
@@ -481,7 +483,6 @@ const savePost = () => {
   interPost.value["postAuthorID"] = userData().data._id;
   interPost.value["lastsaved"] = timestamp;
 
-  console.log(interPost.value);
   originalArray = JSON.parse(localStorage.getItem("savedPosts") || "") as any;
   if (interPost.value["savedpostid"] === undefined) {
     //IF POST NOT SAVED YET
@@ -540,7 +541,6 @@ watch(
   () => excerpt.value,
   (newvalue) => {
     excerptCount(newvalue);
-    console.log(interPost.value);
     interPost.value.interExcerpt = newvalue;
   }
 );
@@ -551,6 +551,7 @@ const previewPost = () => {
 };
 
 const uploadPost = () => {
+  console.log(interPost.value);
   if (props.editEvent != undefined) {
     const eventData = {
       event: true,
@@ -590,40 +591,90 @@ const uploadPost = () => {
   }
 
   if (props.postOrEvent === "createpost") {
-    if (
-      interPost.value["interTitle"] === undefined ||
-      interPost.value["interContent"] === undefined ||
-      interPost.value["interExcerpt"] === undefined ||
-      interPost.value["interImage"] === undefined ||
-      interPost.value["interDate"] === undefined ||
-      interPost.value["subCategory"] === undefined ||
-      interPost.value["interMainCategory"] === undefined
-    ) {
-      emit("postNotFullfilled", false);
-    } else {
-      emit("postNotFullfilled", "uploading");
-      axios.post("/api/user/refresh").then((res) => {
-        const postData = {
-          post: true,
-          postID: interPost.value["_id"],
-          postTitle: interPost.value["interTitle"],
-          postContent: interPost.value["interContent"],
-          postDate: interPost.value["interDate"],
-          postExcerpt: interPost.value["interExcerpt"],
-          postImage: interPost.value["interImage"],
-          mainCategory: interPost.value["mainCategory"],
-          subCategory: interPost.value["subCategory"],
-          postAuthorID: userData().data._id,
-        };
-        axios.post("/api/uploadPost", postData).then((res) => {
-          if (res.status === 200) {
-            emit("postNotFullfilled", "complete");
-          } else {
-            console.log(res);
-            emit("postNotFullfilled", "exists");
-          }
+    if (interPost.value["interMainCategory"][0] === "Blog") {
+      if (
+        interPost.value["interTitle"] === undefined ||
+        interPost.value["interContent"] === undefined ||
+        interPost.value["interExcerpt"] === undefined ||
+        interPost.value["interImage"] === undefined ||
+        interPost.value["interDate"] === undefined ||
+        interPost.value["subCategory"] === undefined ||
+        interPost.value["interMainCategory"] === undefined
+      ) {
+        emit("postNotFullfilled", false);
+      } else {
+        emit("postNotFullfilled", "uploading");
+        axios.post("/api/user/refresh").then((res) => {
+          const postData = {
+            post: true,
+            postID: interPost.value["_id"],
+            postTitle: interPost.value["interTitle"],
+            postContent: interPost.value["interContent"],
+            postDate: interPost.value["interDate"],
+            postExcerpt: interPost.value["interExcerpt"],
+            postImage: interPost.value["interImage"],
+            mainCategory: interPost.value["mainCategory"],
+            subCategory: interPost.value["subCategory"],
+            postAuthorID: userData().data._id,
+          };
+          axios.post("/api/uploadPost", postData).then((res) => {
+            if (res.status === 200) {
+              axios
+                .post("/api/content/updateAuthor/" + userData().data._id, {
+                  postAuthorID: userData().data._id,
+                  postID: interPost.value["_id"],
+                })
+                .then(() => {
+                  axios.post("/api/content/updateSubscribers", {
+                    postAuthorID: userData().data._id,
+                    postID: interPost.value["_id"],
+                  });
+                });
+              emit("postNotFullfilled", "complete");
+            } else {
+              console.log(res);
+              emit("postNotFullfilled", "exists");
+            }
+          });
         });
-      });
+      }
+    } else if (interPost.value["interMainCategory"][0] === "News") {
+      if (
+        interPost.value["interTitle"] === undefined ||
+        interPost.value["interContent"] === undefined ||
+        interPost.value["interExcerpt"] === undefined ||
+        interPost.value["interImage"] === undefined ||
+        interPost.value["interDate"] === undefined ||
+        interPost.value["interMainCategory"] === undefined
+      ) {
+        emit("postNotFullfilled", false);
+      } else {
+        emit("postNotFullfilled", "uploading");
+        axios.post("/api/user/refresh").then((res) => {
+          const postData = {
+            post: true,
+            postID: interPost.value["_id"],
+            postTitle: interPost.value["interTitle"],
+            postContent: interPost.value["interContent"],
+            postDate: interPost.value["interDate"],
+            postExcerpt: interPost.value["interExcerpt"],
+            postImage: interPost.value["interImage"],
+            mainCategory: interPost.value["mainCategory"],
+            postAuthorID: userData().data._id,
+          };
+          axios.post("/api/uploadPost", postData).then((res) => {
+            if (res.status === 200) {
+              axios.post("/api/updateAuthor/" + userData().data._id, {
+                postID: interPost.value["_id"],
+              });
+              emit("postNotFullfilled", "complete");
+            } else {
+              console.log(res);
+              emit("postNotFullfilled", "exists");
+            }
+          });
+        });
+      }
     }
   }
   if (props.postOrEvent === "createevent") {
@@ -656,6 +707,12 @@ const uploadPost = () => {
       });
     }
   }
+};
+
+const tester = () => {
+
+
+
 };
 </script>
 
@@ -763,6 +820,7 @@ const uploadPost = () => {
     </div>
 
     <div class="buttons wrapper">
+      <div class="button" @click="tester">test update</div>
       <transition-group name="savedbutton">
         <div class="button" key="1">
           <input
@@ -834,7 +892,6 @@ const uploadPost = () => {
   background-color: rgba(0, 0, 0, 0.288);
   z-index: 1;
 }
-
 .modal {
   position: absolute;
   width: 100%;
@@ -849,7 +906,6 @@ const uploadPost = () => {
   box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.363);
   z-index: 2;
 }
-
 .button {
   position: relative;
   height: 50px;
@@ -883,7 +939,6 @@ const uploadPost = () => {
     }
   }
 }
-
 input[type="button"] {
   font-size: 1.5rem;
   height: 100%;
@@ -902,16 +957,13 @@ input[type="button"] {
   padding: 5px;
   transition: all 200ms;
 }
-
 input[type="button"]:hover {
   background-color: var(--color-nav-bg-darker);
 }
-
 input[type="button"].saved:hover {
   background-color: green;
   color: var(--color-nav-bg);
 }
-
 .post-side-wrapper {
   height: 100%;
   position: relative;
@@ -923,20 +975,17 @@ input[type="button"].saved:hover {
   overflow: hidden;
   gap: 20px;
   display: grid;
-
   &.event {
     display: grid;
     grid-template-rows: 1fr 3fr 1fr;
     gap: 30px;
     height: 100%;
     align-items: flex-start;
-
     .cover-preview-wrapper {
       display: grid;
       grid-template-rows: 1fr 2fr 1fr;
       grid-template-columns: 1fr;
       height: 260px;
-
       .cover-image-wrapper {
         position: relative;
         place-self: center;
@@ -960,7 +1009,6 @@ input[type="button"].saved:hover {
     font-size: 1.3rem;
     width: 100%;
   }
-
   .wrapper {
     width: 100%;
     display: flex;
@@ -971,20 +1019,12 @@ input[type="button"].saved:hover {
     font-family: Roboto Condensed;
     font-weight: 700;
   }
-
-  .calendar-wrapper {
-    display: flex;
-    justify-content: flex-start;
-    width: 100%;
-  }
-
   .cover-preview-wrapper {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-
     .btn-close {
       position: absolute;
       background: var(--color-nav-bg);
@@ -999,18 +1039,15 @@ input[type="button"].saved:hover {
       &:hover {
         box-shadow: inset 0px 1px 1px 1px var(--color-nav-txt);
         background: var(--color-nav-txt-lighter);
-
         &:before,
         &:after {
           background-color: var(--color-nav-bg);
         }
       }
-
       &:active {
         box-shadow: inset 0px 1px 5px 2px var(--color-nav-txt);
       }
     }
-
     .btn-close:before,
     .btn-close:after {
       position: absolute;
@@ -1023,35 +1060,28 @@ input[type="button"].saved:hover {
       transform-origin: top left;
       content: "";
     }
-
     .btn-close:after {
       transform: rotate(-45deg) translate(-50%, -50%);
     }
-
     .btn-close:after:hover {
       transform: rotate(-90deg) translate(-50%, -50%);
     }
-
     .cover-image-wrapper {
       border: solid 2px var(--color-nav-txt);
       border-radius: 20px;
       overflow: hidden;
       max-width: 90%;
       height: 200px;
-
       max-height: 200px;
-
       img {
         width: 120%;
         height: 120%;
       }
     }
   }
-
   .excerpt-wrapper {
     display: flex;
     gap: 10px;
-
     textarea {
       height: 100%;
       width: 100%;
@@ -1066,32 +1096,26 @@ input[type="button"].saved:hover {
       resize: none;
       padding: 10px;
     }
-
     textarea::-webkit-scrollbar {
       width: 20px;
       border-radius: 10px;
     }
-
     textarea::-webkit-scrollbar-track {
       box-shadow: inset 0 0 10px 10px var(--color-nav-bg-darker);
       border: solid 5px transparent;
       border-radius: 10px;
     }
-
     textarea::-webkit-scrollbar-thumb {
       box-shadow: inset 0 0 10px 10px var(--color-nav-txt-darker);
       border: solid 5px transparent;
       border-radius: 10px;
     }
-
     textarea:focus-visible {
       outline: var(--color-nav-txt);
     }
-
     textarea > div > div:last-child {
       scroll-snap-align: end;
     }
-
     .excerpt-counter {
       width: 100%;
       display: flex;
@@ -1100,7 +1124,6 @@ input[type="button"].saved:hover {
       justify-content: space-between;
       padding: 0 10px;
       font-size: 1.2rem;
-
       .autofill-hover {
         font-size: 1rem;
         position: absolute;
@@ -1119,20 +1142,19 @@ input[type="button"].saved:hover {
       }
     }
   }
-
   .buttons {
-    width: 100%;
-
     .button {
       width: 100%;
+
       input {
         width: 100%;
+        &:focus-visible {
+          outline: 10px solid var(--color-nav-txt);
+        }
       }
-
       input:active {
         box-shadow: inset 1px 2px 2px 2px rgba(0, 0, 0, 0.322);
       }
-
       .save {
         background-color: rgb(110, 0, 0);
         color: var(--color-nav-bg);
@@ -1141,15 +1163,12 @@ input[type="button"].saved:hover {
         position: relative;
         align-self: center;
       }
-
       .save:hover {
         background-color: rgb(139, 1, 1);
       }
-
       .save:focus-visible {
         background-color: rgb(0, 116, 48);
       }
-
       .upload:hover {
         background-color: var(--color-nav-txt-darker);
         color: var(--color-nav-bg);
@@ -1157,31 +1176,26 @@ input[type="button"].saved:hover {
     }
   }
 }
-
 .autofill-enter-active,
 .autofill-leave-active {
   transform: translateY(0px);
   opacity: 1;
   transition: all 0.3s;
 }
-
 .autofill-enter-from,
 .autofill-leave-to {
   transform: translateY(-4px);
   opacity: 0;
 }
-
 .spinner-enter-active,
 .spinner-leave-active {
   opacity: 1;
   transition: all 0.3s;
 }
-
 .spinner-enter-from,
 .spinner-leave-to {
   opacity: 0;
 }
-
 .savedbutton-move,
 .savedbutton-enter-active,
 .savedbutton-leave-active {
@@ -1189,23 +1203,19 @@ input[type="button"].saved:hover {
   opacity: 1;
   transition: all 0.7s;
 }
-
 .savedbutton-move,
 .savedbutton-enter-active,
 .savedbutton-leave-active {
   transition: all 0.5s cubic-bezier(0.15, 0.66, 0.32, 1.25);
 }
-
 .savedbutton-enter-from,
 .savedbutton-leave-to {
   opacity: 0;
   transform: translateX(50px);
 }
-
 .savedbutton-leave-active {
   position: absolute;
 }
-
 @media (max-height: 794px) {
   .post-side-wrapper {
     display: grid;
@@ -1215,7 +1225,6 @@ input[type="button"].saved:hover {
         width: 40%;
       }
     }
-
     .calendar-wrapper {
       flex-direction: column;
       margin-bottom: 0;
@@ -1225,23 +1234,19 @@ input[type="button"].saved:hover {
         width: 70%;
       }
     }
-
     .excerpt-wrapper {
       position: relative;
       width: 100%;
       display: flex;
       margin-bottom: 0;
-
       .excerpt-textarea {
         font-size: 0.5rem;
         height: 70px;
-
         input {
           font-size: 0.8rem;
         }
       }
     }
-
     .buttons {
       .button {
         input {
@@ -1251,59 +1256,54 @@ input[type="button"].saved:hover {
     }
   }
 }
-@media (max-height: 827px) {
-  .post-side-wrapper {
-    display: grid;
-    gap: 5px;
+.post-side-wrapper {
+  display: grid;
+  gap: 5px;
+  .cover-preview-wrapper {
+    .cover-image-wrapper {
+      height: 100px;
+    }
+  }
+  &.event {
     .cover-preview-wrapper {
       .cover-image-wrapper {
-        height: 100px;
+        height: 100%;
       }
     }
-    &.event {
-      .cover-preview-wrapper {
-        .cover-image-wrapper {
-          height: 100%;
-        }
-      }
+  }
+  .calendar-wrapper {
+    flex-direction: column;
+    width: 300px;
+    margin-bottom: 0;
+  }
+  .cover-preview-wrapper {
+    .cover-image-wrapper {
+      width: 70%;
     }
-    .calendar-wrapper {
-      flex-direction: column;
-      width: 300px;
-      margin-bottom: 0;
-    }
-    .cover-preview-wrapper {
-      .cover-image-wrapper {
-        width: 70%;
-      }
-    }
-
-    .excerpt-wrapper {
-      position: relative;
-      width: 100%;
-      display: flex;
-      margin-bottom: 0;
-      .excerpt-counter {
-        input {
-          font-size: 1rem;
-        }
-      }
-      .excerpt-textarea {
+  }
+  .excerpt-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    margin-bottom: 0;
+    .excerpt-counter {
+      input {
         font-size: 1rem;
-        height: 70px;
-
-        input {
-          font-size: 9rem;
-        }
       }
     }
-
-    .buttons {
-      .button {
-        height: 50px;
-        input {
-          font-size: 1.2rem;
-        }
+    .excerpt-textarea {
+      font-size: 1rem;
+      height: 70px;
+      input {
+        font-size: 9rem;
+      }
+    }
+  }
+  .buttons {
+    .button {
+      height: 50px;
+      input {
+        font-size: 1.2rem;
       }
     }
   }
@@ -1319,7 +1319,6 @@ input[type="button"].saved:hover {
   .post-side-wrapper {
     display: fle;
     width: 100%;
-
     label {
       font-size: 2rem;
       left: 0;

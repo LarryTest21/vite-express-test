@@ -86,7 +86,7 @@
 }
 .p-datepicker .p-datepicker-calendar-container tbody tr span:hover {
   background-color: var(--color-nav-txt);
-  color: var(--color-nav-bg);
+  color: var(--color-nav-txt);
 }
 .p-datepicker .p-datepicker-calendar-container tbody .p-datepicker-other-month span {
   color: var(--color-nav-bg-darker);

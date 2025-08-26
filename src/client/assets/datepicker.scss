@@ -31,8 +31,8 @@
 }
 .p-datepicker {
   box-shadow: 1px 1px 5px 1px rgba(0, 0, 0, 0.479);
-  width: 200px;
-  margin-left:-50px;
+  width: 300px;
+  margin-left: -50px;
   position: absolute;
   margin-top: 10px;
   border-radius: 5px;
@@ -43,11 +43,20 @@
   color: var(--color-nav-txt);
   .p-datepicker-header {
     position: relative;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    gap: 2px;
     button {
       color: var(--color-nav-txt);
       font-size: 1.4rem;
       padding: 5px;
       font-family: Chango;
+      height: 50px;
+      border-radius: 40px;
+      background-color: var(--color-nav-bg);
+      cursor: pointer;
       svg {
         height: 30px;
         width: 30px;
@@ -63,15 +72,19 @@
     }
   }
   .p-datepicker-calendar-container {
+    margin: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     tbody {
       tr {
         position: relative;
         td {
           position: relative;
-          height: 30px;
-          width: 30px;
-          margin:0;
-          padding:0;
+          height: 35px;
+          width: 35px;
+          margin: 0;
+          padding: 7px;
         }
         span {
           position: relative;
@@ -79,12 +92,28 @@
           border-radius: 50%;
           width: 35px;
           height: 35px;
-          padding: 0;
           margin: 0;
+          cursor: pointer;
           transition: all 0.2s ease-in-out;
         }
-        span:hover {
+
+        span::after {
+          content: "";
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 35px;
+          height: 35px;
+          border-radius: 50%;
+          background-color: transparent;
+          transition: all 0.2s ease-in-out;
+          z-index: -1;
+        }
+        span:hover::after {
           background-color: var(--color-nav-txt);
+        }
+        span:hover {
           color: var(--color-nav-bg);
         }
       }
@@ -151,11 +180,7 @@
       textarea {
         font-size: 0.8rem;
         padding-left: 5px;
-
       }
     }
-
-
   }
-
 }

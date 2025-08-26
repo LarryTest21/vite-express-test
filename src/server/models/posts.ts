@@ -43,6 +43,9 @@ const blogPostModel = new mongoose.Schema(
 
 const newsPostModel = new mongoose.Schema(
   {
+    postID: {
+      type: String,
+    },
     coverImage: {
       type: String,
     },

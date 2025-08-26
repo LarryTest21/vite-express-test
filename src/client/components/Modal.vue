@@ -26,7 +26,11 @@ const props = defineProps({
 const spinnerColor = ref(props.spinnerColor || 'var(--color-nav-txt)');
 const modalLoadingMessageColor = ref(
   props.modalLoadingMessageColor || 'var(--color-nav-txt)'
-);
+) as any
+
+watch(()=> props.modalLoadingMessageColor, (newColor)=> {
+  modalLoadingMessageColor.value = newColor;
+})
 const modalSaved = props.modalSaved;
 const scaleMargin = props.loadingScale! * 20 + "px";
 

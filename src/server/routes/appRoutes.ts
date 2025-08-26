@@ -22,6 +22,8 @@ import {
   changeFriendColorChat,
   savePost,
   deleteSavedPost,
+  subscribeToAuthor,
+  unSubscribeToAuthor
 } from "../controllers/authController";
 import { getAnalytics } from "../controllers/analyticsController";
 import {
@@ -34,6 +36,8 @@ import {
   getAllEvents,
   updateEvent,
   getPostAuthorName,
+  updateAuthor,
+  updateSubscribers
 } from "../controllers/contentController";
 import {
   authenticateLogin,
@@ -96,6 +100,12 @@ router.get("/test", (_, res) => {
 router.get("/content/blogposts", getAllBlog);
 router.get("/content/blogpost/:id", getBlog);
 router.get("/postAuthor/:id", getPostAuthorName);
+
+//Subscribe to Post Author
+router.post("/subscribe/", authenticateRoutes, subscribeToAuthor);
+router.post("/unsubscribe/", authenticateRoutes, unSubscribeToAuthor);
+
+
 //Get posts News
 router.get("/content/newsposts/", getAllNews);
 router.get("/content/newspost/:id", getNews);
@@ -106,7 +116,8 @@ router.get("/content/event/:id", getEvent);
 
 //Upload Posts
 router.post("/uploadPost", authenticateRoutes, uploadPost);
-
+router.post("/content/updateAuthor/:id", authenticateRoutes, updateAuthor);
+router.post("/content/updateSubscribers", authenticateRoutes, updateSubscribers)
 //Save Posts
 router.post("/user/savePost/", authenticateRoutes, savePost);
 router.post("/user/deleteSavedPost/", authenticateRoutes, deleteSavedPost);

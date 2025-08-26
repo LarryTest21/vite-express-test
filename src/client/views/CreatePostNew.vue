@@ -331,6 +331,11 @@ const eventCategoryEmit = (value: any) => {
 
 const mainCategoryEmit = (value: any) => {
   emittedMainCategory.value = value;
+  if (emittedMainCategory.value[0] == "News") {
+    subCategoryShow.value = false;
+  } else {
+    subCategoryShow.value = true;
+  }
 };
 
 const subCategoryEmit = (value: any) => {
@@ -372,9 +377,9 @@ const postIncomplete = (e: any) => {
     }, 1000);
   } else if (e === "exists") {
     setTimeout(() => {
-      modalLoadingMessageColor.value = "red";
       showModal.value = true;
       modalAnim.value = false;
+      modalLoadingMessageColor.value = "red";
       modalMessage.value = "Post already exists";
       modalSaved.value = false;
       setTimeout(() => {
@@ -411,7 +416,6 @@ const eventIncomplete = (e: any) => {
     }, 1000);
   } else if (!e) {
     showModal.value = true;
-
     modalLoadingMessageColor.value = "red";
     modalMessage.value =
       "Not all parts of your event is filled, please check every input";
@@ -933,17 +937,18 @@ onMounted(() => {
   }
 
   .modalComp {
+    position: fixed;
     box-shadow: 2px 3px 5px 2px rgba(0, 0, 0, 0.363);
     z-index: 10;
-    top: 75px;
     overflow: hidden;
     border-radius: 5px;
     width: 500px;
     height: 300px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
   .modalComp.loading {
-    top: 0;
-    bottom: 0;
     margin: auto;
     padding: 30px;
     transition: all 0.3s ease-in-out;

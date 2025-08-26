@@ -38,8 +38,8 @@ const userModel = new mongoose.Schema(
     profilePic: String,
     readBlog: Array,
     token: String,
-    notificationArray:{
-      type: Array
+    notificationArray: {
+      type: Array,
     },
     userSettings: {
       type: Object,
@@ -49,18 +49,25 @@ const userModel = new mongoose.Schema(
         themeName: "theme-light",
         readPosts: false,
         notifSounds: true,
-       
-      }
+      },
     },
+    subscribes: {
+      type: Array,
+    },
+
     chatFriendColor: {
-      type:Object
+      type: Object,
     },
     friendsActions: {
-      type: Object
+      type: Object,
     },
-      
+    postsWritten: {
+      type: Object,
+    },
+
     savedPosts: Array,
   },
+
   { collection: "users" }
 );
 

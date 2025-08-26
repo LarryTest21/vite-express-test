@@ -701,7 +701,6 @@ export async function deleteSavedPost(req: Request, res: Response) {
   const savedPostID = req.body.savedPostID;
 
   User.find({ _id: userID }).then((result) => {
-    console.log(result);
     const savedPostsCloud = result[0].savedPosts;
 
     const newSavedPosts = savedPostsCloud.filter(
@@ -724,4 +723,78 @@ export async function deleteSavedPost(req: Request, res: Response) {
       res.status(400).json({ success: false, error: err });
     }
   });
+}
+
+export async function subscribeToAuthor(req: Request, res: Response) {
+  const subscribeTo = req.body.subscribeTo;
+  const subscriber = req.body.subscriber;
+  try {
+    User.find({ _id: subscriber }).then((result) => {
+      const userSubscribers = result[0].subscribes;
+
+      User.find({ _id: subscribeTo })
+        .then((result) => {
+          const authorPosts = result[0].postsWritten;
+          return authorPosts;
+        })
+        .then((authorPosts) => {
+          const authorPostsAsObject = authorPosts.reduce(
+            (obj: any, id: any) => ({ ...obj, [id]: true }),
+            {}
+          );
+
+          const newSub = {
+            subscribeDate: new Date().getTime(),
+            subscribeTo: subscribeTo,
+            authorPostsAsObject,
+          };
+
+          userSubscribers.push(newSub);
+          User.findOneAndUpdate(
+            { _id: subscriber },
+            { $set: { subscribes: userSubscribers } }
+          )
+            .then((result) => {
+              res.status(200).json({ success: true, data: result });
+            })
+            .catch((err) => {
+              res.status(400).json({ success: false, error: err });
+            });
+        });
+    });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err });
+  }
+}
+export async function unSubscribeToAuthor(req: Request, res: Response) {
+  const unSubscribeFrom = req.body.subscribeTo;
+  const subscriber = req.body.subscriber;
+
+  try {
+    User.find({ _id: subscriber })
+      .then((result) => {
+        const userSubscribers = result[0].subscribes;
+
+        const indexToRemove = userSubscribers.findIndex(
+          (obj) => obj.subscribeTo === unSubscribeFrom
+        );
+        if (indexToRemove !== -1) {
+          userSubscribers.splice(indexToRemove, 1);
+        }
+        return userSubscribers;
+      })
+      .then((userSubscribers) => {
+        User.findOneAndUpdate(
+          { _id: subscriber },
+          { $set: { subscribes: userSubscribers } }
+        ).then((result) => {
+          res.status(200).json({ success: true, data: result });
+        });
+      })
+      .catch((err) => {
+        res.status(400).json({ success: false, error: err });
+      });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err });
+  }
 }

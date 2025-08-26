@@ -30,7 +30,7 @@ const userD = userData().data;
 
 const checkUserData = () => {
   if (userD != undefined) {
-    displayName.value = userD.firstName + userD.lastName;
+    displayName.value = userD.firstName +" "+ userD.lastName;
     userActivated.value = userD.activated;
     userEmail.value = userD.email;
     if (userD.clearance === "regular") {
