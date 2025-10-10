@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, onBeforeUpdate } from "vue";
+import { ref, watch, computed, onBeforeUpdate, onMounted } from "vue";
 import Calendar from "primevue/calendar";
 import moment from "moment";
 import axios from "axios";
@@ -29,6 +29,7 @@ const props = defineProps({
   coverImage: String,
   emittedEventCategory: Array,
   postID: Number,
+  ePostOrEvent: String
 });
 const emit = defineEmits([
   "showPreview",
@@ -38,6 +39,7 @@ const emit = defineEmits([
   "eventNotFullfilled",
   "showSavedPosts",
   "closeSavedPosts",
+  "showModal"
 ]);
 
 const interPost = ref({
@@ -52,6 +54,25 @@ const interPost = ref({
 //InterPost for Post
 
 //InterPost for Event
+const uploadLabel = ref(props.ePostOrEvent === "editEvent" ? "Update Event" : props.ePostOrEvent === "editPost" ? "Update Post" : props.ePostOrEvent === "event" ? "Upload Event" : "Upload Post");
+console.log(props.ePostOrEvent)
+
+watch(
+  () => props.ePostOrEvent,
+  (newv) => {
+    console.log(newv)
+    if (props.ePostOrEvent === "editEvent") {
+      uploadLabel.value = "Update Event"
+    } else if (props.postOrEvent === "event") {
+      uploadLabel.value = "Upload Event"
+    } else if (props.postOrEvent === "post") {
+      uploadLabel.value = "Upload Post"
+    } else if (props.postOrEvent === "editPost") {
+      uploadLabel.value = "Update Post"
+    }
+  },
+  { deep: true }
+);
 
 interPost.value["postAuthorID"] = userData().data._id;
 interPost.value["_id"] = props.postID;
@@ -59,14 +80,12 @@ watch(
   () => props.emittedEventCategory,
   (newv) => {
     interPost.value["interEventCategory"] = newv;
-    console.log(interPost.value);
   }
 );
 
 watch(
   () => props.emittedMainCategory,
   (newv) => {
-    console.log(newv);
     interPost.value["interMainCategory"] = newv;
   }
 );
@@ -142,6 +161,15 @@ const savedpostid = computed(() => props.savedpostid);
 
 const saveShow = ref(false);
 const isEventEdit = computed(() => props.editEvent);
+
+
+watch(
+  isEventEdit,
+  (newv) => {
+    console.log(newv)
+  },
+  { deep: true }
+);
 const isPostEdit = computed(() => props.savedPost);
 //Main Category
 const mainCategory = computed(() => props.emittedMainCategory);
@@ -550,8 +578,15 @@ const previewPost = () => {
   emit("interPost", interPost.value);
 };
 
+watch(() => props.postID, (newv) => {
+  if (newv) {
+    interPost.value["_id"] = newv;
+  }
+});
+
+
 const uploadPost = () => {
-  console.log(interPost.value);
+  console.log(interPost.value["_id"])
   if (props.editEvent != undefined) {
     const eventData = {
       event: true,
@@ -709,18 +744,26 @@ const uploadPost = () => {
   }
 };
 
-const tester = () => {
+const deletePost = () => {
 
+  emit("showModal", 'deleteEvent')
 
+}
+watch(() => props.ePostOrEvent, (newv) => {
+  uploadLabel.value = props.ePostOrEvent === "editEvent" ? "Update Event" : props.postOrEvent === "editPost" ? "Update Post" : props.postOrEvent === "event" ? "Upload Event" : "Upload Post";
+}, { deep: true })
 
-};
+onMounted(() => {
+
+});
+watch(() => props.postID, (newv) => {
+  console.log(newv)
+}, { deep: true })
+
 </script>
 
 <template>
-  <div
-    class="post-side-wrapper"
-    :class="props.postOrEvent === 'createpost' ? 'post' : 'event'"
-  >
+  <div class="post-side-wrapper" :class="props.postOrEvent === 'createpost' ? 'post' : 'event'">
     <div class="author">{{ postAuthor }}</div>
     <transition name="autofill">
       <div class="modal-back" v-if="showModalImage"></div>
@@ -730,14 +773,8 @@ const tester = () => {
       <label>{{
         route.name == "createpost" ? "Post Date" : "Event Date"
       }}</label>
-      <Calendar
-        id="calendar-24h"
-        v-model="showPostDateFormatted"
-        showTime
-        hourFormat="24"
-        showButtonBar
-        hideOnDateTimeSelect
-      />
+      <Calendar id="calendar-24h" v-model="showPostDateFormatted" showTime hourFormat="24" showButtonBar
+        hideOnDateTimeSelect />
     </div>
 
     <div class="cover-preview-wrapper wrapper" value="Preview Cover" key="1">
@@ -746,57 +783,27 @@ const tester = () => {
       }}</label>
       <div class="cover-image-wrapper">
         <transition name="autofill">
-          <Modal
-            v-if="showModalImage"
-            class="modal"
-            :modalLoadingMessageColor="'red'"
-            :modalLoadingMessage="'Select an image file (png or jpeg)'"
-            :fontSize="'1rem'"
-            :position="'absolute'"
-            :backgroundOpacity="1"
-            @closeModal="showModalImage = false"
-          />
+          <Modal v-if="showModalImage" class="modal" :modalLoadingMessageColor="'red'"
+            :modalLoadingMessage="'Select an image file (png or jpeg)'" :fontSize="'1rem'" :position="'absolute'"
+            :backgroundOpacity="1" @closeModal="showModalImage = false" />
         </transition>
         <TransitionGroup name="autofill">
           <img :src="rawImg" alt="" key="2" v-if="showCoverPreview" />
         </TransitionGroup>
-        <div
-          v-if="showCoverPreview"
-          type="button"
-          class="btn-close"
-          @click.prevent="btnClose"
-        >
+        <div v-if="showCoverPreview" type="button" class="btn-close" @click.prevent="btnClose">
           <span class="icon-cross"></span>
           <span class="visually-hidden"></span>
         </div>
       </div>
-      <input
-        type="button"
-        @click="fileUpload.click()"
-        class="custom-file-upload"
-        value="Select Image"
-      />
-      <input
-        type="file"
-        @change="onFileSelect"
-        @click="onFileClick"
-        name=""
-        ref="fileUpload"
-        id="file-upload"
-        style="display: none"
-      />
+      <input type="button" @click="fileUpload.click()" class="custom-file-upload" value="Select Image" />
+      <input type="file" @change="onFileSelect" @click="onFileClick" name="" ref="fileUpload" id="file-upload"
+        style="display: none" />
     </div>
 
     <div class="excerpt-wrapper wrapper" v-if="route.name === 'createpost'">
       <label>Excerpt</label>
-      <textarea
-        type="text"
-        class="excerpt-textarea"
-        v-model="excerpt"
-        maxlength="70"
-        ref="excerptText"
-        @input="handler"
-      />
+      <textarea type="text" class="excerpt-textarea" v-model="excerpt" maxlength="70" ref="excerptText"
+        @input="handler" />
       <div class="excerpt-counter">
         <transition name="autofill">
           <div class="autofill-hover" v-if="autoFill">
@@ -804,78 +811,46 @@ const tester = () => {
             the left
           </div>
         </transition>
-        <div
-          ref="characterCounterRef"
-          v-text="characterCounter"
-          class="character-counter"
-        />
-        <input
-          type="button"
-          value="AutoFill"
-          @click="autoFillExcerpt"
-          @mouseover="autoFillHover"
-          @mouseleave="autoFillLeave"
-        />
+        <div ref="characterCounterRef" v-text="characterCounter" class="character-counter" />
+        <input type="button" value="AutoFill" @click="autoFillExcerpt" @mouseover="autoFillHover"
+          @mouseleave="autoFillLeave" />
       </div>
     </div>
 
     <div class="buttons wrapper">
-      <div class="button" @click="tester">test update</div>
       <transition-group name="savedbutton">
         <div class="button" key="1">
-          <input
-            type="button"
-            class="preview"
-            :value="
-              props.postOrEvent === 'createpost'
-                ? 'Preview Post'
-                : 'Preview Event'
-            "
-            @click.prevent="previewPost"
-          />
+          <input type="button" class="preview" :value="props.postOrEvent === 'createpost'
+            ? 'Preview Post'
+            : 'Preview Event'
+            " @click.prevent="previewPost" />
         </div>
         <div class="button" v-if="showSavedButton" key="2">
           <transition name="spinner">
             <div class="spinner-wrapper" v-if="saveingAnim">
-              <SpinnerChekMark
-                class="spinner"
-                :saveingCompleted="savingCompleted"
-                @animationCompleted="animationCompleted"
-              />
+              <SpinnerChekMark class="spinner" :saveingCompleted="savingCompleted"
+                @animationCompleted="animationCompleted" />
             </div>
           </transition>
 
-          <input
-            type="button"
-            class="save"
-            :value="
-              props.postOrEvent === 'createpost' ? 'Save Post' : 'Save Event'
-            "
-            @click.prevent="savePost"
-          />
+          <input type="button" class="save" :value="props.ePostOrEvent === 'createpost' ? 'Save Post' : 'Save Event'
+            " @click.prevent="savePost" />
         </div>
         <div class="button" key="3">
-          <input
-            type="button"
-            class="upload"
-            :value="
-              props.postOrEvent === 'createpost' ? 'Upload Post' : 'Post Event'
-            "
-            @click="uploadPost"
-          />
+          <input type="button" class="upload" :value="uploadLabel
+            " @click="uploadPost" />
         </div>
-        <div class="button" key="3" v-if="route.name === 'createpost'">
-          <input
-            type="button"
-            class="saved"
-            :value="
-              props.postOrEvent === 'createpost'
-                ? 'Saved Posts'
-                : 'Saved Events'
-            "
-            @click="emit('showSavedPosts')"
-            @closeSavedPosts="emit('closeSavedPosts')"
-          />
+        <div class="button" key="4" v-if="route.name === 'createpost'">
+          <input type="button" class="saved" :value="props.postOrEvent === 'createpost'
+            ? 'Saved Posts'
+            : 'Saved Events'
+            " @click="emit('showSavedPosts')" @closeSavedPosts="emit('closeSavedPosts')" />
+        </div>
+        <div class="button" key="5"
+          v-if="route.params.createEventSlug != undefined && route.params.createEventSlug != 'newEvent' || route.params.CreatePostSlug != undefined && route.params.CreatePostSlug != 'newPost'">
+          <input type="button" class="delete"
+            :value="'Delete ' + (props.postOrEvent === 'createpost' ? 'Post' : 'Event')" @click="deletePost" />
+
         </div>
       </transition-group>
     </div>
@@ -892,6 +867,7 @@ const tester = () => {
   background-color: rgba(0, 0, 0, 0.288);
   z-index: 1;
 }
+
 .modal {
   position: absolute;
   width: 100%;
@@ -906,6 +882,7 @@ const tester = () => {
   box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.363);
   z-index: 2;
 }
+
 .button {
   position: relative;
   height: 50px;
@@ -920,12 +897,14 @@ const tester = () => {
   font-weight: 900;
   border-radius: 5px;
   box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.363);
+
   .spinner-wrapper {
     position: absolute;
     background-color: rgba(255, 255, 255, 0.815);
     width: 100%;
     height: 100%;
     z-index: 10;
+
     .spinner {
       position: absolute;
       z-index: 10;
@@ -939,6 +918,7 @@ const tester = () => {
     }
   }
 }
+
 input[type="button"] {
   font-size: 1.5rem;
   height: 100%;
@@ -956,15 +936,30 @@ input[type="button"] {
   box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.363);
   padding: 5px;
   transition: all 200ms;
+
+
+  &.delete {
+    background-color: darkred;
+    color: var(--color-nav-bg);
+
+    &:hover {
+      background-color: rgb(196, 3, 3);
+    }
+  }
 }
+
 input[type="button"]:hover {
   background-color: var(--color-nav-bg-darker);
 }
+
 input[type="button"].saved:hover {
   background-color: green;
   color: var(--color-nav-bg);
 }
+
 .post-side-wrapper {
+  overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
   position: relative;
   border-radius: 5px;
@@ -972,26 +967,47 @@ input[type="button"].saved:hover {
   padding: 20px;
   padding-top: 40px;
   flex-direction: column;
-  overflow: hidden;
   gap: 20px;
   display: grid;
+
+  &::-webkit-scrollbar {
+    width: 20px;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 10px 10px var(--color-nav-bg-darker);
+    border: solid 5px transparent;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    box-shadow: inset 0 0 10px 10px var(--color-nav-txt-darker);
+    border: solid 5px transparent;
+    border-radius: 10px;
+  }
+
   &.event {
+
     display: grid;
     grid-template-rows: 1fr 3fr 1fr;
     gap: 30px;
     height: 100%;
     align-items: flex-start;
+
     .cover-preview-wrapper {
       display: grid;
       grid-template-rows: 1fr 2fr 1fr;
       grid-template-columns: 1fr;
       height: 260px;
+
       .cover-image-wrapper {
         position: relative;
         place-self: center;
       }
     }
   }
+
   .author {
     font-family: Roboto;
     font-weight: 700;
@@ -1004,11 +1020,13 @@ input[type="button"].saved:hover {
     border-radius: 0% 10%;
     background-color: var(--color-nav-txt-darker);
   }
+
   label {
     font-family: Chango;
     font-size: 1.3rem;
     width: 100%;
   }
+
   .wrapper {
     width: 100%;
     display: flex;
@@ -1019,12 +1037,14 @@ input[type="button"].saved:hover {
     font-family: Roboto Condensed;
     font-weight: 700;
   }
+
   .cover-preview-wrapper {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
+
     .btn-close {
       position: absolute;
       background: var(--color-nav-bg);
@@ -1036,18 +1056,22 @@ input[type="button"].saved:hover {
       box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.432);
       cursor: pointer;
       transition: all 50ms;
+
       &:hover {
         box-shadow: inset 0px 1px 1px 1px var(--color-nav-txt);
         background: var(--color-nav-txt-lighter);
+
         &:before,
         &:after {
           background-color: var(--color-nav-bg);
         }
       }
+
       &:active {
         box-shadow: inset 0px 1px 5px 2px var(--color-nav-txt);
       }
     }
+
     .btn-close:before,
     .btn-close:after {
       position: absolute;
@@ -1060,12 +1084,15 @@ input[type="button"].saved:hover {
       transform-origin: top left;
       content: "";
     }
+
     .btn-close:after {
       transform: rotate(-45deg) translate(-50%, -50%);
     }
+
     .btn-close:after:hover {
       transform: rotate(-90deg) translate(-50%, -50%);
     }
+
     .cover-image-wrapper {
       border: solid 2px var(--color-nav-txt);
       border-radius: 20px;
@@ -1073,15 +1100,18 @@ input[type="button"].saved:hover {
       max-width: 90%;
       height: 200px;
       max-height: 200px;
+
       img {
         width: 120%;
         height: 120%;
       }
     }
   }
+
   .excerpt-wrapper {
     display: flex;
     gap: 10px;
+
     textarea {
       height: 100%;
       width: 100%;
@@ -1096,26 +1126,32 @@ input[type="button"].saved:hover {
       resize: none;
       padding: 10px;
     }
+
     textarea::-webkit-scrollbar {
       width: 20px;
       border-radius: 10px;
     }
+
     textarea::-webkit-scrollbar-track {
       box-shadow: inset 0 0 10px 10px var(--color-nav-bg-darker);
       border: solid 5px transparent;
       border-radius: 10px;
     }
+
     textarea::-webkit-scrollbar-thumb {
       box-shadow: inset 0 0 10px 10px var(--color-nav-txt-darker);
       border: solid 5px transparent;
       border-radius: 10px;
     }
+
     textarea:focus-visible {
       outline: var(--color-nav-txt);
     }
-    textarea > div > div:last-child {
+
+    textarea>div>div:last-child {
       scroll-snap-align: end;
     }
+
     .excerpt-counter {
       width: 100%;
       display: flex;
@@ -1124,6 +1160,7 @@ input[type="button"].saved:hover {
       justify-content: space-between;
       padding: 0 10px;
       font-size: 1.2rem;
+
       .autofill-hover {
         font-size: 1rem;
         position: absolute;
@@ -1142,60 +1179,72 @@ input[type="button"].saved:hover {
       }
     }
   }
+
   .buttons {
     .button {
       width: 100%;
 
       input {
         width: 100%;
+
         &:focus-visible {
           outline: 10px solid var(--color-nav-txt);
         }
       }
+
       input:active {
         box-shadow: inset 1px 2px 2px 2px rgba(0, 0, 0, 0.322);
       }
+
       .save {
-        background-color: rgb(110, 0, 0);
+        background-color: var(--color-nav-txt-darker);
         color: var(--color-nav-bg);
         top: 0;
         left: 0;
         position: relative;
         align-self: center;
       }
+
       .save:hover {
-        background-color: rgb(139, 1, 1);
+        background-color: var(--color-nav-txt);
       }
+
       .save:focus-visible {
         background-color: rgb(0, 116, 48);
       }
+
       .upload:hover {
-        background-color: var(--color-nav-txt-darker);
-        color: var(--color-nav-bg);
+        background-color: rgb(0, 116, 48);
+        color: var(--color-nav-bg)
       }
     }
   }
 }
+
 .autofill-enter-active,
 .autofill-leave-active {
   transform: translateY(0px);
   opacity: 1;
   transition: all 0.3s;
 }
+
 .autofill-enter-from,
 .autofill-leave-to {
   transform: translateY(-4px);
   opacity: 0;
 }
+
 .spinner-enter-active,
 .spinner-leave-active {
   opacity: 1;
   transition: all 0.3s;
 }
+
 .spinner-enter-from,
 .spinner-leave-to {
   opacity: 0;
 }
+
 .savedbutton-move,
 .savedbutton-enter-active,
 .savedbutton-leave-active {
@@ -1203,50 +1252,62 @@ input[type="button"].saved:hover {
   opacity: 1;
   transition: all 0.7s;
 }
+
 .savedbutton-move,
 .savedbutton-enter-active,
 .savedbutton-leave-active {
   transition: all 0.5s cubic-bezier(0.15, 0.66, 0.32, 1.25);
 }
+
 .savedbutton-enter-from,
 .savedbutton-leave-to {
   opacity: 0;
   transform: translateX(50px);
 }
+
 .savedbutton-leave-active {
   position: absolute;
 }
+
 @media (max-height: 794px) {
   .post-side-wrapper {
     display: grid;
+
     .cover-preview-wrapper {
       height: 150px;
+
       .cover-image-wrapper {
         width: 40%;
       }
     }
+
     .calendar-wrapper {
       flex-direction: column;
       margin-bottom: 0;
     }
+
     .cover-preview-wrapper {
       .cover-image-wrapper {
         width: 70%;
       }
     }
+
     .excerpt-wrapper {
       position: relative;
       width: 100%;
       display: flex;
       margin-bottom: 0;
+
       .excerpt-textarea {
         font-size: 0.5rem;
         height: 70px;
+
         input {
           font-size: 0.8rem;
         }
       }
     }
+
     .buttons {
       .button {
         input {
@@ -1256,14 +1317,17 @@ input[type="button"].saved:hover {
     }
   }
 }
+
 .post-side-wrapper {
   display: grid;
   gap: 5px;
+
   .cover-preview-wrapper {
     .cover-image-wrapper {
       height: 100px;
     }
   }
+
   &.event {
     .cover-preview-wrapper {
       .cover-image-wrapper {
@@ -1271,37 +1335,45 @@ input[type="button"].saved:hover {
       }
     }
   }
+
   .calendar-wrapper {
     flex-direction: column;
     width: 300px;
     margin-bottom: 0;
   }
+
   .cover-preview-wrapper {
     .cover-image-wrapper {
       width: 70%;
     }
   }
+
   .excerpt-wrapper {
     position: relative;
     width: 100%;
     display: flex;
     margin-bottom: 0;
+
     .excerpt-counter {
       input {
         font-size: 1rem;
       }
     }
+
     .excerpt-textarea {
       font-size: 1rem;
       height: 70px;
+
       input {
         font-size: 9rem;
       }
     }
   }
+
   .buttons {
     .button {
       height: 50px;
+
       input {
         font-size: 1.2rem;
       }
@@ -1315,10 +1387,12 @@ input[type="button"].saved:hover {
     font-size: 1rem;
   }
 }
+
 @media (min-width: 600px) and (max-width: 1356px) {
   .post-side-wrapper {
     display: fle;
     width: 100%;
+
     label {
       font-size: 2rem;
       left: 0;

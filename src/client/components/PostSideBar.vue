@@ -5,7 +5,6 @@ import { useRoute } from "vue-router";
 import moment from "moment";
 import $ from "jquery";
 import "jquery";
-import "firebase/compat/auth";
 
 const route = useRoute();
 
@@ -39,22 +38,17 @@ sideBarPosts.value = sideBarPosts.value.filter(
 );
 
 sideBarPosts.value = sideBarPosts.value.slice(0, 3);
-onMounted(() => {});
+onMounted(() => { });
 </script>
 
 <template>
   <div class="side-container" ref="sidebar">
     <div class="side-wrapper">
-      <div class="blog-posts"
-           v-for="latest in sideBarPosts">
+      <div class="title">Latest Posts</div>
+      <div class="blog-posts" v-for="latest in sideBarPosts">
         <div class="posts-card">
-          <a
-            ><router-link :to="latest._id"
-                          key="latest.id"
-                          class="posts-permalink"
-            >
-            </router-link
-          ></a>
+          <a><router-link :to="latest._id" key="latest.id" class="posts-permalink">
+            </router-link></a>
           <img class="posts-featuredimage" :src="latest.coverImage" />
           <div class="posts-text">
             <div class="posts-title">{{ latest.postTitle }}</div>
@@ -83,16 +77,35 @@ onMounted(() => {});
 
   .side-wrapper {
     position: sticky;
+
+    .title {
+      background-color: var(--color-nav-txt-darker);
+      padding-left: 10px;
+      font-family: Roboto Condensed;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--color-nav-bg);
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      height: 40px;
+      line-height: 40px;
+      border-radius: 4px 4px 0 0;
+      clip-path: inset(2 round 1px);
+
+    }
+
     .blog-posts {
       position: relative;
       display: flex;
       color: var(--color-nav-txt);
       transition: all 0.1s ease-in-out;
+
       &:hover {
         color: var(--color-nav-bg);
 
         background-color: var(--color-nav-txt);
       }
+
       .posts-card {
         position: relative;
         height: 100%;
@@ -100,6 +113,7 @@ onMounted(() => {});
         display: flex;
         flex-direction: row;
         gap: 10px;
+
         &::after {
           content: "";
           position: absolute;
@@ -112,6 +126,7 @@ onMounted(() => {});
           border-radius: 30px;
           background-color: var(--color-nav-txt);
         }
+
         a {
           position: absolute;
           width: 100%;
@@ -126,6 +141,7 @@ onMounted(() => {});
           height: 100px;
           border-radius: 15px;
         }
+
         .posts-text {
           padding: 20px;
           line-height: 1;
@@ -133,14 +149,17 @@ onMounted(() => {});
           flex-direction: column;
           gap: 3px;
           font-family: Roboto Condensed;
+
           .posts-title {
             font-size: 1.4rem;
             font-weight: 600;
             display: flex;
           }
+
           .posts-date {
             font-size: 0.8rem;
           }
+
           .posts-author {
             font-size: 0.7rem;
           }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, Transition } from "vue";
 import axios from "axios";
 import router from "../../router";
 import editButton from "../../components/icons/edit.vue";
@@ -213,9 +213,11 @@ const onWheel = (e: any) => {
   if (isScrolling.value || !eventsArray.value || eventsArray.value.length === 0)
     return;
 
-  const direction = e.deltaY > 0 ? 1 : -1;
+  const direction = e.deltaY < 0 ? 1 : -1;
   const activeIndex = eventsArray.value.findIndex((event: any) => event.active);
 
+  const eventEl = document.querySelector(".event");
+  const eventWidth = (eventEl as HTMLElement)?.offsetWidth || 300;
   // Wrap-around logic
   let nextIndex = activeIndex + direction;
   if (nextIndex < 0) nextIndex = eventsArray.value.length - 1;
@@ -229,11 +231,11 @@ const onWheel = (e: any) => {
   eventsArray.value[nextIndex].active = true;
 
   // Calculate new translateX offset
-  const offsetX = -(nextIndex * 200); // adjust 200 if your event element width is different
-
+  const offsetX = -(nextIndex * eventWidth);
+  console.log(eventWidth);
   // Animate scroll
   gsap.to(".event", {
-    duration: 0.8,
+    duration: 0.4,
     ease: "back.out(1.7)",
     x: offsetX,
   });
@@ -241,25 +243,27 @@ const onWheel = (e: any) => {
   // Animate active vs non-active styles
   setTimeout(() => {
     gsap.to(".event.active", {
-      duration: 0.6,
-      scale: 1,
-      webkitFilter: "blur(0px)",
-      height: "80%",
-      width: "60%",
+      duration: 0.2,
+      scale: 1.1,
+      filter: "blur(0px)",
+      zIndex: 10,
+      ease: "power2.out"
     });
+
+    // Scale down and blur all others
     gsap.to(".event:not(.active)", {
-      duration: 0.6,
-      scale: 1,
-      webkitFilter: "blur(10px)",
-      height: "50%",
-      width: "30%",
+      duration: 0.2,
+      scale: 0.8,
+      filter: "blur(8px)",
+      zIndex: 1,
+      ease: "power2.out"
     });
   }, 50);
 
   // Re-enable scrolling after animation completes
   setTimeout(() => {
     isScrolling.value = false;
-  }, 700);
+  }, 400);
 };
 
 
@@ -271,27 +275,57 @@ onMounted(() => {
   axios
     .get("/api/content/events/")
     .then((res) => {
-      const topThreeEvents = [...res.data]
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .slice(0, 5); eventsArray.value = topThreeEvents;
-    })
-    .then(() => {
-      eventsArray.value.sort(function compare(a: any, b: any) {
-        var dateA = new Date(a.eventDate) as any;
-        var dateB = new Date(b.eventDate) as any;
+      const now = new Date();
 
-        return dateA - dateB;
+      // Enrich events with outDate flag
+      const enrichedEvents = res.data.map((event: any) => {
+        const eventDate = new Date(event.eventDate);
+        return {
+          ...event,
+          outDate: eventDate < now,
+        };
       });
-      eventsArray.value[0].active = true;
+
+      // Sort all events by eventDate (nearest first)
+      const sortedEvents = enrichedEvents.sort(
+        (a: any, b: any) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()
+      );
+
+      // Find the first upcoming event
+      const firstUpcomingIndex = sortedEvents.findIndex((event: any) => !event.outDate);
+
+      // If there's an upcoming event, move it to the front
+      if (firstUpcomingIndex > 0) {
+        const [upcomingEvent] = sortedEvents.splice(firstUpcomingIndex, 1);
+        sortedEvents.unshift(upcomingEvent);
+      }
+
+      // Take top 5 events
+      const topEvents = sortedEvents.slice(0, 5);
+      eventsArray.value = topEvents;
     })
     .then(() => {
-      gsap.to(".event.active", {
-        scale: 1,
-        webkitFilter: "blur(" + 0 + "px)",
-        height: "80%",
-        width: "60%",
-      });
+      if (eventsArray.value && eventsArray.value.length > 0) {
+        eventsArray.value[0].active = true;
+        setTimeout(() => {
+          gsap.to(".event.active", {
+            scale: 1.1,
+            webkitFilter: "blur(0px)",
+          });
+        }, 0);
+      }
+    })
+    .then(() => {
+      // Animate past events after delay
+      setTimeout(() => {
+        eventsArray.value.forEach((event: any) => {
+          if (event.outDate) {
+            event.outDateAnim = true;
+          }
+        });
+      }, 700);
     });
+
 });
 </script>
 
@@ -300,7 +334,18 @@ onMounted(() => {
     <transition-group :name="eventTransition" tag="div" class="events-wrapper" @wheel.prevent="onWheel"
       @mouseover="showScroll = true" @mouseleave="showScroll = false">
       <template v-for="event in eventsArray" :key="event._id">
-        <div class="event" ref="eventRef" :class="event.active ? 'active' : ''">
+        <div :class="['event', { active: event.active }]" ref="eventRef">
+          <Transition name="fade-scale">
+            <div class="out-of-date-bg" v-if="event.outDateAnim">
+            </div>
+          </Transition>
+          <Transition name="OUD">
+
+            <div :class="['out-of-date']" v-if="event.outDateAnim">
+              Event Ended
+            </div>
+          </Transition>
+
           <div class="edit-button" v-if="showEditButton" @click="editEvent(event._id)">
             <editButton class="editButton" />
           </div>
@@ -365,19 +410,59 @@ onMounted(() => {
     align-items: center;
     flex-wrap: wrap;
     font-size: 2rem;
-    gap: 10px;
 
     .event {
-      z-index: 1;
       border-radius: 20px;
       overflow: hidden;
       background-color: var(--color-nav-bg);
       display: flex;
       flex-direction: column;
       box-shadow: 0px 0px 3px 2px rgba(0, 0, 0, 0.363);
-      width: 40%;
-      height: 70%;
+      width: 400px;
+      height: 300px;
       filter: blur(5px);
+
+      &:not(.active) {
+        scale: 0.9;
+      }
+
+      &.active {
+        z-index: 2;
+      }
+
+      .out-of-date-bg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        opacity: 0.3;
+        z-index: 1;
+      }
+
+
+      .out-of-date {
+        content: "Event Ended";
+        position: absolute;
+        width: 500px;
+        height: 40px;
+        background: var(--color-nav-txt-darker);
+        color: white;
+        font-weight: bold;
+        font-size: 30px;
+        color: var(--color-nav-bg-darker);
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: rotate(45deg);
+        transform-origin: center;
+        top: 50%;
+        left: 50%;
+        margin-left: -250px;
+        margin-top: -20px;
+        z-index: 2;
+        pointer-events: none;
+      }
 
       .edit-button {
         position: absolute;
@@ -556,5 +641,21 @@ onMounted(() => {
 .showScroll-leave-to {
   opacity: 0;
   transform: translateY(-20px);
+}
+
+.fade-scale-enter-from {
+  opacity: 0 !important;
+  /* force override base */
+  transform: scale(0);
+}
+
+.fade-scale-enter-to {
+  opacity: 0.3;
+  /* end at the same as base */
+  transform: scale(1);
+}
+
+.fade-scale-enter-active {
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 </style>

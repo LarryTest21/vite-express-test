@@ -135,10 +135,16 @@ export async function uploadPost(req: Request, res: Response) {
           const result = await blogPost.create(blogPostData);
           return res.status(200).json({ success: true, data: result });
         } else {
-          console.log("Post already exists, updating instead");
-          return res
-            .status(205)
-            .json({ success: false, message: "Post already exists" });
+          const updatedPost = await blogPost.updateOne(
+            { postID: postData.postID },
+            { $set: blogPostData }
+          );
+
+          return res.status(200).json({
+            success: true,
+            message: "Post updated successfully",
+            data: updatedPost,
+          });
         }
       } catch (err) {
         console.error("Error uploading blog post:", err);
@@ -277,7 +283,7 @@ export async function updateSubscribers(req: Request, res: Response) {
     }
 
     // Update the user with the new post entry
-    const result = await User.updateOne(
+    const result = await User.findOneAndUpdate(
       { "subscribes.subscribeTo": postAuthorID },
       {
         $push: {
@@ -286,11 +292,122 @@ export async function updateSubscribers(req: Request, res: Response) {
             isRead: false,
           },
         },
-      }
+      },
+      { new: true, arrayFilters: [{ "elem.subscribeTo": postAuthorID }] } // or { new: true } if using Mongoose
     );
 
     return res.status(200).json({ success: true, data: result });
   } catch (err) {
     return res.status(400).json({ success: false, error: err });
+  }
+}
+
+export async function deletePost(req: Request, res: Response) {
+  try {
+    const postID = req.params.id;
+    const postType = req.body.type;
+
+    if (postType === "event") {
+      const result = await eventPost.deleteOne({ _id: postID });
+      if (result.deletedCount === 0) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Event not found" });
+      }
+      return res
+        .status(200)
+        .json({ success: true, message: result.deletedCount });
+    }
+
+    if (postType === "post") {
+      const result = await blogPost.deleteOne({ _id: postID });
+      if (result.deletedCount === 0) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Post not found" });
+      }
+      return res.status(200).json({ success: true, message: "Post deleted" });
+    }
+
+    return res.status(400).json({ success: false, error: "Invalid post type" });
+  } catch (err) {
+    console.error("Delete error:", err);
+    return res.status(500).json({ success: false, error: "Server error" });
+  }
+}
+
+export async function modifySubscription(req: Request, res: Response) {
+  const { subscriber, postAuthorID, postID, action } = req.body;
+
+  try {
+    const user = await User.findById(subscriber);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    // Find the subscription entry for the given author
+    const subscriptionIndex = user.subscribes.findIndex(
+      (sub) => sub.subscribeTo === postAuthorID
+    );
+
+    if (action === "subscribe") {
+      const allBlogPosts = await blogPost.find({ postAuthorID: postAuthorID });
+
+      const latestBlogPost = allBlogPosts
+        .filter((post) => post.postDate !== undefined)
+        .sort((a, b) => {
+          const dateA = new Date(a.postDate!);
+          const dateB = new Date(b.postDate!);
+          return dateB.getTime() - dateA.getTime();
+        })[0];
+      console.log(latestBlogPost);
+      // Case 1: Not subscribed yet — create new subscription
+      if (subscriptionIndex === -1) {
+        user.subscribes.push({
+          subscribeTo: postAuthorID,
+          posts: [{ postID: latestBlogPost.postID, isRead: false }],
+        });
+        await user.save();
+        return res.status(200).json({ success: true, data: user });
+      }
+
+      // Case 2: Already subscribed — check for duplicate post
+      const existingPosts = user.subscribes[subscriptionIndex].posts;
+      const postExists = existingPosts.some(
+        (post: any) => post.postID === postID
+      );
+
+      if (postExists) {
+        return res.status(409).json({
+          success: false,
+          error: "Duplicate postID for this subscription",
+        });
+      }
+
+      // Add new post to existing subscription
+      user.subscribes[subscriptionIndex].posts.push({ postID, isRead: false });
+      await user.save();
+      return res.status(200).json({ success: true, data: user });
+    }
+
+    if (action === "unsubscribe") {
+      // Case: Not subscribed — nothing to remove
+      if (subscriptionIndex === -1) {
+        return res.status(400).json({
+          success: false,
+          error: "User is not subscribed to this author",
+        });
+      }
+
+      // Remove the subscription entry
+      user.subscribes.splice(subscriptionIndex, 1);
+      await user.save();
+      return res.status(200).json({ success: true, data: user });
+    }
+
+    // Invalid action
+    return res.status(400).json({ success: false, error: "Invalid action" });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err });
   }
 }

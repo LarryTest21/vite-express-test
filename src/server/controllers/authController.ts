@@ -786,7 +786,8 @@ export async function unSubscribeToAuthor(req: Request, res: Response) {
       .then((userSubscribers) => {
         User.findOneAndUpdate(
           { _id: subscriber },
-          { $set: { subscribes: userSubscribers } }
+          { $set: { subscribes: userSubscribers } },
+          { returnDocument: "after" }
         ).then((result) => {
           res.status(200).json({ success: true, data: result });
         });
@@ -798,3 +799,5 @@ export async function unSubscribeToAuthor(req: Request, res: Response) {
     res.status(400).json({ success: false, error: err });
   }
 }
+
+

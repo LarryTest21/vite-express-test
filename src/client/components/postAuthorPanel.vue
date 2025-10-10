@@ -35,6 +35,8 @@ const alreadySubscribed = ref(false);
 const subscriber = userData().data;
 
 const subscribe = (authorID: any) => {
+
+
   const data = {
     subscribeTo: authorID,
     subscriber: subscriber._id,
@@ -43,21 +45,56 @@ const subscribe = (authorID: any) => {
 
   if (alreadySubscribed.value) {
     axios.post("/api/user/refresh").then((res) => {
-      axios.post("/api/unsubscribe", data).then((result) => {
-        const newSubscribes = userData().data.subscribes.filter(
+      // axios.post("/api/unsubscribe", data).then((result) => {
+      //   const newSubscribes = userData().data.subscribes.filter(
+      //     (obj: any) => obj.subscribeTo !== authorID
+      //   );
+      //   userData().data.subscribes = newSubscribes;
+      //   alreadySubscribed.value = false;
+      //   console.log(result)
+      // });
+
+      const modifyData = {
+        action: 'unsubscribe',
+        subscriber: subscriber._id,
+        postAuthorID: authorID
+      }
+      axios.post('/api/modify-subscription', modifyData).then((result) => {
+        const newSubscribes = subscribes.value.filter(
           (obj: any) => obj.subscribeTo !== authorID
         );
+        subscribes.value = newSubscribes;
         userData().data.subscribes = newSubscribes;
         alreadySubscribed.value = false;
-      });
+        console.log(result)
+      }).catch((err) => {
+        console.log(err);
+      });;
+
     });
   } else {
-    axios.post("/api/user/refresh").then((res) => {
-      axios.post("/api/subscribe", data).then((result) => {
-        subscribes.value.push(data);
+    axios.post("/api/user/refresh").then(() => {
+      // axios.post("/api/subscribe", data).then((result) => {
+      //   subscribes.value.push(data);
+      //   alreadySubscribed.value = true;
+      //   console.log(result);
+      // });
+      const modifyData = {
+        action: 'subscribe',
+        subscriber: subscriber._id,
+        postAuthorID: authorID
+      }
+
+      axios.post('/api/modify-subscription', modifyData).then((result) => {
+        subscribes.value.push({ subscribeTo: authorID });
         alreadySubscribed.value = true;
         console.log(result);
+      }).catch((err) => {
+        console.log(err);
       });
+
+
+
     });
   }
 };
@@ -81,16 +118,15 @@ onMounted(() => {
           props.postAuthorData!.firstName + " " + props.postAuthorData!.lastName
         }}
       </div>
-      <div
-        :class="alreadySubscribed ? 'subscribe' : 'subscribe not'"
-        @click="subscribe(props.postAuthorData!._id)"
-      >
-        <TransitionGroup name="slide" mode="out-in">
-          <span :key="alreadySubscribed ? 'yes' : 'no'" class="text-slide">
-            {{ alreadySubscribed ? "Subscribed" : "Subscribe" }}
-          </span>
-          <YesIcon />
-        </TransitionGroup>
+      <div :class="alreadySubscribed ? 'subscribe' : 'subscribe not'" @click="subscribe(props.postAuthorData!._id)">
+        <Transition name="slide" mode="out-in">
+          <div :key="alreadySubscribed ? 'yes' : 'no'">
+            <span class="text-slide">
+              {{ alreadySubscribed ? "Subscribed" : "Subscribe" }}
+            </span>
+            <YesIcon />
+          </div>
+        </Transition>
       </div>
     </div>
   </div>
@@ -109,12 +145,15 @@ onMounted(() => {
   gap: 20px;
   padding: 10px;
   box-shadow: 4px 4px 5px 0px rgba(0, 0, 0, 0.3);
+
   .profilepic {
     position: relative;
     width: 100px;
   }
+
   .name-subscribe {
     color: var(--color-nav-txt);
+
     .subscribe {
       font-size: 1.5rem;
       border: 1px solid transparent;
@@ -138,15 +177,18 @@ onMounted(() => {
         background-color: rgb(128, 9, 0);
         color: var(--color-nav-bg);
       }
+
       &.not {
         color: var(--color-nav-txt);
         background-color: var(--color-nav-bg);
       }
+
       &.not:hover {
         background-color: green;
         color: var(--color-nav-bg);
       }
     }
+
     .author-name {
       position: relative;
       font-family: Roboto Condensed;
@@ -166,6 +208,7 @@ onMounted(() => {
   transform: translateX(100%);
   opacity: 0;
 }
+
 .slide-enter-to {
   transform: translateX(0);
   opacity: 1;
@@ -175,6 +218,7 @@ onMounted(() => {
   transform: translateX(0);
   opacity: 1;
 }
+
 .slide-leave-to {
   transform: translateX(100%);
   opacity: 0;

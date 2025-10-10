@@ -3,7 +3,7 @@ import { ref, watch } from "vue";
 import { modalActive } from "../store/modalActive";
 import { modalButtonActive } from "../store/modalButtonActive";
 
-const emit = defineEmits(['emitAnswer', 'emitSaved', "closeModal"]);
+const emit = defineEmits(['emitAnswer', 'emitSaved', "closeModal", "emitDeleteEvent"]);
 
 const props = defineProps({
   modalAnimation: Boolean,
@@ -23,12 +23,17 @@ const props = defineProps({
   userInfo: Object,
 });
 
+watch(() => props.modalAnimation, (newv) => {
+  console.log(newv)
+})
+
+
 const spinnerColor = ref(props.spinnerColor || 'var(--color-nav-txt)');
 const modalLoadingMessageColor = ref(
   props.modalLoadingMessageColor || 'var(--color-nav-txt)'
 ) as any
 
-watch(()=> props.modalLoadingMessageColor, (newColor)=> {
+watch(() => props.modalLoadingMessageColor, (newColor) => {
   modalLoadingMessageColor.value = newColor;
 })
 const modalSaved = props.modalSaved;
@@ -45,6 +50,12 @@ const emitAnswer = (target: any) => {
 const emitSaved = (target: any) => {
   emit("emitSaved", target);
 };
+
+
+const emitDeleteEvent = (target: any) => {
+  emit("emitDeleteEvent", target);
+};
+
 </script>
 
 <template>
@@ -76,15 +87,13 @@ const emitSaved = (target: any) => {
     <TransitionGroup name="fade">
       <div class="wrapper" key="lorem1" v-if="modalLoadingMessage">
         <transition name="fade" mode="out-in">
-          <p class="modal-message" :key="modalLoadingMessage" v-if="modalLoadingMessage"
-          >
+          <p class="modal-message" :key="modalLoadingMessage" v-if="modalLoadingMessage">
             {{ props.modalLoadingMessage }}
           </p>
         </transition>
 
         <transition name="fade" mode="out-in">
-          <div class="modal-loading" :key="props.modalButtonMessage?.toString() || 10" v-if="props.modalAnimation"
-          >
+          <div class="modal-loading" :key="props.modalButtonMessage?.toString() || 10" v-if="props.modalAnimation">
             <span class="loader"></span>
 
             <div class="lds-roller" key="lorem3">
@@ -129,19 +138,65 @@ const emitSaved = (target: any) => {
       <div class="modal-saved-post" v-if="modalSaved">
         <p>Would you like to load saved post?</p>
         <div class="buttons">
-          <input type="button" value="Yes" class="yes" @click.prevent="emitSaved(1)"
-          />
-          <input type="button" value="No" class="no" @click.prevent="emitSaved(2)"
-          />
-          <input type="button" value="Delete" class="deelete" @click.prevent="emitSaved(3)"
-          />
+          <input type="button" value="Yes" class="yes" @click.prevent="emitSaved(1)" />
+          <input type="button" value="No" class="no" @click.prevent="emitSaved(2)" />
+          <input type="button" value="Delete" class="deelete" @click.prevent="emitSaved(3)" />
         </div>
       </div>
     </transition>
+
+
   </div>
+
 </template>
 
 <style lang="scss" scoped>
+.loader {
+  width: 48px;
+  height: 48px;
+  border-width: 3px;
+  border-style: dashed solid solid dotted;
+  border-color: v-bind(spinnerColor) v-bind(spinnerColor) transparent v-bind(spinnerColor);
+  border-radius: 50%;
+  box-sizing: border-box;
+  animation: rotation 1.5s linear infinite;
+}
+
+.loader::after {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  left: 20px;
+  top: 31px;
+  border: 10px solid transparent;
+  border-right-color: v-bind(spinnerColor);
+  transform: rotate(-40deg);
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  75% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(360deg);
+    opacity: 0;
+  }
+}
+
 .modal::before {
   position: absolute;
   content: "";
@@ -189,16 +244,18 @@ button:active {
   flex-direction: column;
   z-index: 70;
   font-size: v-bind(fontSize);
+
   .user-action {
     position: relative;
     width: 100%;
-    padding:10px;
-    display:flex;
+    padding: 10px;
+    display: flex;
     flex-direction: column;
     align-items: center;
     font-size: 1rem;
     font-weight: 900;
-    gap:7px;
+    gap: 7px;
+
     .text {
       text-align: center;
       font-family: Chango;
@@ -213,14 +270,17 @@ button:active {
       gap: 10px;
       align-self: center;
     }
+
     .name {
       font-size: 1rem;
       font-family: Roboto Condensed;
     }
+
     .pfp {
       height: 40px;
     }
   }
+
   .wrapper {
     position: relative;
     height: 100%;
@@ -236,9 +296,9 @@ button:active {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
     color: var(--color-nav-bg);
     color: v-bind(modalLoadingMessageColor);
+    margin-bottom:30px;
   }
 
   .modal-content {
@@ -260,52 +320,6 @@ button:active {
     scale: v-bind(loadingScale);
   }
 
-  .loader {
-    width: 48px;
-    height: 48px;
-    border-width: 3px;
-    border-style: dashed solid solid dotted;
-    border-color: v-bind(spinnerColor) v-bind(spinnerColor) transparent
-      v-bind(spinnerColor);
-    border-radius: 50%;
-    box-sizing: border-box;
-    animation: rotation 1.5s linear infinite;
-  }
-
-  .loader::after {
-    content: "";
-    box-sizing: border-box;
-    position: absolute;
-    left: 20px;
-    top: 31px;
-    border: 10px solid transparent;
-    border-right-color: v-bind(spinnerColor);
-    transform: rotate(-40deg);
-  }
-
-  @keyframes rotation {
-    0% {
-      transform: rotate(0deg);
-      opacity: 0;
-    }
-
-    25% {
-      opacity: 1;
-    }
-
-    50% {
-      opacity: 1;
-    }
-
-    75% {
-      opacity: 1;
-    }
-
-    100% {
-      transform: rotate(360deg);
-      opacity: 0;
-    }
-  }
 
   .modal-button {
     position: absolute;
@@ -326,6 +340,8 @@ button:active {
   }
 
   .modal-question {
+    font-family: Chango;
+    font-size: 2rem;
     position: absolute;
     height: 100%;
     padding: 5px;
@@ -404,5 +420,6 @@ button:active {
   .fade-leave-to {
     opacity: 0;
   }
+
 }
 </style>

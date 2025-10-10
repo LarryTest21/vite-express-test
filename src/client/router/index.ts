@@ -3,9 +3,8 @@ import { createRouter, createWebHistory } from "vue-router";
 import "jquery";
 import { onMountApp } from "../store/onMountApp";
 import { isAdmin } from "../store/isAdmin";
-import { signedIn } from "../store/signedIn"
+import { signedIn } from "../store/signedIn";
 import { useStoreAuth } from "../store/userStoreAuth";
-
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,7 +43,9 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () =>
-        import(/* webpackChunkName: "EditPostsList" */ "../views/EditPostsList.vue"),
+        import(
+          /* webpackChunkName: "EditPostsList" */ "../views/EditPostsList.vue"
+        ),
     },
     {
       path: "/AdminPage",
@@ -57,7 +58,7 @@ const router = createRouter({
         import(/* webpackChunkName: "AdminPage" */ "../views/AdminPage.vue"),
     },
     {
-      path: "/CreatePost/:createSlug",
+      path: "/CreatePost/:CreatePostSlug",
       name: "createpost",
       beforeEnter: guardRouteUser,
 
@@ -65,19 +66,23 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () =>
-        import(/* webpackChunkName: "CreatePost" */ "../views/CreatePostNew.vue"),
+        import(
+          /* webpackChunkName: "CreatePost" */ "../views/CreatePostNew.vue"
+        ),
     },
-{
-    path: "/CreateEvent/:createEvent",
-    name: "createevent",
-    beforeEnter: guardRouteUser,
+    {
+      path: "/CreateEvent/:createEventSlug",
+      name: "createevent",
+      beforeEnter: guardRouteUser,
 
-    // route level code-splitting
-    // this generates a separate chunk (About.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "CreateEvent" */ "../views/CreatePostNew.vue"),
-  },
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () =>
+        import(
+          /* webpackChunkName: "CreateEvent" */ "../views/CreatePostNew.vue"
+        ),
+    },
 
     {
       path: "/Profile",
@@ -186,32 +191,32 @@ const router = createRouter({
       path: "/transition/",
       name: "logintest",
       component: () =>
-        import(/* webpackChunkName: "BlogPost" */ "../views/TransitionTest.vue"),
+        import(
+          /* webpackChunkName: "BlogPost" */ "../views/TransitionTest.vue"
+        ),
     },
   ],
+  
 });
-
 
 router.afterEach((to, from) => {
   const mountApp = onMountApp();
   const isLoadingCheck = isLoading();
 
   if (to.path === "/news" || to.path === "/bsl") {
-
   } else {
-    isLoadingCheck.state = true
+    isLoadingCheck.state = true;
 
     setTimeout(() => {
       if (mountApp.state) {
-        isLoadingCheck.state = false
+        isLoadingCheck.state = false;
       }
     }, 300);
   }
 });
 
 router.beforeEach((to, from, next) => {
-
-  const isAuthenticated = signedIn()
+  const isAuthenticated = signedIn();
 
   if (
     (to.name == "profile" && !isAuthenticated) ||
@@ -226,33 +231,29 @@ router.beforeEach((to, from, next) => {
   } else next();
 });
 
-
 async function guardRouteUser(to: any, from: any, next: any) {
-    const storeAuth = useStoreAuth()
-    await storeAuth.init()
-    
-    if (storeAuth.clearance === "admin" || storeAuth.clearance === "regular") {
-      next()
-    } else {
-      next('/')
-    }
+  const storeAuth = useStoreAuth();
+  await storeAuth.init();
 
+  if (storeAuth.clearance === "admin" || storeAuth.clearance === "regular") {
+    next();
+  } else {
+    next("/");
+  }
 }
 
 async function guardRouteAdmin(to: any, from: any, next: any) {
-
-  const isAdminCheck = isAdmin()
+  const isAdminCheck = isAdmin();
 
   if (isAdminCheck.state) {
-    next()
+    next();
   } else {
-
-    const storeAuth = useStoreAuth()
-    await storeAuth.init()
+    const storeAuth = useStoreAuth();
+    await storeAuth.init();
     if (storeAuth.clearance) {
-      next()
+      next();
     } else {
-      next('/')
+      next("/");
     }
   }
 }

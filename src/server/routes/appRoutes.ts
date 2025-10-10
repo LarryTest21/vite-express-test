@@ -37,7 +37,9 @@ import {
   updateEvent,
   getPostAuthorName,
   updateAuthor,
-  updateSubscribers
+  updateSubscribers,
+  deletePost,
+  modifySubscription
 } from "../controllers/contentController";
 import {
   authenticateLogin,
@@ -104,7 +106,7 @@ router.get("/postAuthor/:id", getPostAuthorName);
 //Subscribe to Post Author
 router.post("/subscribe/", authenticateRoutes, subscribeToAuthor);
 router.post("/unsubscribe/", authenticateRoutes, unSubscribeToAuthor);
-
+router.post("/modify-subscription/", authenticateRoutes, modifySubscription);
 
 //Get posts News
 router.get("/content/newsposts/", getAllNews);
@@ -121,7 +123,8 @@ router.post("/content/updateSubscribers", authenticateRoutes, updateSubscribers)
 //Save Posts
 router.post("/user/savePost/", authenticateRoutes, savePost);
 router.post("/user/deleteSavedPost/", authenticateRoutes, deleteSavedPost);
-
+//Delete Post
+router.post("/deletePost/:id", authenticateRoutes, deletePost); 
 //Edit Event
 router.post("/editPost/:id", authenticateRoutes, updateEvent);
 
