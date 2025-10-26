@@ -23,7 +23,8 @@ import {
   savePost,
   deleteSavedPost,
   subscribeToAuthor,
-  unSubscribeToAuthor
+  unSubscribeToAuthor,
+  updateProfileData
 } from "../controllers/authController";
 import { getAnalytics } from "../controllers/analyticsController";
 import {
@@ -79,6 +80,7 @@ router.post("/user/updateSavedPost/:id", authenticateRoutes, updateSavedPost);
 router.post("/user/updateRead", updateReadBlog);
 router.post("/user/updateSettings", updateUserSettings);
 router.post("/user/setFriendColor", authenticateRoutes, changeFriendColorChat);
+router.post("/user/updateProfileData", updateProfileData)
 
 //Add Other User
 router.post("/user/addUser/:id", authenticateRoutes, addUserChat);

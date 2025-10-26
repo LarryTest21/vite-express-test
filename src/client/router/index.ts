@@ -13,7 +13,7 @@ const router = createRouter({
       path: "/",
       name: "landing",
       component: () =>
-        import(/* webpackChunkName: "Landing" */ "../views/LandingNew.vue"),
+        import(/* webpackChunkName: "Landing" */ "../views/Landing.vue"),
     },
     {
       path: "/login",

@@ -6,7 +6,6 @@ import { signedIn } from "../../store/signedIn";
 import LoginTabMobile from "./LoginTabMobile.vue";
 import userTabMobile from "./userTabMobile.vue";
 import LinksTabMobile from "./LinksTabMobile.vue"
-import { mobileIconClicked } from "../../store/mobileIconClicked";
 import { isAdmin } from "../../store/isAdmin";
 import arrowIcon from "../../components/icons/arrow.vue"
 import { useSwipe } from '@vueuse/core'
@@ -14,8 +13,11 @@ import { useSwipe } from '@vueuse/core'
 
 const props = defineProps({
   userData: Object,
+  animEnded: Boolean
 })
 
+
+const emit = defineEmits(['navIconClicked'])
 
 const userWrapper = ref(null)
 const { direction } = useSwipe(userWrapper)
@@ -32,7 +34,6 @@ watch(direction, (newvalue) => {
 const isAdminCheck = isAdmin();
 
 const themeWrapper = ref(true)
-const mobileIClicked = mobileIconClicked();
 const userTopClick = ref(false)
 
 const theme_checked = ref();
@@ -184,11 +185,13 @@ const loginTabClicked = () => {
       <div class="nav-links">
         <RouterLink to="/">
           <div class="nav-logo">
-            <img class="logo" src="/favicon.ico" alt="" @click.native="mobileIClicked.state = false" />
+            <transition name="icon">
+              <img class="logo" src="/favicon.ico" alt="" @click.native="emit('navIconClicked')" v-if="animEnded" />
+            </transition>
           </div>
         </RouterLink>
 
-        <a class="user-wrapper" @click.native.prevent="loginTabClicked">
+        <div class="user-wrapper-mobile" @click.native.prevent="loginTabClicked">
 
           <TransitionGroup name="userLinks">
             <div class="login" v-if="!signedInCheck.state && loginActivated" key="1">Login</div>
@@ -200,15 +203,14 @@ const loginTabClicked = () => {
             </div>
           </TransitionGroup>
 
-        </a>
+        </div>
 
         <div class="links-bottom">
           <TransitionGroup :name="userTabTransition">
-            <LoginTabMobile class="logintab wrapper" v-if="userTopClick && !signedInCheck.state" key="1" />
-            <userTabMobile class="usertab wrapper" v-if="userTopClick && signedInCheck.state"
-              :isAdminCheck="isAdminCheck.state" :userData="userData"
-              @logOut="logOut" key="2" />
-            <LinksTabMobile class="linkstab wrapper" v-if="!userTopClick" key="3" />
+            <LoginTabMobile class="wrapper" v-if="userTopClick && !signedInCheck.state" key="1" />
+            <userTabMobile class="wrapper" v-if="userTopClick && signedInCheck.state" :isAdminCheck="isAdminCheck.state"
+              :userData="userData" @logOut="logOut" key="2" @navIconClicked="emit('navIconClicked')" />
+            <LinksTabMobile class="wrapper" v-if="!userTopClick" key="3" @click="emit('navIconClicked')" />
           </TransitionGroup>
         </div>
       </div>
@@ -288,23 +290,20 @@ const loginTabClicked = () => {
         background-color: transparent;
       }
 
-      .user-wrapper {
+      .user-wrapper-mobile {
         position: relative;
         height: 100px;
         width: 100%;
         color: var(--color-nav-bg);
-        background-color: var(--color-nav-txt);
-        display: flex;
-        align-items: center;
+        background-color: var(--color-nav-txt-darker);
         font-size: 3rem;
         padding: 10px;
-
+        display: flex;
 
 
         .user {
           display: flex;
           width: 100%;
-          height: 100%;
           justify-content: space-between;
           align-items: center;
 
@@ -314,10 +313,11 @@ const loginTabClicked = () => {
           }
 
           .arrowIcon {
-            height: 50px;
+            height: 100%;
             fill: var(--color-nav-bg);
             transition: 0.2s ease-in-out;
             animation-direction: reverse;
+
 
             .arrowIcon-icon {
               height: 100%;
@@ -350,6 +350,7 @@ const loginTabClicked = () => {
         }
 
 
+
         .links {
           width: 100%;
           display: flex;
@@ -373,12 +374,15 @@ const loginTabClicked = () => {
       }
 
       .nav-logo {
+        height: 50px;
         display: flex;
-        justify-content: center;
-        margin: 10px 0;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 10px;
+        z-index: 100;
 
         img {
-          height: 100px;
+          height: 40px;
         }
       }
 
@@ -397,12 +401,12 @@ const loginTabClicked = () => {
       bottom: 0;
       padding: 10px;
       display: flex;
-      
+
       right: 0;
       justify-content: flex-end;
       align-items: flex-end;
 
-  
+
       .theme-changer {
         position: relative;
         width: 60px;
@@ -413,11 +417,12 @@ const loginTabClicked = () => {
         opacity: 0;
         width: 0;
         height: 0;
-        &.theme-dark{
-        .slider{
-          background-color: rgb(1, 67, 131);
+
+        &.theme-dark {
+          .slider {
+            background-color: rgb(1, 67, 131);
+          }
         }
-      }
       }
 
       .slider {
@@ -474,11 +479,23 @@ const loginTabClicked = () => {
 
 
 
+.icon-enter-active,
+.icon-leave-active {
+  opacity: 1;
+  transition: all 0.8s cubic-bezier(.47, -0.5, .39, 1.2);
+}
+
+.icon-enter-from,
+.icon-leave-to {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+
 
 .userTab-enter-active,
 .userTab-leave-active {
   opacity: 1;
-  transform: translateX(0%);
   transition: all 0.5s cubic-bezier(.47, -0.5, .39, 1.2);
 }
 

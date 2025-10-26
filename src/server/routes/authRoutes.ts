@@ -10,7 +10,8 @@ import {
   activateUser,
   logOut,
   updateReadBlog,
-  updateUserSettings
+  updateUserSettings,
+  updateProfileData
 } from "../controllers/authController";
 import { getAllBlog, getBlog, getAllNews, getNews } from "../controllers/contentController"
 import { authenticateLogin, authenticateRoutes, refreshToken } from "../jwt/jwt";

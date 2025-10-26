@@ -399,8 +399,6 @@ onMounted(() => {
     scroll-behavior: none;
     z-index: 1;
     position: relative;
-    width: 600%;
-    height: 100%;
     border-radius: 5;
     padding: 20px;
     font-family: Chango;

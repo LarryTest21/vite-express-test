@@ -12,37 +12,20 @@ export async function storeRouterAnalytics(router: any, user: any) {
   const countVisitor = ref(false)
   const randomUserNumber = localStorage.getItem("randomUser");
 
-  if (userID === "randomUser") {
-    if (randomUserNumber === null) {
-      localStorage.setItem("randomUser", new Date().getTime().toString());
-      countVisitor.value = true
-      axios.post("api/analytics/visitorCounting", { userID, pageID, countVisitor });
-    } else {
-      const now = new Date().getTime();
-      const difference = (now - Number(randomUserNumber)) / 1000;
 
-      if (difference >= 1) {
-        axios
-          .post("api/analytics/visitorCounting", { userID, pageID, countVisitor })
-          .then((res) => {
-            if (res.status === 200) {
-              localStorage.setItem(
-                "randomUser",
-                new Date().getTime().toString()
-              );
-            }
-          });
-      } else {
-        countVisitor.value = false
-        axios.post("api/analytics/visitorCounting", { userID, pageID, countVisitor })
+if (user != 'randomUser'){
 
-      }
-    }
-  } else {
-    
+
+
+  
+
+} else {
 
 
 
 
-  }
+}
+
+
+
 }

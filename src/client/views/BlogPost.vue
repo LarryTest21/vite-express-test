@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount, onMounted, onUnmounted, nextTick } from "vue";
+import { ref, watch, onBeforeUnmount, onMounted, onUnmounted, nextTick, Ref } from "vue";
 import { useRoute } from "vue-router";
 import moment from "moment";
 import $ from "jquery";
@@ -11,6 +11,7 @@ import writerIcon from "../components/icons/writer.vue";
 import { createGlobalState } from "@vueuse/core";
 import postAuthorPanel from "../components/postAuthorPanel.vue";
 import Comments from "../components/blog/Comments.vue";
+import timer from "../components/icons/timer.vue"
 
 const signedInCheck = signedIn();
 
@@ -25,10 +26,13 @@ const postContent = ref();
 const coverImage = ref();
 const postCategory = ref([]) as any;
 const showSideBar = ref();
-const postAuthorName = ref();
 const postAuthorPanelTF = ref(false);
 const postData = ref() as any;
 const postAuthorData = ref() as any;
+const readingTimeCounter = ref(0);
+const wordCount = ref(0) as Ref<number>
+const showReadTime = ref(false)
+
 const openAuthorPanel = (author: object) => {
   if (postAuthorPanelTF.value) {
     postAuthorPanelTF.value = false;
@@ -36,6 +40,27 @@ const openAuthorPanel = (author: object) => {
     postAuthorPanelTF.value = true;
   }
 };
+
+function calculateReadingTime(words: number): number {
+  const wordsPerMinute = 183;
+  return Math.ceil(words / wordsPerMinute);
+}
+function countUpToReadingTime(words: number) {
+  const target = calculateReadingTime(words);
+  let count = 0;
+
+  const interval = setInterval(() => {
+    count++;
+    readingTimeCounter.value = count;
+
+    if (count >= target) {
+      clearInterval(interval);
+    }
+  }, 100);
+}
+
+
+
 
 postSlug.value = route.params.blogSlug;
 
@@ -64,6 +89,9 @@ async function fetchPost() {
           firstName: res.data.firstName,
           lastName: res.data.lastName,
         };
+        wordCount.value = postData.value.postContent.trim().split(/\s+/).length;
+
+
         isLoading.value = false;
       })
       .catch((err) => {
@@ -182,6 +210,14 @@ onMounted(() => {
       }
     });
   }
+
+  setTimeout(() => {
+    showReadTime.value = true
+    setTimeout(() => {
+      countUpToReadingTime(wordCount.value)
+
+    }, 500); // 0ms ensures it runs immediately after the first timeout
+  }, 1000);
 });
 watch(
   () => route.params.blogSlug,
@@ -194,9 +230,6 @@ onBeforeUnmount(() => {
   window.removeEventListener("scroll", scrolllll);
 });
 
-const postAuthorPanelClickAway = () => {
-
-}
 </script>
 
 <template>
@@ -205,34 +238,42 @@ const postAuthorPanelClickAway = () => {
       <div class="blogpost-wrapper" ref="postWrapper">
         <div class="post-data">
           <div class="data-wrapper">
-            <div class="title">{{ postData.postTitle }}</div>
-            <div class="author-date">
-              <Transition name="postAuthorPanel" mode="out-in">
-                <postAuthorPanel class="post-author-panel" v-if="postAuthorPanelTF"
-                  v-click-away="() => { if (postAuthorPanelTF) postAuthorPanelTF = false }" :postAuthorData
-                  :postAuthorWidth />
-              </Transition>
+            <TransitionGroup name="readtime">
+              <div class="title" key="1">{{ postData.postTitle }}</div>
+              <div class="read-time-wr" v-if="showReadTime" key="2">
+                <timer />
+                <div class="readTime"> {{ showReadTime ? readingTimeCounter : 0 }} minutes</div>
+              </div>
 
-              <div class="author-wrapper" ref="postAuthorDivLength">
-                <writerIcon />
-                <div class="author" @click="openAuthorPanel(postData)">
+              <div class="author-date" key="3">
+                <Transition name="postAuthorPanel" mode="out-in">
+                  <postAuthorPanel class="post-author-panel" v-if="postAuthorPanelTF"
+                    v-click-away="() => { if (postAuthorPanelTF) postAuthorPanelTF = false }" :postAuthorData
+                    :postAuthorWidth />
+                </Transition>
+
+                <div class="author-wrapper" ref="postAuthorDivLength" key="4">
+                  <writerIcon />
+                  <div class="author" @click="openAuthorPanel(postData)">
+                    {{
+                      postData.postAuthorName.firstName +
+                      " " +
+                      postData.postAuthorName.lastName
+                    }}
+                  </div>
+                </div>
+
+                <div class="date" key="5">
                   {{
-                    postData.postAuthorName.firstName +
-                    " " +
-                    postData.postAuthorName.lastName
+                    moment(new Date(postData.postDate)).format("MMM DD, HH:mm")
                   }}
                 </div>
-              </div>
+                <div class="post-category" v-for="category in postData.subCategory" key="6">
+                  {{ category }}
+                </div>
 
-              <div class="date">
-                {{
-                  moment(new Date(postData.postDate)).format("MMM DD, HH:mm")
-                }}
               </div>
-              <div class="post-category" v-for="category in postData.subCategory">
-                {{ category }}
-              </div>
-            </div>
+            </TransitionGroup>
           </div>
         </div>
         <div class="content-image-wr">
@@ -271,24 +312,31 @@ const postAuthorPanelClickAway = () => {
 
       .data-wrapper {
         font-family: Roboto Condensed;
-        display: flex;
         width: 100%;
         font-weight: 700;
         display: flex;
         flex-direction: column;
         align-items: flex-start;
         justify-content: flex-start;
-        gap: 15px;
 
         .title {
           font-size: 5rem;
         }
 
+        .read-time-wr {
+          display: flex;
+          align-items: center;
+
+          svg {
+            width: 40px;
+          }
+        }
+
         .author-date {
+          margin-top: 30px;
           position: relative;
           font-size: 1.2rem;
-          display: grid;
-          grid-template-columns: auto 2fr 1fr;
+          display: flex;
           align-items: center;
           gap: 20px;
 
@@ -530,5 +578,22 @@ const postAuthorPanelClickAway = () => {
   opacity: 0;
   transform: translateX(-40%);
   max-height: 30px;
+}
+
+.readtime-move,
+.readtime-enter-active,
+.readtime-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+/* 2. declare enter from and leave to state */
+.readtime-enter-from,
+.readtime-leave-to {
+  opacity: 0;
+  transform: translateX(50px) rotateZ(0.01deg);
+}
+
+.readtime-leave-active {
+  position: absolute;
 }
 </style>

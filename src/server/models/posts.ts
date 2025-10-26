@@ -15,6 +15,9 @@ const blogPostModel = new mongoose.Schema(
     postAuthorID: {
       type: String,
     },
+    postAuthorName: {
+      type: String,
+    },
 
     mainCategory: {
       type: String,
@@ -53,6 +56,9 @@ const newsPostModel = new mongoose.Schema(
       type: Date,
     },
     postAuthorID: {
+      type: String,
+    },
+    postAuthorName: {
       type: String,
     },
 

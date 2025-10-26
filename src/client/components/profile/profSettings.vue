@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, onUpdated } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, computed, toRaw, reactive } from 'vue';
 import axios from "axios";
 import { userData } from '../../store/userData';
 import { useTheme } from "../../store/theme";
+import MultiSelect from '../MultiSelect.vue';
+import isEqual from 'lodash/isEqual'
+import cloneDeep from 'lodash/cloneDeep';
+
 
 const theme = useTheme();
 
@@ -10,147 +14,129 @@ const props = defineProps({
   userData: Object,
 });
 const savediv = ref();
-const autoLogin = ref(false);
-const themeCheck = ref(false);
 const themeName = ref("theme-dark");
-const themeNameCheck = ref();
-const readPosts = ref(false);
 const overflow = ref('hidden');
-const notifSounds = ref()
-const showSaveButton = ref(false);
-watch(showSaveButton, () => {});
+
 
 const emit = defineEmits(["settingsSaved"]);
 
-if (props.userData!.data.userSettings != undefined) {
-  autoLogin.value = props.userData!.data.userSettings.autoLogin;
-  themeCheck.value = props.userData!.data.userSettings.themeCheck;
-  readPosts.value = props.userData!.data.userSettings.readPosts;
-  themeName.value = props.userData!.data.userSettings.themeName;
-  notifSounds.value = props.userData!.data.userSettings.notifSounds
-  if (props.userData!.data.userSettings.themeName === "theme-light") {
-    themeNameCheck.value = false;
-  } else {
-    themeNameCheck.value = true;
-  }
-} else {
-  watch(
-    () => props.userData,
-    () => {
-      autoLogin.value = props.userData!.data.userSettings.autoLogin;
-      themeCheck.value = props.userData!.data.userSettings.themeCheck;
-      readPosts.value = props.userData!.data.userSettings.readPosts;
-      themeName.value = props.userData!.data.userSettings.themeName;
-      notifSounds.value = props.userData!.data.userSettings.notifSounds
+const settings = reactive({
+  autoLogin: false,
+  themeCheck: false,
+  themeName: "theme-dark",
+  themeNameCheck: false,
+  readPosts: false,
+  notifSounds: false,
+  language: [] as string[],
+});
 
-      if (props.userData!.data.userSettings.themeName === "theme-light") {
-        themeNameCheck.value = false;
-      } else {
-        themeNameCheck.value = true;
-      }
+
+const showSaveButton = computed(() => {
+  // Touch the reactive fields explicitly
+  const {
+    autoLogin,
+    themeCheck,
+    themeName,
+    themeNameCheck,
+    readPosts,
+    notifSounds,
+    language
+  } = settings;
+
+  // Build the plain object to compare
+  const current = {
+    autoLogin,
+    themeCheck,
+    themeName,
+    themeNameCheck,
+    readPosts,
+    notifSounds,
+    language: [...language],
+  };
+
+  return !isEqual(current, original.value);
+});
+
+watch(
+  () => settings.themeNameCheck,
+  (isDark) => {
+    settings.themeName = isDark ? "theme-dark" : "theme-light";
+    themeName.value = settings.themeName;
+    theme.state = settings.themeName;
+    localStorage.setItem("theme-color", settings.themeName);
+  }
+);
+
+// Sync when theme changes externally (like userData or store)
+watch(
+  () => theme.state,
+  (val) => {
+    if (val !== settings.themeName) {
+      settings.themeName = val;
+      settings.themeNameCheck = val === "theme-dark";
     }
-  );
+  }
+);
+
+
+const original = ref<Record<string, any>>({});
+
+function initializeSettings() {
+  const s = props.userData?.data?.userSettings;
+  if (!s) return;
+
+  const normalized = {
+    autoLogin: !!s.autoLogin,
+    themeCheck: !!s.themeCheck,
+    themeName: s.themeName || "theme-dark",
+    themeNameCheck: s.themeName !== "theme-light",
+    readPosts: !!s.readPosts,
+    notifSounds: !!s.notifSounds,
+    language: Array.isArray(s.language) ? s.language : [s.language || "English"],
+  };
+
+  Object.assign(settings, normalized);
+  original.value = cloneDeep(normalized); // deep copy for later comparison
 }
 
-watch(
-  () => autoLogin.value,
-  (newValue) => {
-    if (newValue != props.userData!.data.userSettings.autoLogin) {
-      showSaveButton.value = true;
-    } else {
-      showSaveButton.value = false;
-    }
-  }
-);
-watch(
-  () => themeNameCheck.value,
-  (newValue) => {
-    if (themeName.value === props.userData!.data.userSettings.themeName) {
-      showSaveButton.value = true;
-    } else {
-      showSaveButton.value = false;
-    }
-    if (newValue) {
-      themeName.value = "theme-dark";
-      theme.state = "theme-dark";
-    } else {
-      themeName.value = "theme-light";
-      theme.state = "theme-light";
-    }
-  }
-);
 
-watch(
-  () => themeCheck.value,
-  (newValue) => {
-    if (newValue != props.userData!.data.userSettings.themeCheck) {
-      showSaveButton.value = true;
-    } else {
-      showSaveButton.value = false;
-    }
-  }
-);
-watch(
-  () => notifSounds.value,
-  (newValue) => {
-    if (newValue != props.userData!.data.userSettings.notifSounds) {
-      showSaveButton.value = true;
-    } else {
-      showSaveButton.value = false;
-    }
-  }
-);
-
-watch(
-  () => readPosts.value,
-  (newValue) => {
-    if (newValue != props.userData!.data.userSettings.readPosts) {
-      showSaveButton.value = true;
-    } else {
-      showSaveButton.value = false;
-    }
-    if (!newValue) {
-      const userD = userData().data;
-      userD.readPosts = newValue;
-    }
-  }
-);
-
-const saveSettings = () => {
+const saveSettings = async () => {
   emit("settingsSaved", true);
 
-  if (!autoLogin.value) {
+  if (!settings.autoLogin) {
     localStorage.removeItem("autoLogin");
   } else {
     localStorage.setItem("autoLogin", "true");
   }
+
   const userID = props.userData!.data._id;
   const userSettings = {
-    autoLogin: autoLogin.value,
-    themeCheck: themeCheck.value,
-    themeName: themeName.value,
-    readPosts: readPosts.value,
-    notifSounds: notifSounds.value
+    autoLogin: settings.autoLogin,
+    themeCheck: settings.themeCheck,
+    themeName: settings.themeName,
+    readPosts: settings.readPosts,
+    notifSounds: settings.notifSounds,
+    language: [...settings.language], // ✅ access the array so Vue tracks it
   };
 
-  localStorage.setItem("theme-color", themeName.value);
+  localStorage.setItem("theme-color", settings.themeName);
 
-  axios
-    .post("/api/user/updateSettings", { userID, userSettings })
-    .then((res) => {
-      return userSettings;
-    })
-    .then((userSettings) => {
-      const userD = userData();
-      userD.data.userSettings = userSettings;
-      setTimeout(() => {
-        showSaveButton.value = false;
-      }, 500);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  try {
+    await axios.post("/api/user/updateSettings", { userID, userSettings });
+
+    // ✅ Update store
+    const userD = userData();
+    userD.data.userSettings = cloneDeep(userSettings);
+
+    // ✅ Reset baseline so "Save" button hides
+    original.value = cloneDeep(toRaw(settings));
+
+    console.log("Settings saved successfully.");
+  } catch (err) {
+    console.error("Error saving settings:", err);
+  }
 };
+
 
 watch(
   savediv,
@@ -166,13 +152,32 @@ watch(
   { deep: true }
 );
 
-onMounted(() => {});
+
+onMounted(() => {
+  if (props.userData?.data?.userSettings) {
+    initializeSettings();
+  } else {
+    watch(() => props.userData, initializeSettings);
+  }
+});
+
+
+
+
 
 onBeforeUnmount(() => {
   if (themeName.value != props.userData!.data.userSettings.themeName) {
     theme.state = localStorage.getItem("theme-color")!;
   }
 });
+
+
+const onLanguageChanged = (newLang: string[] | undefined) => {
+  settings.language = newLang ? newLang : [];
+};
+
+const languageOptions = ['Hungarian', 'English']
+
 </script>
 
 <template>
@@ -182,11 +187,16 @@ onBeforeUnmount(() => {
     <div class="outer">
       <div class="settings-wrapper" key="1">
         <div class="theme-wrapper">
+          <div class="language wrapper">
+            <label>Language</label>
+            <MultiSelect :multiSelectLabel="'Select'" class="multiselect" :multiSelectOptions="languageOptions"
+              :savedValue="settings.language" @mainCategory="onLanguageChanged" />
+          </div>
+
           <div class="autologin wrapper">
             <label>Show theme button</label>
             <label>
-              <input class="toggle-checkbox 1" type="checkbox" v-model="themeCheck"
-              />
+              <input class="toggle-checkbox 1" type="checkbox" v-model="settings.themeCheck" />
               <div class="toggle-slot">
                 <div class="toggle-button"></div>
               </div>
@@ -196,8 +206,7 @@ onBeforeUnmount(() => {
           <div class="choose-theme">
             <label>Theme</label>
             <div class="toggleWrapper">
-              <input type="checkbox" class="dn" id="dn" v-model="themeNameCheck"
-              />
+              <input type="checkbox" class="dn" id="dn" v-model="settings.themeNameCheck" />
               <label for="dn" class="toggle">
                 <span class="toggle__handler">
                   <span class="crater crater--1"></span>
@@ -218,8 +227,7 @@ onBeforeUnmount(() => {
         <div class="autologin wrapper">
           <label>Auto login</label>
           <label>
-            <input class="toggle-checkbox 1" type="checkbox" v-model="autoLogin"
-            />
+            <input class="toggle-checkbox 1" type="checkbox" v-model="settings.autoLogin" />
             <div class="toggle-slot">
               <div class="toggle-button"></div>
             </div>
@@ -229,8 +237,7 @@ onBeforeUnmount(() => {
         <div class="theme wrapper">
           <label>Store read posts</label>
           <label>
-            <input class="toggle-checkbox 2" type="checkbox" v-model="readPosts"
-            />
+            <input class="toggle-checkbox 2" type="checkbox" v-model="settings.readPosts" />
             <div class="toggle-slot">
               <div class="toggle-button"></div>
             </div>
@@ -239,8 +246,7 @@ onBeforeUnmount(() => {
         <div class="theme wrapper">
           <label>Notification sounds</label>
           <label>
-            <input class="toggle-checkbox 2" type="checkbox" v-model="notifSounds"
-            />
+            <input class="toggle-checkbox 2" type="checkbox" v-model="settings.notifSounds" />
             <div class="toggle-slot">
               <div class="toggle-button"></div>
             </div>
@@ -251,8 +257,7 @@ onBeforeUnmount(() => {
       <div class="save">
         <transition name="savediv">
           <input ref="savediv" v-if="showSaveButton" key="2" type="button" value="Save" class="save-settings"
-                           @click.prevent="saveSettings"
-          />
+            @click.prevent="saveSettings" />
         </transition>
       </div>
     </div>
@@ -260,7 +265,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style lang="scss" scoped>
-
 *::-webkit-scrollbar {
   width: 10px;
   border-radius: 5px;
@@ -286,7 +290,7 @@ onBeforeUnmount(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  scrollbar-gutter:stable;
+  scrollbar-gutter: stable;
 
   label {
     font-size: rem;
@@ -320,6 +324,16 @@ onBeforeUnmount(() => {
 
         label {
           font-size: 1.3rem;
+        }
+
+        .language {
+          z-index: 2;
+          cursor: pointer;
+
+          .multiselect {
+            width: 150px;
+            font-size: 1.5rem;
+          }
         }
 
         .choose-theme {
@@ -460,60 +474,60 @@ onBeforeUnmount(() => {
           transform: translate3d(3px, 0, 0);
         }
 
-        input:checked + .toggle {
+        input:checked+.toggle {
           background-color: var(--color-nav-txt);
         }
 
-        input:checked + .toggle:before {
+        input:checked+.toggle:before {
           color: #749ed7;
         }
 
-        input:checked + .toggle:after {
+        input:checked+.toggle:after {
           color: #fff;
         }
 
-        input:checked + .toggle .toggle__handler {
+        input:checked+.toggle .toggle__handler {
           background-color: #ffe5b5;
           transform: translate3d(30px, 0, 0) rotate(0);
         }
 
-        input:checked + .toggle .toggle__handler .crater {
+        input:checked+.toggle .toggle__handler .crater {
           opacity: 1;
         }
 
-        input:checked + .toggle .star--1 {
+        input:checked+.toggle .star--1 {
           width: 2px;
           height: 2px;
         }
 
-        input:checked + .toggle .star--2 {
+        input:checked+.toggle .star--2 {
           width: 4px;
           height: 4px;
           transform: translate3d(-5px, 0, 0);
         }
 
-        input:checked + .toggle .star--3 {
+        input:checked+.toggle .star--3 {
           width: 2px;
           height: 2px;
           transform: translate3d(-7px, 0, 0);
         }
 
-        input:checked + .toggle .star--4,
-        input:checked + .toggle .star--5,
-        input:checked + .toggle .star--6 {
+        input:checked+.toggle .star--4,
+        input:checked+.toggle .star--5,
+        input:checked+.toggle .star--6 {
           opacity: 1;
           transform: translate3d(0, 0, 0);
         }
 
-        input:checked + .toggle .star--4 {
+        input:checked+.toggle .star--4 {
           transition: all 300ms 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
         }
 
-        input:checked + .toggle .star--5 {
+        input:checked+.toggle .star--5 {
           transition: all 300ms 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
         }
 
-        input:checked + .toggle .star--6 {
+        input:checked+.toggle .star--6 {
           transition: all 300ms 300ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
         }
       }
@@ -553,7 +567,7 @@ onBeforeUnmount(() => {
           box-shadow: inset 1px 2px 2px rgb(0, 0, 0);
         }
 
-        .toggle-checkbox:checked ~ .toggle-slot {
+        .toggle-checkbox:checked~.toggle-slot {
           background-color: var(--color-nav-txt);
         }
 
@@ -575,7 +589,7 @@ onBeforeUnmount(() => {
             transform 0.3s cubic-bezier(0.5, 2, 0.1, 0.01);
         }
 
-        .toggle-checkbox:checked ~ .toggle-slot .toggle-button {
+        .toggle-checkbox:checked~.toggle-slot .toggle-button {
           background-color: var(--color-nav-bg);
           box-shadow:
             1px 2px 1px -1px rgba(173, 173, 173, 0.5),
@@ -597,7 +611,7 @@ onBeforeUnmount(() => {
       margin: auto;
       box-shadow: rgba(0, 0, 0, 0.568) 2px 2px 2px 1px;
       font-family: Chango;
-      margin-top:10px;
+      margin-top: 10px;
       font-size: 2rem;
       cursor: pointer;
       padding: 10px;

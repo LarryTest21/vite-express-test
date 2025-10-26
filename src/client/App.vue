@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { RouterView } from "vue-router";
-import { ref, watch, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import PreLoader from "./components/PreLoader.vue";
 import { isLoading } from "./store/isloading";
 import { useTheme } from "./store/theme";
 import Nav from "./components/Nav.vue";
-import MobileNav from "./components/mobilecomponents/NavMobile.vue";
-import MobileNavIcon from "./components/mobilecomponents/NavIconMobile.vue";
+import NavMobile from "./components/mobilecomponents/NavMobile.vue";
+import NavIconMobile from "./components/mobilecomponents/NavIconMobile.vue";
+import NavMobileNew from "./components/mobilecomponents/NavMobileNew.vue";
 import { useRoute } from "vue-router";
-import { mobileIconClicked } from "./store/mobileIconClicked";
 import { onMountApp } from "./store/onMountApp";
 import { userData } from "./store/userData";
 import { getUser } from "./views/user";
@@ -32,7 +32,6 @@ const theme = useTheme();
 
 const usrData = userData();
 
-const mobileNavIconClicked = mobileIconClicked();
 
 const navigation = ref(false);
 
@@ -69,18 +68,6 @@ const checkRoute = () => {
 const opacity = ref(1);
 const showScroll = ref(false);
 
-const moveScrollIndicator2 = () => {
-  let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-  let height =
-    document.documentElement.scrollHeight -
-    document.documentElement.clientHeight;
-  let scrolled = (winScroll / height) * 100;
-  if (scrolled > 0) {
-    opacity.value = 0.5;
-  } else {
-    opacity.value = 1;
-  }
-};
 function moveScrollIndicator(e: any) {
   const scrollIndicator = document.getElementById("scrollIndicator");
 
@@ -101,7 +88,6 @@ function moveScrollIndicator(e: any) {
 const themeLocal = ref(localStorage.getItem("theme-color"));
 
 onMounted(() => {
-  window.addEventListener("scroll", moveScrollIndicator2);
 
   if (themeLocal.value === "theme-dark") {
     document.body.classList.add("theme-dark");
@@ -115,7 +101,6 @@ onMounted(() => {
   }
 
   if (usrData.data != undefined) {
-    console.log(usrData.data);
     theme.state = usrData.data.userSettings.themeName;
   }
 
@@ -146,13 +131,23 @@ onMounted(() => {
   );
 
   mountApp.state = true;
-  window.addEventListener("resize", onResize);
-  onResize();
+
+  const observer = new ResizeObserver(entries => {
+    for (let entry of entries) {
+      onResize()
+    }
+  });
+
+
+  observer.observe(document.body); // or a specific container
+
+
 
   getUser().then(() => {
     watch(
       () => route.name,
       () => {
+
         checkRoute();
         if (route.name === "blogpost" || route.name === "newspost") {
           window.addEventListener("scroll", moveScrollIndicator);
@@ -172,7 +167,8 @@ onMounted(() => {
         });
 
         checkUserAnalytics
-          .then(() => {
+          .then((res) => {
+
             userID.value = userData().data._id;
             if (route.name === "blogpost") {
               pageID.value = route.params.blogSlug.toString();
@@ -191,44 +187,51 @@ onMounted(() => {
       }
     );
   });
+
 });
+
+const navIconClicked = ref(false);
+
+const animEnded = ref()
+function onMobileNavEnter() {
+  console.log("finished")
+  animEnded.value = !animEnded.value
+}
+
+const onMobileNavLeave = () => {
+  console.log("leave")
+  animEnded.value = false
+}
+
+
 </script>
 
 <script lang="ts"></script>
 
 <template>
   <div id="app" v-if="mountApp" :class="[mobileNav]">
-    <MobileNavIcon class="mobilenavicon" v-if="mobileNav === 'mobile'" />
-    <div class="background"></div>
 
+    <div id="longpress-overlay"></div>
     <transition name="nav">
-      <Nav
-        v-if="
-          (mobileNav === 'full' && showNav) ||
-          (mobileNav === 'medium' && showNav)
-        "
-        :class="mobileNav"
-      />
+      <Nav v-if="
+        (mobileNav === 'full' && showNav) ||
+        (mobileNav === 'medium' && showNav)
+      " :class="mobileNav" />
     </transition>
     <transition name="scroll">
-      <div
-        ref="scrollLineTop"
-        class="scrollLineTop"
-        id="scrollIndicator"
-        v-show="showScroll"
-      ></div>
+      <div ref="scrollLineTop" class="scrollLineTop" id="scrollIndicator" v-show="showScroll"></div>
     </transition>
-    <div
-      class="mobile-top"
-      v-if="mobileNav === 'mobile'"
-      :class="mobileNavIconClicked.state ? 'active' : ''"
-    ></div>
-    <transition name="mobileNav">
-      <MobileNav
-        v-if="mobileNav === 'mobile' && mobileNavIconClicked.state"
-        :userData="usrData.data"
-      />
-    </transition>
+    <div v-if="mobileNav === 'mobile'" :class="['mobile-top', navIconClicked ? 'expanded' : 'collapsed']" key="1">
+      <NavIconMobile class="NavIconMobile" v-if="mobileNav === 'mobile'" :navIconClicked="navIconClicked"
+        @navIconClicked="navIconClicked = !navIconClicked" />
+      <transition name="mobileNav" @before-enter="onMobileNavEnter" @before-leave="onMobileNavLeave">
+        <NavMobile v-show="mobileNav === 'mobile' && navIconClicked" :userData="usrData.data" class="mobile-nav"
+          @navIconClicked="navIconClicked = false" :animEnded="animEnded" />
+      </transition>
+    </div>
+
+
+    <NavMobileNew />
 
     <transition name="fadeRoute">
       <PreLoader v-if="isLoadingCheck.state" :class="[theme.state]" />
@@ -238,11 +241,23 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.mobilenavicon {
-  z-index: 100;
-  position: fixed;
-  width: 100%;
+#app {
+  width: 100vw;
+  max-width: 100vw
 }
+
+#longpress-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+
+
 .background {
   position: absolute;
   width: 100%;
@@ -274,21 +289,61 @@ onMounted(() => {
   transition: opacity 1s ease-in-out;
 }
 
-.mobile-top {
-  height: 50px;
+.error {
+  position: absolute;
+  opacity: 0.9;
+  height: 100%;
   width: 100%;
-  opacity: v-bind(opacity);
-  border-radius: 0 0 10px 10px;
-  position: fixed;
-  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-color: var(--color-nav-bg);
-  will-change: height;
-  transition: all 0.5s cubic-bezier(0.45, -0.2, 0.39, 1.2);
+  font-family: Chango;
+  text-align: center;
+  font-size: 2rem;
+  color: red;
+}
 
-  &.active {
-    height: 100%;
-    opacity: 1;
+
+.NavIconMobile {
+  position: fixed;
+  width: 100vw;
+  z-index: 100;
+}
+
+.scrollLineTop {
+  height: 5px;
+  top: 0;
+  left: 0;
+  border-radius: 0;
+  width: 0;
+  box-shadow: none;
+}
+
+.mobile-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 50px;
+  width: 100vw;
+  background-color: var(--color-nav-bg);
+  z-index: 10000;
+  border-radius: 0 0 10px 10px;
+  overflow: hidden;
+  transition: height 0.5s ease;
+
+  .mobile-nav {
+    position: relative;
+    height: 100dvh;
+    border-radius: 50px;
   }
+}
+
+.mobile-top.collapsed {}
+
+.mobile-top.expanded {
+  height: 100dvh;
+  border-radius: 0;
 }
 
 .fadeRoute-enter-active,
@@ -314,20 +369,19 @@ onMounted(() => {
   transform: translateX(50%);
 }
 
-.mobileNav-enter-active {
-  opacity: 1;
-  transition: all 0.4s cubic-bezier(0.47, -0.5, 0.39, 1.2);
+.mobileNav-enter-active,
+.mobileNav-leave-active {
+  transition: 0.5s ease-in-out;
 }
 
-.mobileNav-enter-from {
-  opacity: 0.5;
-  transform: translateY(-100%);
-}
-
+.mobileNav-enter-from,
 .mobileNav-leave-to {
-  opacity: 0;
-  transform: translateY(-100%);
-  transition: all 0.5s cubic-bezier(0.47, -0.5, 0.39, 1.5);
+  height: 0vh;
+}
+
+.mobileNav-enter-to,
+.mobileNav-leave-from {
+  height: 100vh;
 }
 
 .scroll-enter-active,
@@ -342,73 +396,9 @@ onMounted(() => {
   opacity: 0;
 }
 
-.error {
-  position: absolute;
-  opacity: 0.9;
-  height: 100%;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-nav-bg);
-  font-family: Chango;
-  text-align: center;
-  font-size: 2rem;
-  color: red;
-}
-/* Reset and basic mobile-friendly layout */
-#app {
-  width: 100vw;
-  overflow-x: hidden; /* prevent horizontal scroll */
-}
 
-/* Mobile nav icon fix */
-.mobilenavicon {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 100;
-}
 
-/* Scroll indicator */
-.scrollLineTop {
-  height: 5px; /* reduce height on mobile */
-  top: 0;
-  left: 0;
-  border-radius: 0;
-  width: 0;
-  box-shadow: none;
-}
 
-/* Mobile top bar */
-.mobile-top {
-  height: 50px;
-  width: 100%;
-  background-color: var(--color-nav-bg);
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 10;
-  opacity: 1 !important; /* override opacity bindings for clarity */
-  border-radius: 0;
-  transition: height 0.3s ease;
-}
-
-.mobile-top.active {
-  height: 100vh;
-  overflow-y: auto;
-}
-
-/* Landing wrapper mobile fixes */
-.landing-wrapper.mobile {
-  font-size: 16px !important; /* reasonable font size for mobile */
-}
-
-.landing-wrapper.mobile .section-landing {
-  height: auto !important; /* don’t force full viewport height on mobile */
-  padding: 20px !important;
-}
 
 .landing-wrapper.mobile .section-wrapper {
   padding: 10px !important;
@@ -416,7 +406,6 @@ onMounted(() => {
   height: auto !important;
 }
 
-/* Fix images-wrapper */
 .landing-wrapper.mobile .section2 .images-wrapper {
   width: 100% !important;
   overflow-x: auto;
@@ -462,7 +451,4 @@ onMounted(() => {
 }
 
 /* Prevent horizontal overflow on body */
-body {
-  overflow-x: hidden !important;
-}
 </style>

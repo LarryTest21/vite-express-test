@@ -9,9 +9,10 @@ const props = defineProps({
   multiSelectOptions: Array,
   deleteAble: Boolean,
   fontSize: String,
-  savedValue: Object,
+  savedValue: Array,
   shadowStyle: String,
   eventCategory: Boolean,
+  multiSelectLabel: String
 });
 
 const selectTab = ref();
@@ -31,7 +32,7 @@ watch(savedValue, (newv) => {
   } else {
     selectedCategory.value = ["Choose category"];
   }
-});
+}, {deep:true});
 
 const deleteAble = ref(props.deleteAble);
 
@@ -126,33 +127,21 @@ const deleteFn = (e: any) => {
 
 <template>
   <div class="multiselect-wrapper">
-    <div
-      type="text"
-      class="select"
-      @click="showSelects"
-      v-click-away="clickAway"
-    >
+    <div type="text" class="select" @click="showSelects" v-click-away="clickAway">
       <div class="show-category" v-if="deleteAble">
         <TransitionGroup name="list">
           <div v-if="selectedCategory[0] === 'Choose category'">
-            {{ "Choose category" }}
+            {{ props.multiSelectLabel != undefined ? props.multiSelectLabel : "Choose category" }}
           </div>
-          <div
-            v-if="selectedCategory[0] != 'Choose category'"
-            class="deletable"
-            v-for="category in selectedCategory"
-          >
+          <div v-if="selectedCategory[0] != 'Choose category'" class="deletable" v-for="category in selectedCategory">
             <div class="category">{{ category }}</div>
-            <div
-              class="delete-button"
-              @click.stop.prevent="deleteFn(category)"
-            ></div>
+            <div class="delete-button" @click.stop.prevent="deleteFn(category)"></div>
           </div>
         </TransitionGroup>
       </div>
       <div class="show-category" v-if="!deleteAble">
         <div v-if="selectedCategory[0] === 'Choose category'">
-          {{ "Choose category" }}
+          {{ props.multiSelectLabel != undefined ? props.multiSelectLabel : "Choose category" }}
         </div>
         <div class="category" v-if="selectedCategory[0] != 'Choose category'">
           {{ selectedCategory[0] }}
@@ -160,13 +149,8 @@ const deleteFn = (e: any) => {
       </div>
     </div>
     <transition :name="'tab'">
-      <div
-        class="select-tab"
-        ref="selectTab"
-        :class="eventCategory === true ? 'event' : ''"
-        v-if="showSelectsTab && multiSelectOptionsFiltered!.length != 0"
-        v-click-away="clickAway2"
-      >
+      <div class="select-tab" ref="selectTab" :class="eventCategory === true ? 'event' : ''"
+        v-if="showSelectsTab && multiSelectOptionsFiltered!.length != 0" v-click-away="clickAway2">
         <div class="category" v-for="category in multiSelectOptionsFiltered">
           <div class="category-name" @click="showSelectedDeletable">
             {{ category }}
@@ -184,6 +168,7 @@ const deleteFn = (e: any) => {
   position: relative;
   font-family: Roboto Condensed;
   font-weight: 600;
+
   .select {
     z-index: 2;
     box-shadow: v-bind(shadowStyle);
@@ -290,6 +275,7 @@ const deleteFn = (e: any) => {
       margin-top: 45px;
       flex-wrap: wrap;
       border-radius: 3px;
+
       .category {
         height: 45px;
         display: flex;
@@ -298,12 +284,14 @@ const deleteFn = (e: any) => {
         display: flex;
       }
     }
+
     .category {
       transition: all 0.05s;
       width: 100%;
       cursor: pointer;
       text-align: left;
       font-size: 1.3rem;
+
       &:first-child {
         margin-top: 10px;
       }
@@ -312,6 +300,7 @@ const deleteFn = (e: any) => {
         background-color: var(--color-nav-txt);
         color: var(--color-nav-bg);
       }
+
       .category-name {
         padding: 10px;
         width: 100%;

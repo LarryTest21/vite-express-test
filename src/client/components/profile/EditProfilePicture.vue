@@ -2,14 +2,18 @@
 import { ref, watch } from "vue";
 import VueCropper from "vue-cropperjs";
 import "cropperjs/dist/cropper.css";
-import { profPicEnable } from "../store/profPicEnable";
-import Modal from "../components/Modal.vue";
+import { profPicEnable } from "../../store/profPicEnable";
+import Modal from "../../components/Modal.vue";
 import axios from "axios"
-import { userData } from "../store/userData";
+import { userData } from "../../store/userData";
 const props = defineProps({
   propPFP: Boolean,
   userID: String
 })
+
+const emit = defineEmits(['newProfilePicture']);
+
+
 
 const userD = userData()
 const propperPFP = ref(props.propPFP)
@@ -101,40 +105,22 @@ const UploadImage = async () => {
   modalAnimation.value = true;
 
   modalLoadingMessage.value = "Uploading...!";
-
-  axios.post("/api/user/updateUser/" + props.userID, { profilePic: destination.value }).then((res) => {
-    modalAnimation.value = false;
-    modalLoadingMessage.value = "Succesfully uploaded";
-    localStorage.setItem("avatar", destination.value)
-    userD.userPFP = destination.value
-    setTimeout(() => {
-      modalActivation.value = false;
-    }, 2000);
+  axios.post("/api/user/refresh").then(() => {
+    axios.post("/api/user/updateUser/" + props.userID, { profilePic: destination.value }).then((res) => {
+      modalAnimation.value = false;
+      modalLoadingMessage.value = "Succesfully uploaded";
+      localStorage.setItem("avatar", destination.value)
+      userD.userPFP = destination.value
+      emit('newProfilePicture', destination.value);
+      setTimeout(() => {
+        modalActivation.value = false;
+      }, 2000);
+    })
   }).catch((err) => {
-    console.log(err.response.status)
-    if (err.response.status === 400) {
-      axios.post("/api/user/refresh").then(() => {
-        axios.post("/api/user/updateUser/" + props.userID, { profilePic: destination.value }).then((res) => {
-          if (res.status === 200) {
-            modalAnimation.value = false;
-            modalLoadingMessage.value = "Succesfully uploaded";
-            localStorage.setItem("avatar", destination.value)
-            userD.userPFP = destination.value
-
-            setTimeout(() => {
-              modalActivation.value = false;
-            }, 2000);
-          }
-        }).catch((err) => {
-          modalAnimation.value = false;
-          modalLoadingMessage.value = "There was a problem, try again later";
-
-        })
-      })
-    }
+    modalAnimation.value = false;
+    modalLoadingMessage.value = "There was a problem, try again later";
 
   })
-
 };
 </script>
 
@@ -159,7 +145,6 @@ const UploadImage = async () => {
         :toggleDragModeOnDblclick="false" :autoCrop="true" v-if="selectedFile && !destination"></VueCropper>
       <input v-if="showCropButton" type="button" value="Crop" @click="handleCropped" />
       <div class="preview" v-if="destination">
-        <label for="">New</label>
         <img v-bind:src="destination" alt="" />
       </div>
     </div>
@@ -249,17 +234,34 @@ const UploadImage = async () => {
     }
 
     .preview {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
-
-      label {
-        position: absolute;
-        top: -30px;
-      }
+      justify-content: center;
 
       img {
         width: 128px;
+      }
+
+      &::after {
+        content: "";
+        position: absolute;
+        width: 115%;
+        height: 115%;
+        border-radius: 50%;
+        background-color: var(--color-nav-txt);
+        z-index: -2;
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        z-index: -1;
+        background-color: white;
       }
     }
   }
@@ -274,6 +276,8 @@ const UploadImage = async () => {
 
 .modal {
   position: absolute;
+  width:100%;
+  height:100%;
 }
 
 .modal-enter-active,
@@ -291,7 +295,7 @@ const UploadImage = async () => {
   .editingPanel-wrapper {
 
     flex-direction: column;
-    gap:80px;
+    gap: 80px;
 
     input[type="button"] {
       font-size: 2rem;

@@ -11,6 +11,13 @@ import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 gsap.registerPlugin(ScrollToPlugin);
 // Recursive import
 import Comment from "./Comment.vue";
+import { useI18n } from 'vue-i18n';
+
+const { locale } = useI18n();
+
+locale.value = 'hu'; // or 'en'
+
+
 
 const props = defineProps({
     commentsLevel: { type: Number, default: 1 },
@@ -27,9 +34,6 @@ const emit = defineEmits(["showReplyToCommentTrigger", "uploadNewComment", "togg
 
 const showReplyComment = ref<number | null>(null);
 
-const replyToFunction = () => {
-
-}
 
 const showRepliesTrigger = ref<number | null>(null);
 const replyToCommentID = ref<number | null>(null);
@@ -54,6 +58,7 @@ const showReplyToComment = (
 
 
 const deleteComment = (data: any) => {
+    triggerDeleteID.value = null
 
     emit("deleteComment",
         data
@@ -83,7 +88,7 @@ const highlightReply = (replyID: number | null) => {
 
     const el = document.getElementById(`comment-${replyID}`);
     if (el) {
-        const yOffset = 0; // adjust for fixed headers if needed
+        const yOffset = -100; // adjust for fixed headers if needed
         const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
 
         gsap.to(window, {
@@ -110,7 +115,7 @@ const highlightReply = (replyID: number | null) => {
                 <img class="profilepic" :src="comment.profilePic" />
                 <div class="text-wrapper">
                     <div class="name-time">
-                        <div class="commenterName">{{ comment.displayName }}</div>
+                        <div class="commenterName">{{ comment.displayName }} </div>
                         <div class="commentDate">
                             {{ moment(new Date(comment.commentDate)).format("MMM DD, HH:mm") }}
                         </div>
@@ -161,7 +166,7 @@ const highlightReply = (replyID: number | null) => {
             <CommentsInput v-if="showReplyComment === comment.commentID" :commentsLevel="commentsLevel + 1"
                 class="comments-lvl2" :commentID="comment.commentID" @cancelCommenting="showReplyComment = null"
                 :rootCommentID="props.rootCommentID || comment.commentID" :replyToCommentName="comment.displayName"
-                @uploadNewComment="(data) => emit('uploadNewComment', data)" />
+                @uploadNewComment="(data) => { emit('uploadNewComment', data); showReplyComment = null }" />
 
             <div v-if="showRepliesTrigger === comment.commentID && comment.replies?.length" class="replies-wrapper"
                 key="2">
@@ -169,7 +174,7 @@ const highlightReply = (replyID: number | null) => {
                     :testComment="comment.replies" :rootCommentID="props.rootCommentID || comment.commentID"
                     :commentID="comment.commentID" :key="comment.commentID"
                     @deleteComment="(data) => emit('deleteComment', data)"
-                    @uploadNewComment="(data) => emit('uploadNewComment', data)"
+                    @uploadNewComment="(data) => { emit('uploadNewComment', data); showReplyComment = null }"
                     @toggleThumbsup="emit('toggleThumbsup', $event)" </Comment>
             </div>
 

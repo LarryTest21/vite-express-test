@@ -4,6 +4,11 @@ import { userData } from '../../store/userData';
 import CommentsInput from './Comments Input.vue';
 import Comment from './Comment.vue';
 import type { CommentNode } from "./types";
+import { useI18n } from 'vue-i18n';
+
+const { locale } = useI18n();
+locale.value = 'hu'; // or 'en'
+
 
 const props = defineProps({
     postSlug: String,
@@ -220,7 +225,7 @@ const deleteComment = (data: any) => {
 
     <div class="comments-wrapper">
 
-        <div class="comment-title">Comments</div>
+        <div class="comment-title">{{ $t('Comments.Comments') }}</div>
         <div class="outer-padding">
             <div class="comments-count">{{ testComment.length }} Comments</div>
 

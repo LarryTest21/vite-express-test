@@ -17,6 +17,9 @@ const eventModel = new mongoose.Schema(
     eventDate: {
       type: String,
     },
+    postAuthorName: {
+      type: String,
+    },
   },
   { collection: "events" }
 );

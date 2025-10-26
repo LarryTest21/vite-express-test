@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { mobileIconClicked } from "../store/mobileIconClicked";
 
-const clicked = mobileIconClicked();
+const clicked= ref()
+
+
+const emit = defineEmits(['navIconClicked'])
+
+
+
+
 </script>
 
 <template>
-  <div class="mobileNavIcon-wrapper" :class="clicked.state ? 'is-active' : ''">
+  <div class="mobileNavIcon-wrapper" :class="clicked ? 'is-active' : ''">
     <div
       class="mobileNavIcon"
-      @click="clicked.state = !clicked.state"
-      :class="clicked.state ? 'is-active' : ''"
+      @click="{emit('navIconClicked'); clicked = !clicked; console.log(clicked)}"
     >
       <span class="line"></span>
       <span class="line"></span>

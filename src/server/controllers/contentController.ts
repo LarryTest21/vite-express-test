@@ -72,6 +72,7 @@ export async function uploadPost(req: Request, res: Response) {
       eventCategory: req.body.eventCategory,
       eventImage: req.body.eventImage,
       postAuthorID: req.body.postAuthorID,
+      postAuthorName: req.body.postAuthorName
     };
 
     eventPost
@@ -95,6 +96,7 @@ export async function uploadPost(req: Request, res: Response) {
         coverImage: postData.postImage,
         lastUpload: new Date(),
         postAuthorID: postData.postAuthorID,
+        postAuthorName: postData.postAuthorName,
         mainCategory: postData.mainCategory[0],
         postContent: postData.postContent,
         postDate: postData.postDate,
@@ -129,6 +131,7 @@ export async function uploadPost(req: Request, res: Response) {
           postDate: postData.postDate,
           postExcerpt: postData.postExcerpt,
           postTitle: postData.postTitle,
+          postAuthorName: postData.postAuthorName
         };
 
         if (existingPost === null) {

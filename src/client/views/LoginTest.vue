@@ -3,6 +3,8 @@ import { ref, watch } from "vue";
 import emailSVG from "../components/icons/user.vue";
 import passwordSVG from "../components/icons/password.vue";
 import axios from "axios"
+import {userData} from "../store/userData"
+
 const email = ref();
 const password = ref();
 const loggedIn = ref(false);
@@ -41,6 +43,7 @@ const errorBFalse = () => {
 };
 
 const signIn = () => {
+    console.log(userData().data)
     const POST_URL = 'api/user/login'
 
     const loginData = {

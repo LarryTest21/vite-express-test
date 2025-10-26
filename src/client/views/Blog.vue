@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, onBeforeUnmount } from "vue";
+import { ref, onMounted, watch, onBeforeUnmount, Ref } from "vue";
 import moment from "moment";
 import SonarLoading from "../components/SonarLoading.vue";
 import BlogSideBar from "../components/BlogSideBar.vue";
-import SearchBar from "../components/SearchBar.vue";
+import SearchBar from "../components/blog/SearchBar.vue";
 import timerIcon from "../components/icons/timer.vue";
 import eyeIcon from "../components/icons/eye.vue";
 import axios from "axios";
@@ -91,86 +91,53 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   searchIcon.state = false;
 });
+
+const searchBarFn = (data: boolean) => {
+  if (!data) {
+    setTimeout(() => {
+      searchActive.value.state = false
+
+    }, 150);
+  }
+}
 </script>
 
 <template>
   <TransitionGroup name="search">
-    <SearchBar
-      :storedPosts="storedPosts"
-      v-if="searchActive.state"
-      class="searchbar"
-    />
+    <SearchBar :storedPosts="storedPosts" v-if="searchActive.state" class="searchbar" @inputFocused="searchBarFn" />
   </TransitionGroup>
 
-  <div
-    class="blog-container"
-    :class="checkMobile.state ? 'mobile' : ''"
-    key="1"
-  >
+  <div class="blog-container" :class="checkMobile.state ? 'mobile' : ''" key="1">
     <transition name="fadeLoading">
-      <SonarLoading
-        class="sonar"
-        v-if="isLoading"
-        :background="sonarBackground"
-      />
+      <SonarLoading class="sonar" v-if="isLoading" :background="sonarBackground" />
     </transition>
     <div class="sidebar" v-if="sideBarShow">
-      <BlogSideBar
-        @selected="selected"
-        @search="inputFocused"
-        class="sidebar"
-        ref="sidebar"
-      />
+      <BlogSideBar @selected="selected" @search="inputFocused" class="sidebar" ref="sidebar" />
     </div>
 
     <div class="wrapper" key="1">
       <TransitionGroup name="fade">
-        <div
-          class="posts-card"
-          v-if="!isLoading"
-          v-for="post in blogPosts"
-          :key="post.postID"
-        >
+        <div class="posts-card" v-if="!isLoading" v-for="post in blogPosts" :key="post.postID">
           <div class="wrapper-posts">
             <div class="admin edit-post">
-              <editIcon 
-              @click="$router.push('/createpost/' + post._id)"
-              />
+              <editIcon @click="$router.push('/createpost/' + post._id)" />
             </div>
             <div class="category" v-for="category in post.subCategory">
               {{ category }}
-              <router-link
-                :to="/category/ + category"
-                key="category"
-                class="category-permalink"
-              ></router-link>
+              <router-link :to="/category/ + category" key="category" class="category-permalink"></router-link>
             </div>
-            <router-link
-              :to="/blog/ + post._id"
-              key="post.id"
-              class="posts-permalink"
-            >
+            <router-link :to="/blog/ + post._id" key="post.id" class="posts-permalink">
             </router-link>
 
             <div class="posts-image">
               <div class="category-wrapper">
-                <div
-                  class="read-already-wrapper"
-                  v-if="readArray !== undefined"
-                >
-                  <div
-                    class="read-already"
-                    v-if="readArray.includes(post._id.toString())"
-                  >
+                <div class="read-already-wrapper" v-if="readArray !== undefined">
+                  <div class="read-already" v-if="readArray.includes(post._id.toString())">
                     READ
                   </div>
                 </div>
               </div>
-              <img
-                class="post.metadata.hero"
-                :src="post.coverImage"
-                :alt="post.postTitle"
-              />
+              <img class="post.metadata.hero" :src="post.coverImage" :alt="post.postTitle" />
             </div>
 
             <div class="posts-text-area">
@@ -196,10 +163,7 @@ onBeforeUnmount(() => {
                   </div>
                   <div class="watched-wrapper">
                     <eyeIcon />
-                    <div
-                      v-if="post.viewCount != undefined"
-                      class="watched-count"
-                    >
+                    <div v-if="post.viewCount != undefined" class="watched-count">
                       {{ post.viewCount }}
                     </div>
                     <div v-else class="watched-count">{{ 0 }}</div>
@@ -233,11 +197,13 @@ onBeforeUnmount(() => {
   height: calc(100% - 70px);
   padding-top: 70px;
   display: flex;
+
   .sonar {
     position: absolute;
     height: 100%;
     width: 100%;
   }
+
   .sidebar {
     position: relative;
     margin-top: 30px;
@@ -272,6 +238,7 @@ onBeforeUnmount(() => {
     .posts-card {
       height: 400px;
       width: 450px;
+
       .edit-post {
         cursor: pointer;
         position: absolute;
@@ -285,14 +252,17 @@ onBeforeUnmount(() => {
         top: 0;
         right: 0;
         transition: all 0.2s ease-in-out;
+
         &:hover {
           background-color: var(--color-nav-bg-darker);
         }
+
         svg {
           transition: all 0.2s ease-in-out;
           fill: var(--color-nav-txt);
         }
       }
+
       .wrapper-posts {
         position: relative;
         width: 100%;
@@ -301,6 +271,7 @@ onBeforeUnmount(() => {
         flex-direction: column;
         gap: 10px;
       }
+
       .category {
         position: absolute;
         border-radius: 10px;
@@ -319,13 +290,16 @@ onBeforeUnmount(() => {
         a {
           position: relative;
         }
+
         &:hover {
           background-color: var(--color-nav-txt-darker);
         }
+
         &:active {
           box-shadow: inset rgba(2, 11, 26, 0.534) 0px 1px 1px 1px;
         }
       }
+
       .posts-image {
         position: relative;
         height: 100%;
@@ -400,7 +374,7 @@ onBeforeUnmount(() => {
       z-index: 10;
     }
 
-    .posts-permalink:hover ~ .posts-text-area {
+    .posts-permalink:hover~.posts-text-area {
       color: var(--color-nav-txt);
       background: var(--color-nav-bg);
 
@@ -543,9 +517,7 @@ onBeforeUnmount(() => {
   opacity: 0;
 }
 
-.search-leave-active {
-  position: absolute;
-}
+
 
 .fadeLoading-enter-active,
 .fadeLoading-leave-active {

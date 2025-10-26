@@ -800,4 +800,109 @@ export async function unSubscribeToAuthor(req: Request, res: Response) {
   }
 }
 
+export async function updateProfileData(req: Request, res: Response) {
+  const { user, data } = req.body;
 
+  try {
+    if (!user || !data) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing user ID or data",
+      });
+    }
+
+    // Find the existing user document
+    const existingUser = await User.findById(user);
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Prepare update objects
+    const userUpdate: Record<string, any> = {};
+    const authUpdate: Record<string, any> = {};
+
+    // Allow safe updates for these fields only
+    const allowedFields = [
+      "email",
+      "firstName",
+      "lastName",
+      "displayName",
+      "profilePic",
+    ];
+
+    for (const key of allowedFields) {
+      if (data[key] !== undefined) {
+        userUpdate[key] = data[key];
+      }
+    }
+
+    // --- Handle email updates ---
+    if (data.email && data.email !== existingUser.email) {
+      userUpdate.email = data.email;
+      authUpdate.email = data.email;
+    }
+
+    // --- Handle password updates ---
+    if (data.newPassword) {
+      if (!data.currentPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Current password is required to set a new one.",
+        });
+      }
+
+      const authDoc = await userAuth.findOne({ email: existingUser.email });
+      if (!authDoc) {
+        return res.status(404).json({
+          success: false,
+          message: "Auth record not found for this user.",
+        });
+      }
+
+      const valid = await bcrypt.compare(
+        data.currentPassword,
+        authDoc.password
+      );
+      if (!valid) {
+        return res.status(401).json({
+          success: false,
+          message: "Incorrect current password.",
+        });
+      }
+
+      authUpdate.password = await bcrypt.hash(data.newPassword, 10);
+    }
+
+    // --- Update user model ---
+    const updatedUser = await User.findByIdAndUpdate(
+      user,
+      { $set: userUpdate },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    // --- Update userAuth if needed ---
+    if (Object.keys(authUpdate).length > 0) {
+      await userAuth.findOneAndUpdate(
+        { email: existingUser.email },
+        { $set: authUpdate },
+        { new: true }
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully.",
+      data: updatedUser,
+    });
+  } catch (error:any) {
+    console.error("Error updating profile:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message || error,
+    });
+  }
+}

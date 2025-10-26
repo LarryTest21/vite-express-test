@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { modalActive } from "../store/modalActive";
 import { modalButtonActive } from "../store/modalButtonActive";
 
@@ -12,6 +12,8 @@ const props = defineProps({
   modalLoadingMessageColor: String,
   modalButtonMessage: String,
   backgroundOpacity: Number,
+  backgroundColor: String,
+  fontColorLoadingMessage: String,
   spinnerColor: String,
   position: String,
   fontSize: String,
@@ -23,11 +25,9 @@ const props = defineProps({
   userInfo: Object,
 });
 
-watch(() => props.modalAnimation, (newv) => {
-  console.log(newv)
-})
 
-
+const backgroundColor = computed(() => props.backgroundColor)
+const fontColorLoadingMessage = computed(() => props.fontColorLoadingMessage)
 const spinnerColor = ref(props.spinnerColor || 'var(--color-nav-txt)');
 const modalLoadingMessageColor = ref(
   props.modalLoadingMessageColor || 'var(--color-nav-txt)'
@@ -59,7 +59,8 @@ const emitDeleteEvent = (target: any) => {
 </script>
 
 <template>
-  <div class="modal" @click="closeModal" v-click-away="closeModal">
+  <div class="modal" @click="closeModal" v-click-away="closeModal"
+    :class="backgroundColor != undefined ? 'background-given' : ''">
     <div class="user-action" v-if="props.socketAction != undefined">
       <div class="text" v-if="props.socketAction === 'userConnected'">
         Connected
@@ -87,7 +88,10 @@ const emitDeleteEvent = (target: any) => {
     <TransitionGroup name="fade">
       <div class="wrapper" key="lorem1" v-if="modalLoadingMessage">
         <transition name="fade" mode="out-in">
-          <p class="modal-message" :key="modalLoadingMessage" v-if="modalLoadingMessage">
+          <p class="modal-message" :key="modalLoadingMessage" v-if="modalLoadingMessage" :class="[
+            fontColorLoadingMessage !== undefined ? 'color-given' : '',
+            !props.modalAnimation ? 'has-animation' : ''
+          ]">
             {{ props.modalLoadingMessage }}
           </p>
         </transition>
@@ -197,6 +201,8 @@ const emitDeleteEvent = (target: any) => {
   }
 }
 
+
+
 .modal::before {
   position: absolute;
   content: "";
@@ -209,6 +215,11 @@ const emitDeleteEvent = (target: any) => {
   justify-content: center;
   align-items: center;
   z-index: -1;
+  transition: all 0.5s ease-in-out;
+}
+
+.modal.background-given::before {
+  background-color: v-bind(backgroundColor);
 }
 
 button {
@@ -298,7 +309,16 @@ button:active {
     align-items: center;
     color: var(--color-nav-bg);
     color: v-bind(modalLoadingMessageColor);
-    margin-bottom:30px;
+    margin-bottom: 30px;
+    transition: all 0.5s ease-in-out;
+
+    &.color-given {
+      color: v-bind(fontColorLoadingMessage)
+    }
+
+    &.has-animation {
+      margin-bottom: 0;
+    }
   }
 
   .modal-content {
@@ -342,6 +362,7 @@ button:active {
   .modal-question {
     font-family: Chango;
     font-size: 2rem;
+    font-size: v-bind(fontSize);
     position: absolute;
     height: 100%;
     padding: 5px;

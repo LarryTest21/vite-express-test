@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeMount, watch } from "vue";
-import { mobileIconClicked } from "../../store/mobileIconClicked";
 import { useSwipe } from "@vueuse/core";
 
-const clicked = mobileIconClicked();
+const props = defineProps({
+  navIconClicked: Boolean,
+})
 
+const emit = defineEmits(['navIconClicked'])
+
+
+const iconClicked = ref(false)
 const iconRef = ref(null);
 
 const { direction } = useSwipe(iconRef);
 
 watch(direction, (newvalue) => {
   if (newvalue == "down") {
-    console.log("down");
-    clicked.state = true;
-  } 
+    emit('navIconClicked');
+  } else if (newvalue == 'up') {
+    emit('navIconClicked');
+  }
 });
 
 const opacity = ref();
@@ -41,13 +47,10 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <div
-    ref="iconRef"
-    class="mobileNavIcon-wrapper"
-    @click.prevent="clicked.state = !clicked.state"
-  >
+  <div ref="iconRef" class="mobileNavIcon-wrapper" @click="{ emit('navIconClicked'); iconClicked = !iconClicked }"
+    @touchmove.prevent @scroll.prevent>
     <div class="inner">
-      <div class="mobileNavIcon" :class="clicked.state ? 'is-active' : ''">
+      <div class="mobileNavIcon" :class="navIconClicked ? 'is-active' : ''">
         <span class="line"></span>
         <span class="line"></span>
         <span class="line"></span>
@@ -67,6 +70,7 @@ onBeforeMount(() => {
   width: 100%;
   height: 50px;
   padding: 10px;
+
   .inner {
     top: 0;
     position: relative;

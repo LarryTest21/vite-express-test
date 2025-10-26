@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
 import moment from "moment";
+import SearchBarClose from "./SearchBarClose.vue";
+import e from "express";
 
 const searchValue = ref();
 const searchInput = ref();
@@ -23,18 +25,18 @@ const emit = defineEmits(["inputFocused"]);
 const inputFocusedRef = ref(false);
 
 const inputFocused = () => {
+  searchActive.value = true
   inputFocusedRef.value = true;
-  emit("inputFocused", inputFocusedRef);
+  emit("inputFocused", inputFocusedRef.value);
   showResults.value = true;
 };
 const inputNotFocused = () => {
+  searchActive.value = false
   inputFocusedRef.value = false;
-  emit("inputFocused", inputFocusedRef);
   showResults.value = false;
 };
 
 watch(searchValue, (newValue) => {
-  console.log(results.value)
   results.value.forEach((post: any) => {
     delete post.whereFound1;
     delete post.whereFound2;
@@ -50,7 +52,6 @@ watch(searchValue, (newValue) => {
 
     if (searchValue.value !== "") {
       resulstCheck.value = true;
-
       resultsTitle.value = searchArray.value.filter(
         (item: any) =>
           item.postTitle
@@ -65,7 +66,7 @@ watch(searchValue, (newValue) => {
       );
       resultsAuthor.value = searchArray.value.filter(
         (item: any) =>
-          item.postAuthor
+          item.postAuthorName
             .toLowerCase()
             .indexOf(searchValue.value.toLowerCase()) !== -1
       );
@@ -97,44 +98,52 @@ onMounted(() => {
     searchInput.value.focus();
   }, 100);
 });
+const searchActive = ref(false)
+const close = () => {
+  emit('inputFocused', false)
+}
 </script>
 
 <template>
   <div class="search-bar-wrapper">
     <div class="input">
+
       <div class="search-results-outer-wrapper">
+        <div class="search-title">
+          <div class="title">SearchBar</div>
+          <SearchBarClose class="close-button" @close="close" />
+        </div>
         <input ref="searchInput" type="text" class="search-input" v-model="searchValue" @focus="inputFocused"
-               @blur="inputNotFocused"
-        />
-        <div class="results-tab-wrapper">
+          @blur="inputNotFocused" />
+        <div class="results-tab-wrapper" :class="searchActive == false ? 'unactive' : ''">
           <Transition name="resultsTab">
             <div class="results-tab" v-if="resulstCheck">
               <TransitionGroup name="results">
                 <div class="results" v-for="result in results" :key="1">
-                  <router-link :to="/blog/ + result._id" key="result.id" class="posts-permalink"
-                  >
+                  <router-link :to="/blog/ + result._id" key="result.id" class="posts-permalink">
                   </router-link>
 
                   <div class="title">{{ result.postTitle }}</div>
                   <div class="where-found-wrapper">
                     <div class="label">Found in</div>
-                    <div class="search-place" v-if="result.whereFound1 !== undefined"
-                    >
+                    <div class="search-place" v-if="result.whereFound1 !== undefined">
                       "{{ result.whereFound1 }}"
                     </div>
-                    <div class="search-place" v-if="result.whereFound2 !== undefined"
-                    >
+                    <div class="search-place" v-if="result.whereFound2 !== undefined">
                       "{{ result.whereFound2 }}"
                     </div>
-                    <div class="search-place" v-if="result.whereFound3 !== undefined"
-                    >
+                    <div class="search-place" v-if="result.whereFound3 !== undefined">
                       "{{ result.whereFound3 }}"
                     </div>
                   </div>
-                  <div class="post-date">
-                    {{
-                      moment(new Date(result.postDate)).format("MMM DD, HH:mm")
-                    }}
+                  <div class="post-date-wr">
+                    <div class="post-date-title"> Posted @
+                    </div>
+                    <div class="post-date">
+                      {{
+                        moment(new Date(result.postDate)).format("MMM DD, HH:mm")
+                      }}
+                    </div>
                   </div>
                 </div>
               </TransitionGroup>
@@ -177,17 +186,36 @@ onMounted(() => {
     position: relative;
     width: 100%;
     height: 100%;
-    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 
     .search-results-outer-wrapper {
+      right: 0;
+      left: 0;
+      margin: auto;
       margin-top: 100px;
       width: 900px;
       display: flex;
       flex-direction: column;
       align-items: center;
+
+      .search-title {
+        display: flex;
+        font-size: 4rem;
+        font-weight: 800;
+        font-family: Roboto Condensed;
+        color: var(--color-nav-bg);
+        gap: 30px;
+
+        .close-button {
+          top: 0;
+          bottom: 0;
+          margin: auto;
+          position: relative;
+        }
+
+      }
     }
 
     .search-input[type="text"] {
@@ -206,6 +234,8 @@ onMounted(() => {
         width: 100%;
       }
     }
+
+
   }
 
   .results-tab-wrapper {
@@ -213,6 +243,10 @@ onMounted(() => {
     position: relative;
     height: 300px;
     transition: all 0.2s ease-in-out;
+
+    &.unactive {
+      width: 70%;
+    }
 
     .results-tab {
       font-family: Roboto Condensed;
@@ -269,7 +303,6 @@ onMounted(() => {
 
         .title {
           position: relative;
-          width: 400px;
           padding: 12px;
           font-size: 1.4rem;
           font-weight: 500;
@@ -312,13 +345,24 @@ onMounted(() => {
           }
         }
 
-        .post-date {
+        .post-date-wr {
           display: flex;
           justify-content: center;
           align-items: center;
-          padding: 10px;
           font-size: 1rem;
-          font-weight: 500;
+
+          .post-date-title {
+            font-weight: 600;
+          }
+
+          .post-date {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+          }
         }
       }
     }

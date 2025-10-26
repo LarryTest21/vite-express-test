@@ -49,6 +49,7 @@ const interPost = ref({
   interDate: undefined,
   interImage: undefined,
   postAuthorID: userData().data._id,
+  postAuthor: userData().data.displayName
 }) as any;
 
 //InterPost for Post
@@ -509,6 +510,8 @@ const savePost = () => {
   const timestamp = currentDate.getTime();
 
   interPost.value["postAuthorID"] = userData().data._id;
+  interPost.value["postAuthor"] = userData().data.displayName
+
   interPost.value["lastsaved"] = timestamp;
 
   originalArray = JSON.parse(localStorage.getItem("savedPosts") || "") as any;
@@ -597,6 +600,8 @@ const uploadPost = () => {
       eventImage: interPost.value["interImage"],
       eventContent: interPost.value.postContent,
       postAuthorID: userData().data._id,
+      postAuthor: userData().data.displayName
+
     };
 
     if (
@@ -651,7 +656,10 @@ const uploadPost = () => {
             mainCategory: interPost.value["mainCategory"],
             subCategory: interPost.value["subCategory"],
             postAuthorID: userData().data._id,
+            postAuthorName: userData().data.displayName
           };
+          console.log(postData)
+
           axios.post("/api/uploadPost", postData).then((res) => {
             if (res.status === 200) {
               axios
@@ -696,6 +704,8 @@ const uploadPost = () => {
             postImage: interPost.value["interImage"],
             mainCategory: interPost.value["mainCategory"],
             postAuthorID: userData().data._id,
+            postAuthorName: userData().data.displayName || undefined
+
           };
           axios.post("/api/uploadPost", postData).then((res) => {
             if (res.status === 200) {
@@ -720,6 +730,7 @@ const uploadPost = () => {
       eventCategory: interPost.value["interEventCategory"],
       eventImage: interPost.value["interImage"],
       postAuthorID: userData().data._id,
+      postAuthor: userData().data.displayName
     };
     console.log(eventData);
     if (

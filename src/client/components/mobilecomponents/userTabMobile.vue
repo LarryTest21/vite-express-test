@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 import { userTabClick } from "../../store/userTabClick";
 import { useRoute } from "vue-router";
 import { signedIn } from "../../store/signedIn";
@@ -9,15 +9,15 @@ import axios from "axios";
 import "../icons/nopfpbase64";
 import { base64NoPFP } from "../icons/nopfpbase64";
 import gsap from "gsap";
-import { mobileIconClicked } from "../../store/mobileIconClicked";
 import $ from 'jquery';
 import { createGlobalState } from "@vueuse/core";
-const mobileIClicked = mobileIconClicked();
 
 const props = defineProps({
   isAdminCheck: String,
   userData: Object,
 });
+
+console.log("isAdminCheck prop:", props.isAdminCheck);
 
 const userClick = userTabClick();
 
@@ -30,7 +30,7 @@ const route = useRoute();
 const userPFP = ref();
 const userEmail = ref();
 
-const emit = defineEmits(["logOut", "linkClicked"]);
+const emit = defineEmits(["logOut", "linkClicked", "navIconClicked"]);
 const userD = userData();
 
 const logOut = () => {
@@ -77,6 +77,9 @@ if (userD != undefined) {
 
 
 const showNoPFP = ref(false);
+
+
+
 onMounted(() => {
   gsap.from(".usertab-top>div", {
     delay: 0.3,
@@ -93,6 +96,8 @@ onMounted(() => {
     x: -100,
     opacity: 0,
   });
+
+
 
   loginActivated.value = JSON.parse(localStorage.getItem("loggedIn")!);
   if (userPFP.value === undefined || userPFP.value === "") {
@@ -125,6 +130,29 @@ onMounted(() => {
     }
   }
 });
+
+
+onUnmounted(() => {
+  gsap.to(".usertab-top>div", {
+    delay: 0.05,
+    duration: 0.1,
+    stagger: 0.09,
+    x: -100,
+    opacity: 0,
+  });
+
+  gsap.to(".usertab-links-do>a", {
+    delay: 0.05,
+    duration: 0.1,
+    stagger: 0.09,
+    x: -100,
+    opacity: 0,
+  });
+});
+
+
+
+
 </script>
 
 <template>
@@ -141,13 +169,13 @@ onMounted(() => {
         <p class="userEmail">{{ userEmail }}</p>
       </div>
     </div>
-    <div class="usertab-links-do" @click.prevent="mobileIClicked.state =false">
+    <div class="usertab-links-do" @click.prevent="emit('navIconClicked')">
       <router-link to="/profile">Profile</router-link>
       <router-link to="/createpost/newPost" key="newPost"
         >Create Post</router-link
       >
       <router-link to="/editpostslist"
-                   v-if="props.isAdminCheck"
+                   v-if="props.isAdminCheck === 'admin'"
                    key="editpostslist"
         >Edit Posts</router-link
       >

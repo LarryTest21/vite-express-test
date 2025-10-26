@@ -1,20 +1,32 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import gsap from "gsap";
 import $ from "jquery";
 
-import { mobileIconClicked } from "../../store/mobileIconClicked";
 
-const clicked = mobileIconClicked();
+
+const animationDone = ref(false);
+
 
 onMounted(() => {
 
   $(".links>a").on('click', function () {
-    clicked.state = false
   });
   gsap.from(".links>a", {
     delay: 0.3,
     duration: 0.2,
+    stagger: 0.09,
+    x: -100,
+    opacity: 0
+  }).then(() => {
+    animationDone.value = true
+  })
+})
+
+onUnmounted(() => {
+  gsap.to(".links>a", {
+    delay: 0.05,
+    duration: 0.1,
     stagger: 0.09,
     x: -100,
     opacity: 0
@@ -23,11 +35,10 @@ onMounted(() => {
 
 
 
-
 </script>
 
 <template>
-  <div class="links">
+  <div class="links" :class="{ animationDone: animationDone }">
     <RouterLink to="/rulebook">
       <li>Rulebook</li>
     </RouterLink>
@@ -50,18 +61,18 @@ onMounted(() => {
 .links {
   position: relative;
   width: 100%;
-  font-size: 3rem;
+  font-size: 2.5rem;
   list-style: none;
   display: flex;
   flex-direction: column;
 
   a {
-    height: 100%;
-    padding: 10px;
-    text-decoration: none;
     display: flex;
+    text-decoration: none;
+    padding: 40px 0 40px 20px;
     align-items: center;
-    color: var(--color-nav-txt)
+    color: var(--color-nav-txt);
+    transition: background-color 0.2s ease-in-out;
   }
 
   a:hover {
@@ -74,6 +85,10 @@ onMounted(() => {
     background-color: var(--color-nav-txt-darker);
     color: var(--color-nav-bg)
   }
+}
 
+.animationDone a:nth-child(even) {
+  background-color: var(--color-nav-txt);
+  color: var(--color-nav-bg)
 }
 </style>

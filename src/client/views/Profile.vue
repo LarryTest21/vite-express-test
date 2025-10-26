@@ -85,31 +85,26 @@ onMounted(() => {
     <div class="profile-wrapper-inner">
       <div class="show">
         <transition name="modal">
-          <Modal v-if="modalActivation" class="modal-div" :position="'absolute'" :modalLoadingMessage="modalMessage" 
-             :fontSize="'3rem'" @click="modalActivation = false"
-          />
+          <Modal v-if="modalActivation" class="modal-div" :position="'absolute'" :modalLoadingMessage="modalMessage"
+            :fontSize="'3rem'" @click="modalActivation = false" />
         </transition>
         <div class="username">{{ userName }}</div>
 
         <div class="cat-tab">
           <TransitionGroup class="categories" tag="ul" name="tabs">
-            <li value="1" :class="profile ? 'active' : ''" @click="enableTab" key="1"
-            >
+            <li value="1" :class="profile ? 'active' : ''" @click="enableTab" key="1">
               Profile
             </li>
-            <li value="2" :class="settings ? 'active' : ''" @click="enableTab" key="2"
-            >
+            <li value="2" :class="settings ? 'active' : ''" @click="enableTab" key="2">
               Settings
             </li>
-            <li value="3" :class="history ? 'active' : ''" v-if="historyEnabled" @click="enableTab" key="3"
-            >
+            <li value="3" :class="history ? 'active' : ''" v-if="historyEnabled" @click="enableTab" key="3">
               History
             </li>
           </TransitionGroup>
           <TransitionGroup class="tabcontainer" tag="div" :name="tabs">
             <profUserTab v-if="profile" :userData="userData" key="1" />
-            <profSettings v-if="settings" :userData="userData" key="2" @settingsSaved="saved"
-            />
+            <profSettings v-if="settings" :userData="userData" key="2" @settingsSaved="saved" />
             <profHistoryTab v-if="history" :userData="userData" key="3" />
           </TransitionGroup>
         </div>
@@ -135,34 +130,35 @@ onMounted(() => {
 }
 
 .profile-wrapper {
-  height: calc(100vh - 70px);
-  width: 100%;
   padding-top: 70px;
+  position: relative;
+  height: 100%;
 
   .profile-wrapper-inner {
-    width: 100%;
     height: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    padding: 50px;
+    justify-content: center;
     overflow: hidden;
+    padding: 30px;
 
     .show {
       position: relative;
       height: 100%;
-      width: 700px;
       background-color: var(--color-nav-bg);
       border-radius: 10px;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      overflow-y: hidden;
       box-shadow: 1px 3px 5px 4px rgb(2, 60, 114);
+      width: 700px;
+
       .modal {
-        position:absolute;
+        position: absolute;
         height: 100%;
         width: 100%;
       }
+
       .username {
         position: relative;
         width: 100%;
@@ -269,5 +265,35 @@ onMounted(() => {
 .modal-leave-to {
   transform: translateY(-200px);
   opacity: 0;
+}
+
+
+@media screen and (max-width: 932px) {
+  .profile-wrapper {
+    padding-top: 50px;
+
+    .profile-wrapper-inner {
+      width: 100%;
+      padding: 0px;
+
+      .show {
+        border-radius: 0px;
+
+        .cat-tab {
+          flex-direction: row;
+
+          .categories {
+            flex-direction: column;
+
+            &::after {
+            }
+
+            li:first-child.active {
+            }
+          }
+        }
+      }
+    }
+  }
 }
 </style>

@@ -141,7 +141,7 @@ onMounted(() => {
     <div class="usertab-links" ref="userTab">
       <router-link to="/profile">Profile</router-link>
       <router-link to="/createpost/newPost">Create Post</router-link>
-      <router-link to="/editpostslist" v-if="!props.isAdminCheck">Edit Posts</router-link>
+      <router-link to="/editpostslist" v-if="props.isAdminCheck !== 'admin'">Edit Posts</router-link>
       <router-link @click.native.prevent="userClick" to="/adminpage" v-if="props.isAdminCheck === 'admin'">Admin
         Page</router-link>
 
